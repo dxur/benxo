@@ -1,0 +1,7 @@
+[workspace]
+resolver = "2"
+members = ["backend", "dashboard", "common", "macros"]
+
+[profile.dev]
+debug = false
+incremental = false

@@ -1,0 +1,16 @@
+[package]
+name = "dashboard"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+common = { path = "../common", features = ["wasm"] }
+console_error_panic_hook = "0.1.7"
+console_log = { version = "1.0.0", features = ["color"] }
+gloo-net = "0.6.0"
+gloo-timers = { version = "0.3.0", features = ["futures"] }
+leptos = { version = "0.8.0-rc2", features = ["csr"] }
+leptos_router = "0.8.0-rc2"
+log = "0.4.27"
+serde = "1.0.219"
+serde_urlencoded = "0.7.1"

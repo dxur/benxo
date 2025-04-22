@@ -1,0 +1,37 @@
+body {
+    display: flex;
+    min-height: 100vh;
+}
+
+aside {
+    display: flex;
+    flex-direction: column;
+}
+
+aside nav {
+    display: flex;
+    flex-direction: column;
+}
+
+[data-modal] {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000;
+}
+
+[data-backdrop] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #ffffff;
+}
+
+[data-modal-box] {
+    position: relative;
+    z-index: 1;
+}
