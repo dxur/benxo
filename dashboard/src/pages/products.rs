@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use common::{
     models::{
         Page, Pagination,

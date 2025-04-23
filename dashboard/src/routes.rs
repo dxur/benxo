@@ -1,14 +1,10 @@
-use leptos::{
-    prelude::{AnyView, IntoAny},
-    view,
-};
+use leptos::prelude::*;
 
 use crate::pages::{Home, Products, Settings, Users};
 
 pub struct Route {
     pub path: &'static str,
     pub component: fn() -> AnyView,
-    pub subroutes: &'static [Route],
 }
 
 pub struct MenuItem {
@@ -26,22 +22,18 @@ pub const ROUTES: &[Route] = &[
     Route {
         path: HOME_PATH,
         component: Home,
-        subroutes: &[],
     },
     Route {
         path: PRODUCTS_PATH,
         component: Products,
-        subroutes: &[],
     },
     Route {
         path: USERS_PATH,
         component: Users,
-        subroutes: &[],
     },
     Route {
         path: SETTINGS_PATH,
         component: Settings,
-        subroutes: &[],
     },
 ];
 

@@ -1,8 +1,8 @@
 use common::models::{
     ObjectId,
-    product::{self, ProductModel, ProductModelCreate, ProductModelPublic, ProductModelUpdate},
+    product::{ProductModel, ProductModelCreate, ProductModelPublic, ProductModelUpdate},
 };
-use leptos::{html::base, prelude::*};
+use leptos::prelude::*;
 
 use super::{Accessor, IntoForm};
 

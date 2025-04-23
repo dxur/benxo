@@ -11,7 +11,6 @@ use leptos_router::{
     components::{FlatRoutes, Route, RouteProps, Router},
 };
 use routes::*;
-use serde::{Deserialize, Serialize};
 
 #[component]
 fn App() -> impl IntoView {
