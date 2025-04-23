@@ -1,12 +1,14 @@
 pub use common::models::product::ProductModel;
+use common::models::product::{ProductModelFetch, ProductVarModel};
 use common::utils::validators::{non_negative, non_negative_option};
 use field::*;
-use mongodb::bson::serde_helpers::serialize_object_id_as_hex_string;
 use mongodb::bson::to_document;
 use mongodb::bson::{doc, oid::ObjectId, Document};
+use mongodb::options::TransactionOptions;
 use serde::{Deserialize, Serialize};
 
-use super::Model;
+use super::{Model, ModelFilter};
+use crate::db::DB;
 use crate::events::Event;
 use crate::AppState;
 
@@ -21,6 +23,7 @@ pub struct ProductModelInDb {
     pub base_price: f32,
     #[serde(deserialize_with = "non_negative")]
     pub base_discount: f32,
+    pub default_var: Option<ObjectId>,
     pub base_images: Vec<String>,
     pub slug: String,
 }
@@ -44,6 +47,7 @@ impl Model for common::models::product::ProductModel {
             category: body.category,
             base_price: body.base_price,
             base_discount: body.base_discount,
+            default_var: None,
             base_images: body.base_images,
             slug: body.slug,
         }
@@ -77,7 +81,7 @@ impl Model for common::models::product::ProductModel {
     async fn on_create(state: &AppState, body: &Self::ModelInDb) {
         state
             .event_bus
-            .emit(Event::ProductUpdated(body.clone()))
+            .emit(Event::ProductCreated(body.clone()))
             .await;
     }
 
@@ -96,194 +100,145 @@ impl Model for common::models::product::ProductModel {
     }
 }
 
-#[derive(Debug, Deserialize)]
-pub struct ProductVarModelFetch {
-    pub sku: String,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct ProductVarModelFilter {
-    pub product_id: ObjectId,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct ProductVarModelCreate {
-    pub sku: String,
-    pub product_id: ObjectId,
-    #[serde(deserialize_with = "non_negative")]
-    pub price: f32,
-    #[serde(deserialize_with = "non_negative")]
-    pub discount: f32,
-    pub quantity: u32,
-    pub images: Vec<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ProductVarModelUpdate {
-    pub sku: Option<String>,
-    #[serde(deserialize_with = "non_negative_option")]
-    pub price: Option<f32>,
-    #[serde(deserialize_with = "non_negative_option")]
-    pub discount: Option<f32>,
-    pub quantity: Option<u32>,
-    pub images: Option<Vec<String>>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct ProductVarModelDelete {
-    pub sku: String,
-}
-
-#[derive(Debug, Serialize)]
-pub struct ProductVarModelPublic {
-    pub sku: String,
-    #[serde(serialize_with = "serialize_object_id_as_hex_string")]
-    pub product_id: ObjectId,
-    #[serde(deserialize_with = "non_negative")]
-    pub price: f32,
-    #[serde(deserialize_with = "non_negative")]
-    pub discount: f32,
-    pub quantity: u32,
-    pub images: Vec<String>,
-}
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ProductVarModelInDb {
     pub sku: String,
     pub product_id: ObjectId,
-    #[serde(deserialize_with = "non_negative")]
-    pub price: f32,
-    #[serde(deserialize_with = "non_negative")]
-    pub discount: f32,
-    pub quantity: u32,
+    pub name: String,
+    pub description: String,
+    #[serde(deserialize_with = "non_negative_option")]
+    pub price: Option<f32>,
+    #[serde(deserialize_with = "non_negative_option")]
+    pub discount: Option<f32>,
+    pub stocks: usize,
     pub images: Vec<String>,
+    pub attrs: Vec<String>,
 }
 
-// pub struct ProductVarModel;
+impl Model for ProductVarModel {
+    const COLLECTION_NAME: &'static str = "variants";
+    const UNIQUE_INDICES: &'static [&'static str] = &[field!(sku @ ProductVarModelInDb)];
 
-// impl Model for ProductVarModel {
-//     const COLLECTION_NAME: &'static str = "products";
-//     const UNIQUE_INDICES: &'static [&'static str] = &[field!(sku @ ProductVarModelInDb)];
+    type ModelInDb = ProductVarModelInDb;
 
-//     type ModelFetch = ProductVarModelFetch;
-//     type ModelFilter = ProductVarModelFilter;
-//     type ModelCreate = ProductVarModelCreate;
-//     type ModelUpdate = ProductVarModelUpdate;
-//     type ModelDelete = ProductVarModelDelete;
-//     type ModelPublic = ProductVarModelPublic;
-//     type ModelInDb = ProductVarModelInDb;
+    fn fetch(body: Self::ModelFetch) -> Document {
+        doc! {field!(sku @ ProductVarModelInDb): body.sku}
+    }
 
-//     fn fetch(body: Self::ModelFetch) -> Document {
-//         doc! {field!(sku @ ProductVarModelInDb): body.sku}
-//     }
+    fn create(body: Self::ModelCreate) -> Self::ModelInDb {
+        Self::ModelInDb {
+            sku: body.sku,
+            product_id: body.product_id,
+            name: body.name,
+            description: body.description,
+            price: body.price,
+            discount: body.discount,
+            stocks: body.stocks,
+            images: body.images,
+            attrs: body.attrs,
+        }
+    }
 
-//     fn filter(body: Self::ModelFilter) -> Document {
-//         doc! {field!(product_id @ ProductVarModelInDb): body.product_id }
-//     }
+    fn update(body: &Self::ModelUpdate) -> Result<(Document, Document), ()> {
+        Ok((
+            doc! {field!(sku @ ProductVarModelInDb): &body.sku},
+            to_document(body).map_err(|_| ())?,
+        ))
+    }
 
-//     fn create(body: Self::ModelCreate) -> Self::ModelInDb {
-//         Self::ModelInDb {
-//             sku: body.sku,
-//             product_id: body.product_id,
-//             price: body.price,
-//             discount: body.discount,
-//             quantity: body.quantity,
-//             images: body.images,
-//         }
-//     }
+    fn delete(body: &Self::ModelDelete) -> Document {
+        doc! {field!(sku @ ProductVarModelInDb): &body.sku}
+    }
 
-//     fn update(body: &Self::ModelUpdate) -> Result<(Document, Document), ()> {
-//         Ok((
-//             doc! {field!(sku @ ProductVarModelInDb): &body.sku},
-//             to_document(body).map_err(|_| ())?,
-//         ))
-//     }
+    fn publish(body: Self::ModelInDb) -> Self::ModelPublic {
+        Self::ModelPublic {
+            sku: body.sku,
+            product_id: body.product_id,
+            name: body.name,
+            description: body.description,
+            price: body.price,
+            discount: body.discount,
+            stocks: body.stocks,
+            images: body.images,
+            attrs: body.attrs,
+        }
+    }
 
-//     fn delete(body: &Self::ModelDelete) -> Document {
-//         doc! {field!(sku @ ProductVarModelInDb): &body.sku}
-//     }
+    async fn create_in_db(db: &DB, body: Self::ModelCreate) -> Result<Option<Self::ModelInDb>, ()> {
+        let mut session = db.client().start_session().await.map_err(|_| ())?;
+        let txn_options = TransactionOptions::builder().build();
+        session
+            .start_transaction()
+            .with_options(txn_options)
+            .await
+            .map_err(|_| ())?;
 
-//     fn publish(body: Self::ModelInDb) -> Self::ModelPublic {
-//         Self::ModelPublic {
-//             sku: body.sku,
-//             product_id: body.product_id,
-//             price: body.price,
-//             discount: body.discount,
-//             quantity: body.quantity,
-//             images: body.images,
-//         }
-//     }
+        let product_exists = db
+            .collection::<<ProductModel as Model>::ModelInDb>(ProductModel::COLLECTION_NAME)
+            .find_one(ProductModel::fetch(ProductModelFetch {
+                id: body.product_id,
+            }))
+            .session(&mut session)
+            .await
+            .map_err(|_| ())?
+            .is_some();
 
-//     async fn create_in_db(db: &DB, body: Self::ModelCreate) -> Result<Option<Self::ModelInDb>, ()> {
-//         let mut session = db.0.client().start_session().await.map_err(|_| ())?;
-//         let txn_options = TransactionOptions::builder().build();
-//         session
-//             .start_transaction()
-//             .with_options(txn_options)
-//             .await
-//             .map_err(|_| ())?;
+        if !product_exists {
+            session.abort_transaction().await.ok();
+            return Err(());
+        }
 
-//         let product_exists =
-//             db.0.collection::<<ProductModel as Model>::ModelInDb>(ProductModel::COLLECTION_NAME)
-//                 .find_one(ProductModel::fetch(ProductModelFetch {
-//                     id: body.product_id,
-//                 }))
-//                 .session(&mut session)
-//                 .await
-//                 .map_err(|_| ())?
-//                 .is_some();
+        let model = Self::create(body);
+        match db
+            .collection::<Self::ModelInDb>(Self::COLLECTION_NAME)
+            .insert_one(&model)
+            .session(&mut session)
+            .await
+        {
+            Ok(_) => session
+                .commit_transaction()
+                .await
+                .map_or_else(|_| Ok(None), |_| Ok(Some(model))),
+            Err(_) => {
+                session.abort_transaction().await.ok();
+                Ok(None)
+            }
+        }
+    }
 
-//         if !product_exists {
-//             session.abort_transaction().await.ok();
-//             return Err(());
-//         }
+    async fn on_create(state: &AppState, body: &Self::ModelInDb) {
+        state
+            .event_bus
+            .emit(Event::ProductVarUpdated((
+                body.sku.clone(),
+                body.product_id,
+            )))
+            .await;
+    }
 
-//         let model = Self::create(body);
-//         match db
-//             .0
-//             .collection::<Self::ModelInDb>(Self::COLLECTION_NAME)
-//             .insert_one(&model)
-//             .session(&mut session)
-//             .await
-//         {
-//             Ok(_) => session
-//                 .commit_transaction()
-//                 .await
-//                 .map_or_else(|_| Ok(None), |_| Ok(Some(model))),
-//             Err(_) => {
-//                 session.abort_transaction().await.ok();
-//                 Ok(None)
-//             }
-//         }
-//     }
+    async fn on_update(state: &AppState, _: &Self::ModelUpdate, value: &Self::ModelInDb) {
+        state
+            .event_bus
+            .emit(Event::ProductVarUpdated((
+                value.sku.clone(),
+                value.product_id,
+            )))
+            .await;
+    }
 
-//     async fn on_create(state: &AppState, body: &Self::ModelInDb) {
-//         state
-//             .event_bus
-//             .emit(Event::ProductVarUpdated((
-//                 body.product_id,
-//                 body.sku.clone(),
-//             )))
-//             .await;
-//     }
+    async fn on_delete(state: &AppState, _: Self::ModelDelete, value: &Self::ModelInDb) {
+        state
+            .event_bus
+            .emit(Event::ProductVarDeleted((
+                value.sku.clone(),
+                value.product_id,
+            )))
+            .await;
+    }
+}
 
-//     async fn on_update(state: &AppState, _: &Self::ModelUpdate, value: &Self::ModelInDb) {
-//         state
-//             .event_bus
-//             .emit(Event::ProductVarUpdated((
-//                 value.product_id,
-//                 value.sku.clone(),
-//             )))
-//             .await;
-//     }
-
-//     async fn on_delete(state: &AppState, _: Self::ModelDelete, value: &Self::ModelInDb) {
-//         state
-//             .event_bus
-//             .emit(Event::ProductVarDeleted((
-//                 value.product_id,
-//                 value.sku.clone(),
-//             )))
-//             .await;
-//     }
-// }
+impl ModelFilter for ProductVarModel {
+    fn filter(body: Self::ModelFilter) -> Document {
+        doc! {field!(product_id @ ProductVarModelInDb): body.product_id}
+    }
+}

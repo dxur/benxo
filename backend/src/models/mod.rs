@@ -2,7 +2,7 @@
 pub mod product;
 // pub mod settings;
 // pub mod theme;
-// pub mod user;
+pub mod user;
 
 use futures::TryStreamExt;
 use mongodb::bson::{doc, Document};
@@ -132,21 +132,28 @@ pub trait ModelFilter: Model + common::models::ModelFilter {
         body: Self::ModelFilter,
         limit: usize,
         offset: usize,
-    ) -> Option<Vec<Self::ModelInDb>> {
+    ) -> Option<(usize, Vec<Self::ModelInDb>)> {
         let find_options = FindOptions::builder()
             .limit(limit as i64)
             .skip(offset as u64)
             .build();
 
-        Some(
+        let filter = Self::filter(body);
+
+        let coll = db.collection::<Self::ModelInDb>(Self::COLLECTION_NAME);
+
+        let total = coll.count_documents(filter.clone()).await.ok()? as usize;
+
+        Some((
+            total,
             db.collection::<Self::ModelInDb>(Self::COLLECTION_NAME)
-                .find(Self::filter(body))
+                .find(filter)
                 .with_options(find_options)
                 .await
                 .ok()?
                 .try_collect()
                 .await
                 .ok()?,
-        )
+        ))
     }
 }

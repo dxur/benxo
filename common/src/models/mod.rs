@@ -1,4 +1,5 @@
 pub mod product;
+pub mod user;
 
 pub use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};

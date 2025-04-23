@@ -37,15 +37,16 @@ pub async fn get_some<M: ModelFilter>(
     State(state): State<AppState>,
     Query(pagination): Query<Pagination>,
     Json(body): Json<M::ModelFilter>,
-) -> Result<Json<Vec<M::ModelPublic>>, StatusCode> {
-    Ok(Json(
-        M::get_some_in_db(&state.db, body, pagination.limit(), pagination.offset())
-            .await
-            .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?
-            .into_iter()
-            .map(|j| M::publish(j))
-            .collect(),
-    ))
+) -> Result<Json<Page<M::ModelPublic>>, StatusCode> {
+    let data = M::get_some_in_db(&state.db, body, pagination.limit(), pagination.offset())
+        .await
+        .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
+    Ok(Json(Page {
+        data: data.1.into_iter().map(|j| M::publish(j)).collect(),
+        total: data.0,
+        per_page: pagination.per_page(),
+        page: pagination.page(),
+    }))
 }
 
 pub async fn get_one<M: Model>(

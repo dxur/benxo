@@ -1,9 +1,31 @@
 :root {
-    --bg: #10101E;
-    --surface: #FFFFFF;
-    --overlay: #FAFAFC;
+    --bg: #121212;
+    --surface: #FAFAFA;
+    --overlay: #EAEAEA;
     --on-bg: white;
     --on-surface: black;
+}
+
+*,
+::after,
+::before,
+::backdrop,
+::file-selector-button {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    border: 0 solid;
+}
+
+html,
+:host {
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+    tab-size: 4;
+    font-family: var(--default-font-family, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji');
+    font-feature-settings: var(--default-font-feature-settings, normal);
+    font-variation-settings: var(--default-font-variation-settings, normal);
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -22,11 +44,28 @@ aside {
 aside nav {
     display: flex;
     flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+}
+
+aside nav button {
+    width: 100%;
+    height: 32px;
+    border-radius: 8px;
+    border-width: 1px;
+}
+
+aside nav button:disabled {
+    background: #ee3655b4;
+    border-color: #ff002b;
+    color: var(--on-bg);
 }
 
 main {
     background: var(--surface);
     color: var(--on-surface);
+    height: 100%;
+    width: 100%;
 }
 
 [data-modal] {

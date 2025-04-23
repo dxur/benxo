@@ -1,16 +1,16 @@
+use common::models::ObjectId;
 use tokio::{sync::mpsc::*, task};
 use tracing::info;
 
 use crate::{models::product::ProductModelInDb, AppState};
 
-type ObjectId = ();
-
 #[derive(Debug)]
 pub enum Event {
+    ProductCreated(ProductModelInDb),
     ProductUpdated(ProductModelInDb),
     ProductDeleted(ProductModelInDb),
-    ProductVarUpdated((ObjectId, String)),
-    ProductVarDeleted((ObjectId, String)),
+    ProductVarUpdated((String, ObjectId)), // (sku, product_id)
+    ProductVarDeleted((String, ObjectId)), // (sku, product_id)
     ThemeUpdated(ObjectId),
 }
 
@@ -39,11 +39,12 @@ impl EventBus {
 
     async fn handle_event(state: &AppState, event: Event) {
         match event {
-            Event::ProductUpdated(id) => on_product_updated(state, id).await,
-            Event::ProductDeleted(id) => on_product_deleted(state, id).await,
-            Event::ProductVarUpdated(var) => on_product_var_updated(state, var).await,
-            Event::ProductVarDeleted(var) => on_product_var_deleted(state, var).await,
-            Event::ThemeUpdated(id) => on_theme_updated(state, id).await,
+            Event::ProductCreated(body) => on_product_created(state, body).await,
+            Event::ProductUpdated(body) => on_product_updated(state, body).await,
+            Event::ProductDeleted(body) => on_product_deleted(state, body).await,
+            Event::ProductVarUpdated(body) => on_product_var_updated(state, body).await,
+            Event::ProductVarDeleted(body) => on_product_var_deleted(state, body).await,
+            Event::ThemeUpdated(body) => on_theme_updated(state, body).await,
         }
     }
 }
@@ -56,14 +57,18 @@ pub async fn on_product_updated(_: &AppState, product: ProductModelInDb) {
     info!("Updating product {:?}", product);
 }
 
+pub async fn on_product_created(_: &AppState, product: ProductModelInDb) {
+    info!("Creating product {:?}", product);
+}
+
 pub async fn on_product_deleted(_: &AppState, product: ProductModelInDb) {
     info!("Deleting product {:?}", product);
 }
 
-pub async fn on_product_var_updated(_: &AppState, var: (ObjectId, String)) {
+pub async fn on_product_var_updated(_: &AppState, var: (String, ObjectId)) {
     info!("Updating product Variant {:?}", var);
 }
 
-pub async fn on_product_var_deleted(_: &AppState, var: (ObjectId, String)) {
+pub async fn on_product_var_deleted(_: &AppState, var: (String, ObjectId)) {
     info!("Deleting product Variant {:?}", var);
 }
