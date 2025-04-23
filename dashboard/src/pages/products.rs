@@ -1,24 +1,29 @@
+use std::rc::Rc;
+
 use common::{
     models::{
         Page, Pagination,
-        product::{ProductModel, ProductModelCreate, ProductModelDelete, ProductModelPublic},
+        product::{
+            ProductModel, ProductModelCreate, ProductModelDelete, ProductModelPublic,
+            ProductModelUpdate,
+        },
     },
     routes::{ApiRoutes, Routes},
 };
 use leptos::{html::*, prelude::*, task::spawn_local};
 
-use crate::forms::Accessor;
 use crate::forms::IntoForm;
+use crate::forms::{Accessor, product::ProductUpdateAccessor};
 
 #[component]
 pub fn Products() -> AnyView {
     let (products, set_products) = signal(Option::<Result<Page<ProductModelPublic>, String>>::None);
     let (current_page, set_current_page) = signal::<usize>(1);
     let (page, set_page) = signal(1 as usize);
-    let (on_create, set_on_create) = signal(());
+    let (reload, set_reload) = signal(());
 
     Effect::watch(
-        move || (page.get(), on_create.get()),
+        move || (page.get(), reload.get()),
         move |this_page, _, _| {
             let (req_page, _) = *this_page;
             spawn_local(async move {
@@ -38,12 +43,18 @@ pub fn Products() -> AnyView {
     );
 
     let (create_modal, set_create_modal) = signal(false);
+    let (update_modal, set_update_modal) = signal(Option::<ProductUpdateAccessor>::None);
 
     view! {
         <Show
             when=move || { create_modal.get() }
         >
-            <ProductCreate set_modal=set_create_modal set_on_create=set_on_create />
+            <ProductCreate set_modal=set_create_modal set_on_create=set_reload />
+        </Show>
+        <Show
+            when=move || { update_modal.get().is_some() }
+        >
+            <ProductUpdate acc=update_modal.get().unwrap() set_modal=set_update_modal set_on_update=set_reload />
         </Show>
         <header>
             <title>Products</title>
@@ -73,36 +84,43 @@ pub fn Products() -> AnyView {
                                 </thead>
                                 <tbody>
                                     {
-                                        data.data.into_iter().map(|product| view! {
-                                            <tr>
-                                                <td>{product.slug}</td>
-                                                <td>{product.name}</td>
-                                                <td>{product.category}</td>
-                                                <td>{product.featured}</td>
-                                                <td>{product.base_price}</td>
-                                                <td>{product.base_discount}</td>
-                                                <td>
-                                                    <button
-                                                        on:click=move |_| {
-                                                            set_create_modal.set(true);
-                                                        }
-                                                    >
-                                                        Edit
-                                                    </button>
-                                                    <button type="reset"
-                                                        on:click=move |_| {
-                                                            spawn_local(async move {
-                                                                match ApiRoutes::delete_product(ProductModelDelete { id: product.id }).await {
-                                                                    Ok(_) => set_page.set(current_page.get_untracked()),
-                                                                    Err(err) => log::error!("Failed to delete product: {err}"),
+                                        data.data.into_iter().map(|product| {
+                                            let mut prod = Some(product.clone());
+                                            view! {
+                                                <tr>
+                                                    <td>{product.slug}</td>
+                                                    <td>{product.name}</td>
+                                                    <td>{product.category}</td>
+                                                    <td>{product.featured}</td>
+                                                    <td>{product.base_price}</td>
+                                                    <td>{product.base_discount}</td>
+                                                    <td>
+                                                        <button
+                                                            on:click=move |_| {
+                                                                if let Some(p) = prod.take() {
+                                                                    set_update_modal.set(Some(p.into()));
+                                                                } else {
+                                                                    todo!("Something went wrong");
                                                                 }
-                                                            });
-                                                        }
-                                                    >
-                                                        Delete
-                                                    </button>
-                                                </td>
-                                            </tr>
+                                                            }
+                                                        >
+                                                            Edit
+                                                        </button>
+                                                        <button type="reset"
+                                                            on:click=move |_| {
+                                                                spawn_local(async move {
+                                                                    match ApiRoutes::delete_product(ProductModelDelete { id: product.id }).await {
+                                                                        Ok(_) => set_page.set(current_page.get_untracked()),
+                                                                        Err(err) => log::error!("Failed to delete product: {err}"),
+                                                                    }
+                                                                });
+                                                            }
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            }
                                         }).collect_view()
                                     }
                                 </tbody>
@@ -175,7 +193,50 @@ fn ProductCreate(set_modal: WriteSignal<bool>, set_on_create: WriteSignal<()>) -
                         ProductModel::build_create_form(
                             acc,
                             view! {
-                                <button on:click=move |_| set_modal.set(false)>Close</button>
+                                <button type="button" on:click=move |_| set_modal.set(false)>Close</button>
+                                <button type="submit">Submit</button>
+                            }.into_any())
+                    }
+                </form>
+            </section>
+        </div>
+    }
+}
+
+#[component]
+fn ProductUpdate(
+    acc: <ProductModel as Accessor>::UpdateAccessor,
+    set_modal: WriteSignal<Option<ProductUpdateAccessor>>,
+    set_on_update: WriteSignal<()>,
+) -> impl IntoView {
+    view! {
+        <div data-modal>
+            <div data-backdrop on:click=move |_| set_modal.set(None)></div>
+            <section data-modal-box aria-modal="true">
+                <header>
+                    <h2>Update Product</h2>
+                </header>
+                <form on:submit=move |ev| {
+                    ev.prevent_default();
+                    match ProductModelUpdate::try_from(acc) {
+                        Ok(prod) => {
+                            spawn_local(async move {
+                                let res = ApiRoutes::update_product(prod).await;
+                                log::debug!("Updated product: {:?}", res);
+                                set_on_update.set(());
+                                set_modal.set(None);
+                            });
+                        }
+                        Err(err) => {
+                            log::error!("Failed to update product: {:?}", err);
+                        }
+                    }
+                }>
+                    {
+                        ProductModel::build_update_form(
+                            acc,
+                            view! {
+                                <button type="button" on:click=move |_| set_modal.set(None)>Close</button>
                                 <button type="submit">Submit</button>
                             }.into_any())
                     }
