@@ -1,49 +1,54 @@
 use common::{
-    models::{Page, Pagination, product::ProductModelPublic},
+    models::{
+        Page, Pagination,
+        product::{ProductModel, ProductModelCreate, ProductModelDelete, ProductModelPublic},
+    },
     routes::{ApiRoutes, Routes},
 };
 use leptos::{html::*, prelude::*, task::spawn_local};
+
+use crate::forms::Accessor;
+use crate::forms::IntoForm;
 
 #[component]
 pub fn Products() -> AnyView {
     let (products, set_products) = signal(Option::<Result<Page<ProductModelPublic>, String>>::None);
     let (current_page, set_current_page) = signal::<usize>(1);
+    let (page, set_page) = signal(1 as usize);
+    let (on_create, set_on_create) = signal(());
 
     Effect::watch(
-        move || current_page.get(),
-        move |curr_page, prev_page, _| {
-            log::info!("{}, {:?}", curr_page, prev_page);
-            let page = *curr_page;
-            if page > 10 {
-                set_current_page.set(1);
-                return;
-            }
+        move || (page.get(), on_create.get()),
+        move |this_page, _, _| {
+            let (req_page, _) = *this_page;
             spawn_local(async move {
                 let res = ApiRoutes::get_all_products(Pagination {
-                    page: Some(page),
+                    page: Some(req_page),
                     per_page: None, // server default
                 })
                 .await
                 .map_err(|e| e.to_string());
+                if let Ok(data) = &res {
+                    set_current_page.set(data.page);
+                }
                 set_products.set(Some(res));
             });
         },
         true,
     );
 
-    let (sig, set_sig) = signal(false);
+    let (create_modal, set_create_modal) = signal(false);
 
     view! {
         <Show
-            when=move || { sig.get() }
+            when=move || { create_modal.get() }
         >
-            <ProductCreate set_sig=set_sig />
+            <ProductCreate set_modal=set_create_modal set_on_create=set_on_create />
         </Show>
-
         <header>
             <title>Products</title>
             <h1>Products</h1>
-            <button on:click=move |_| { set_sig.set(true); } >
+            <button on:click=move |_| { set_create_modal.set(true); } >
                 New
             </button>
         </header>
@@ -63,6 +68,7 @@ pub fn Products() -> AnyView {
                                         <th>Featured</th>
                                         <th>Base Price</th>
                                         <th>Base Discount</th>
+                                        <th>Options</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -75,6 +81,27 @@ pub fn Products() -> AnyView {
                                                 <td>{product.featured}</td>
                                                 <td>{product.base_price}</td>
                                                 <td>{product.base_discount}</td>
+                                                <td>
+                                                    <button
+                                                        on:click=move |_| {
+                                                            set_create_modal.set(true);
+                                                        }
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button type="reset"
+                                                        on:click=move |_| {
+                                                            spawn_local(async move {
+                                                                match ApiRoutes::delete_product(ProductModelDelete { id: product.id }).await {
+                                                                    Ok(_) => set_page.set(current_page.get_untracked()),
+                                                                    Err(err) => log::error!("Failed to delete product: {err}"),
+                                                                }
+                                                            });
+                                                        }
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                </td>
                                             </tr>
                                         }).collect_view()
                                     }
@@ -85,7 +112,7 @@ pub fn Products() -> AnyView {
                             <button
                                 disabled={!has_prev}
                                 on:click=move |_| {
-                                    set_current_page.update(|n| *n -= 1);
+                                    set_page.set(current_page.get_untracked() - 1);
                                 }
                             >
                                 Previous
@@ -94,7 +121,7 @@ pub fn Products() -> AnyView {
                             <button
                                 disabled={!has_next}
                                 on:click=move |_| {
-                                    set_current_page.update(|n| *n += 1);
+                                    set_page.set(current_page.get_untracked() + 1);
                                 }
                             >
                                 Next
@@ -103,14 +130,14 @@ pub fn Products() -> AnyView {
                     }
                 }.into_any(),
                 Some(Err(err)) => view! {
-                    <section data-status>
+                    <div data-status>
                         <span> {err} </span>
-                    </section>
+                    </div>
                 }.into_any(),
                 None => view! {
-                    <section data-status>
+                    <div data-status>
                         <span> Loading... </span>
-                    </section>
+                    </div>
                 }.into_any(),
             }
         }
@@ -119,33 +146,39 @@ pub fn Products() -> AnyView {
 }
 
 #[component]
-fn ProductCreate(set_sig: WriteSignal<bool>) -> impl IntoView {
+fn ProductCreate(set_modal: WriteSignal<bool>, set_on_create: WriteSignal<()>) -> impl IntoView {
+    let acc = <ProductModel as Accessor>::CreateAccessor::default();
     view! {
         <div data-modal>
-            <div data-backdrop on:click=move |_| set_sig.set(false)></div>
-
+            <div data-backdrop on:click=move |_| set_modal.set(false)></div>
             <section data-modal-box aria-modal="true">
                 <header>
                     <h2>Create Product</h2>
                 </header>
-
-                <form>
-                    <fieldset>
-                        <label for="product-name">Name</label>
-                        <input id="product-name" type="text" />
-                    </fieldset>
-
-                    <fieldset>
-                        <label for="product-category">Category</label>
-                        <input id="product-category" type="text" />
-                    </fieldset>
-
-                    <nav data-actions>
-                        <button type="button" on:click=move |_| set_sig.set(false)>
-                            Cancel
-                        </button>
-                        <button type="submit">Create</button>
-                    </nav>
+                <form on:submit=move |ev| {
+                    ev.prevent_default();
+                    match ProductModelCreate::try_from(acc) {
+                        Ok(prod) => {
+                            spawn_local(async move {
+                                let res = ApiRoutes::create_product(prod).await;
+                                log::debug!("Created product: {:?}", res);
+                                set_on_create.set(());
+                                set_modal.set(false);
+                            });
+                        }
+                        Err(err) => {
+                            log::error!("Failed to create product: {:?}", err);
+                        }
+                    }
+                }>
+                    {
+                        ProductModel::build_create_form(
+                            acc,
+                            view! {
+                                <button on:click=move |_| set_modal.set(false)>Close</button>
+                                <button type="submit">Submit</button>
+                            }.into_any())
+                    }
                 </form>
             </section>
         </div>

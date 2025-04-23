@@ -62,13 +62,22 @@ pub trait Model: common::models::Model {
         }
     }
 
-    async fn get_all_in_db(db: &DB, limit: usize, offset: usize) -> Option<Vec<Self::ModelInDb>> {
+    async fn get_all_in_db(
+        db: &DB,
+        limit: usize,
+        offset: usize,
+    ) -> Option<(usize, Vec<Self::ModelInDb>)> {
         let find_options = FindOptions::builder()
             .limit(limit as i64)
             .skip(offset as u64)
             .build();
 
-        Some(
+        let coll = db.collection::<Self::ModelInDb>(Self::COLLECTION_NAME);
+
+        let total = coll.count_documents(doc! {}).await.ok()? as usize;
+
+        Some((
+            total,
             db.collection::<Self::ModelInDb>(Self::COLLECTION_NAME)
                 .find(doc! {})
                 .with_options(find_options)
@@ -77,7 +86,7 @@ pub trait Model: common::models::Model {
                 .try_collect()
                 .await
                 .ok()?,
-        )
+        ))
     }
 
     async fn get_one_in_db(db: &DB, body: Self::ModelFetch) -> Result<Option<Self::ModelInDb>, ()> {

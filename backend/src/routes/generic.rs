@@ -22,16 +22,14 @@ pub async fn get_all<M: Model>(
     State(state): State<AppState>,
     Query(pagination): Query<Pagination>,
 ) -> Result<Json<Page<M::ModelPublic>>, StatusCode> {
+    let data = M::get_all_in_db(&state.db, pagination.limit(), pagination.offset())
+        .await
+        .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
     Ok(Json(Page {
-        data: M::get_all_in_db(&state.db, pagination.limit(), pagination.offset())
-            .await
-            .ok_or(StatusCode::INTERNAL_SERVER_ERROR)?
-            .into_iter()
-            .map(|j| M::publish(j))
-            .collect(),
-        total: 0,
-        per_page: pagination.limit(),
-        page: pagination.offset(),
+        data: data.1.into_iter().map(|j| M::publish(j)).collect(),
+        total: data.0,
+        per_page: pagination.per_page(),
+        page: pagination.page(),
     }))
 }
 

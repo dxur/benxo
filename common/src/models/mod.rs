@@ -30,6 +30,14 @@ impl Pagination {
         let page = self.page.unwrap_or(1).max(1);
         (page - 1) * self.limit()
     }
+
+    pub fn page(&self) -> usize {
+        self.page.unwrap_or(1).max(1)
+    }
+
+    pub fn per_page(&self) -> usize {
+        self.per_page.unwrap_or(10).min(100)
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

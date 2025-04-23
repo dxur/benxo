@@ -1,9 +1,8 @@
 mod components;
+mod forms;
 mod pages;
 mod routes;
 
-use routes::*;
-use serde::{Deserialize, Serialize};
 use components::sidebar::Sidebar;
 use leptos::prelude::*;
 use leptos::tachys::view::iterators::StaticVec;
@@ -11,6 +10,8 @@ use leptos_router::{
     StaticSegment,
     components::{FlatRoutes, Route, RouteProps, Router},
 };
+use routes::*;
+use serde::{Deserialize, Serialize};
 
 #[component]
 fn App() -> impl IntoView {

@@ -138,11 +138,11 @@ pub fn route(args: TokenStream, input: TokenStream) -> TokenStream {
             if query_args.len() > 0 {
                 let name = &query_args[0].0;
                 quote! {
-                    gloo_net::http::Request::get(format!("{}{}?{}", Self::PREFIX.to_owned(), #path_str, serde_urlencoded::to_string(#name).map_err(|e| gloo_net::Error::GlooError(format!("{}", e)))?).as_str())
+                    gloo_net::http::Request::#method(format!("{}{}?{}", Self::PREFIX.to_owned(), #path_str, serde_urlencoded::to_string(#name).map_err(|e| gloo_net::Error::GlooError(format!("{}", e)))?).as_str())
                 }
             } else {
                 quote! {
-                    gloo_net::http::Request::get(format!("{}{}", Self::PREFIX.to_owned(), #path_str).as_str())
+                    gloo_net::http::Request::#method(format!("{}{}", Self::PREFIX.to_owned(), #path_str).as_str())
                 }
             }
         };
