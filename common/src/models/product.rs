@@ -69,3 +69,16 @@ impl Model for ProductModel {
     type ModelDelete = ProductModelDelete;
     type ModelPublic = ProductModelPublic;
 }
+
+impl ProductModelUpdate {
+    pub fn is_none(&self) -> bool {
+        self.name.is_none()
+            && self.description.is_none()
+            && self.featured.is_none()
+            && self.category.is_none()
+            && self.base_price.is_none()
+            && self.base_discount.is_none()
+            && self.base_images.is_none()
+            && self.slug.is_none()
+    }
+}

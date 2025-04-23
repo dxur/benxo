@@ -10,8 +10,8 @@ use common::{
 };
 use leptos::{html::*, prelude::*, task::spawn_local};
 
+use crate::forms::Accessor;
 use crate::forms::IntoForm;
-use crate::forms::{Accessor, product::ProductUpdateAccessor};
 
 #[component]
 pub fn Products() -> AnyView {
@@ -41,7 +41,7 @@ pub fn Products() -> AnyView {
     );
 
     let (create_modal, set_create_modal) = signal(false);
-    let (update_modal, set_update_modal) = signal(Option::<ProductUpdateAccessor>::None);
+    let update_modal = RwSignal::new(Option::<ProductModelPublic>::None);
 
     view! {
         <Show
@@ -52,7 +52,7 @@ pub fn Products() -> AnyView {
         <Show
             when=move || { update_modal.get().is_some() }
         >
-            <ProductUpdate acc=update_modal.get().unwrap() set_modal=set_update_modal set_on_update=set_reload />
+            <ProductUpdate set_modal=update_modal set_on_update=set_reload />
         </Show>
         <header>
             <title>Products</title>
@@ -83,7 +83,7 @@ pub fn Products() -> AnyView {
                                 <tbody>
                                     {
                                         data.data.into_iter().map(|product| {
-                                            let mut prod = Some(product.clone());
+                                            let prod = product.clone();
                                             view! {
                                                 <tr>
                                                     <td>{product.slug}</td>
@@ -95,11 +95,7 @@ pub fn Products() -> AnyView {
                                                     <td>
                                                         <button
                                                             on:click=move |_| {
-                                                                if let Some(p) = prod.take() {
-                                                                    set_update_modal.set(Some(p.into()));
-                                                                } else {
-                                                                    todo!("Something went wrong");
-                                                                }
+                                                                update_modal.set(Some(prod.clone()));
                                                             }
                                                         >
                                                             Edit
@@ -203,10 +199,10 @@ fn ProductCreate(set_modal: WriteSignal<bool>, set_on_create: WriteSignal<()>) -
 
 #[component]
 fn ProductUpdate(
-    acc: <ProductModel as Accessor>::UpdateAccessor,
-    set_modal: WriteSignal<Option<ProductUpdateAccessor>>,
+    set_modal: RwSignal<Option<ProductModelPublic>>,
     set_on_update: WriteSignal<()>,
 ) -> impl IntoView {
+    let acc = <ProductModel as Accessor>::UpdateAccessor::default();
     view! {
         <div data-modal>
             <div data-backdrop on:click=move |_| set_modal.set(None)></div>
@@ -215,15 +211,18 @@ fn ProductUpdate(
                     <h2>Update Product</h2>
                 </header>
                 <form on:submit=move |ev| {
+                    let a = acc.clone();
                     ev.prevent_default();
-                    match ProductModelUpdate::try_from(acc) {
+                    match ProductModelUpdate::try_from(a) {
                         Ok(prod) => {
-                            spawn_local(async move {
-                                let res = ApiRoutes::update_product(prod).await;
-                                log::debug!("Updated product: {:?}", res);
-                                set_on_update.set(());
-                                set_modal.set(None);
-                            });
+                            if !prod.is_none() {
+                                spawn_local(async move {
+                                    let res = ApiRoutes::update_product(prod).await;
+                                    log::debug!("Updated product: {:?}", res);
+                                    set_on_update.set(());
+                                    set_modal.set(None);
+                                });
+                            }
                         }
                         Err(err) => {
                             log::error!("Failed to update product: {:?}", err);
@@ -232,6 +231,7 @@ fn ProductUpdate(
                 }>
                     {
                         ProductModel::build_update_form(
+                            set_modal.get_untracked().unwrap(),
                             acc,
                             view! {
                                 <button type="button" on:click=move |_| set_modal.set(None)>Close</button>

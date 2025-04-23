@@ -3,11 +3,11 @@ use leptos::{prelude::*, view};
 pub mod product;
 
 pub trait Accessor {
-    type CreateAccessor: Copy + Clone;
-    type UpdateAccessor: Copy + Clone;
+    type CreateAccessor: Copy;
+    type UpdateAccessor: Copy;
 }
 
-pub trait IntoForm: Accessor {
+pub trait IntoForm<T>: Accessor {
     fn build_create_form(_: Self::CreateAccessor, outlet: AnyView) -> AnyView {
         view! {
             <fieldset>
@@ -20,7 +20,7 @@ pub trait IntoForm: Accessor {
         .into_any()
     }
 
-    fn build_update_form(_: Self::UpdateAccessor, outlet: AnyView) -> AnyView {
+    fn build_update_form(_: T, _: Self::UpdateAccessor, outlet: AnyView) -> AnyView {
         view! {
             <fieldset>
                 <label> Test Field
