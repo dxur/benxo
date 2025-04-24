@@ -1,5 +1,8 @@
+use common::models::ObjectId;
 use mongodb::{options::ClientOptions, Client, Database};
 use std::ops::Deref;
+
+pub const DEFAULT_UUID: ObjectId = ObjectId::from_bytes([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
 
 pub struct DB(Database);
 

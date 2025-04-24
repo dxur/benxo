@@ -8,18 +8,13 @@ use common::{
     },
     routes::{ApiRoutes, Routes},
 };
-use leptos::{
-    ev::Event,
-    html::{self, *},
-    prelude::*,
-    task::spawn_local,
-};
+use leptos::{html::*, prelude::*, task::spawn_local};
 
 use crate::forms::Accessor;
 use crate::forms::IntoForm;
 
 #[component]
-pub fn Products() -> AnyView {
+pub fn Orders() -> AnyView {
     let (products, set_products) = signal(Option::<Result<Page<ProductModelPublic>, String>>::None);
     let (current_page, set_current_page) = signal::<usize>(1);
     let (page, set_page) = signal(1 as usize);
@@ -165,19 +160,10 @@ pub fn Products() -> AnyView {
 #[component]
 fn ProductCreate(set_modal: WriteSignal<bool>, set_on_create: WriteSignal<()>) -> impl IntoView {
     let acc = <ProductModel as Accessor>::CreateAccessor::default();
-    let dialog_element: NodeRef<html::Dialog> = NodeRef::new();
-    let show = move || {
-        dialog_element.get().map(|dialog| dialog.show_modal());
-    };
-    let close = move || {
-        dialog_element.get().map(|dialog| dialog.close());
-        set_modal.set(false);
-    };
-
     view! {
-        <dialog node_ref=dialog_element on:cancel=move |_: Event| { close(); }>
-            <iframe on:load=move |_| { show(); }></iframe>
-            <section aria-modal="true">
+        <div data-modal>
+            <div data-backdrop on:click=move |_| set_modal.set(false)></div>
+            <section data-modal-box aria-modal="true">
                 <header>
                     <h2>Create Product</h2>
                 </header>
@@ -189,7 +175,7 @@ fn ProductCreate(set_modal: WriteSignal<bool>, set_on_create: WriteSignal<()>) -
                                 let res = ApiRoutes::create_product(prod).await;
                                 log::debug!("Created product: {:?}", res);
                                 set_on_create.set(());
-                                close();
+                                set_modal.set(false);
                             });
                         }
                         Err(err) => {
@@ -201,13 +187,13 @@ fn ProductCreate(set_modal: WriteSignal<bool>, set_on_create: WriteSignal<()>) -
                         ProductModel::build_create_form(
                             acc,
                             view! {
-                                <button type="button" on:click=move |_| { close(); }>Close</button>
+                                <button type="button" on:click=move |_| set_modal.set(false)>Close</button>
                                 <button type="submit">Submit</button>
                             }.into_any())
                     }
                 </form>
             </section>
-        </dialog>
+        </div>
     }
 }
 
@@ -217,19 +203,10 @@ fn ProductUpdate(
     set_on_update: WriteSignal<()>,
 ) -> impl IntoView {
     let acc = <ProductModel as Accessor>::UpdateAccessor::default();
-    let dialog_element: NodeRef<html::Dialog> = NodeRef::new();
-    let show = move || {
-        dialog_element.get().map(|dialog| dialog.show_modal());
-    };
-    let close = move || {
-        dialog_element.get().map(|dialog| dialog.close());
-        set_modal.set(None);
-    };
-
     view! {
-        <dialog node_ref=dialog_element on:cancel=move |_: Event| { close(); }>
-            <iframe on:load=move |_| { show(); }></iframe>
-            <section aria-modal="true">
+        <div data-modal>
+            <div data-backdrop on:click=move |_| set_modal.set(None)></div>
+            <section data-modal-box aria-modal="true">
                 <header>
                     <h2>Update Product</h2>
                 </header>
@@ -243,7 +220,7 @@ fn ProductUpdate(
                                     let res = ApiRoutes::update_product(prod).await;
                                     log::debug!("Updated product: {:?}", res);
                                     set_on_update.set(());
-                                    close();
+                                    set_modal.set(None);
                                 });
                             }
                         }
@@ -257,12 +234,12 @@ fn ProductUpdate(
                             set_modal.get_untracked().unwrap(),
                             acc,
                             view! {
-                                <button type="button" on:click=move |_| { close(); }>Close</button>
+                                <button type="button" on:click=move |_| set_modal.set(None)>Close</button>
                                 <button type="submit">Submit</button>
                             }.into_any())
                     }
                 </form>
             </section>
-        </dialog>
+        </div>
     }
 }

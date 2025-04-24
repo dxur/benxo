@@ -1,4 +1,8 @@
+pub mod delivery;
+pub mod order;
 pub mod product;
+pub mod settings;
+pub mod theme;
 pub mod user;
 
 pub use bson::oid::ObjectId;

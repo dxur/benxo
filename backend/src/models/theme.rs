@@ -1,39 +1,9 @@
+use common::models::theme::ThemeModel;
 use field::*;
-use mongodb::bson::serde_helpers::serialize_object_id_as_hex_string;
 use mongodb::bson::{doc, oid::ObjectId, to_document, Document};
 use serde::{Deserialize, Serialize};
 
 use super::Model;
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ThemeModelFetch {
-    id: ObjectId,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ThemeModelCreate {
-    name: String,
-    path: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ThemeModelUpdate {
-    #[serde(skip_serializing)]
-    id: ObjectId,
-    name: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ThemeModelDelete {
-    id: ObjectId,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ThemeModelPublic {
-    #[serde(serialize_with = "serialize_object_id_as_hex_string")]
-    id: ObjectId,
-    name: String,
-}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ThemeModelInDb {
@@ -42,18 +12,10 @@ pub struct ThemeModelInDb {
     pub path: String,
 }
 
-pub struct ThemeModel;
-
 impl Model for ThemeModel {
-    const COLLECTION_NAME: &'static str = "templates";
+    const COLLECTION_NAME: &'static str = "themes";
     const UNIQUE_INDICES: &'static [&'static str] = &[];
 
-    type ModelFetch = ThemeModelFetch;
-    type ModelFilter = ();
-    type ModelCreate = ThemeModelCreate;
-    type ModelUpdate = ThemeModelUpdate;
-    type ModelDelete = ThemeModelDelete;
-    type ModelPublic = ThemeModelPublic;
     type ModelInDb = ThemeModelInDb;
 
     fn fetch(body: Self::ModelFetch) -> Document {

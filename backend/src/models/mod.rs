@@ -1,7 +1,7 @@
-// pub mod order;
+pub mod order;
 pub mod product;
-// pub mod settings;
-// pub mod theme;
+pub mod settings;
+pub mod theme;
 pub mod user;
 
 use futures::TryStreamExt;

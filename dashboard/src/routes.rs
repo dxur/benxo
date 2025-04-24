@@ -1,6 +1,6 @@
 use leptos::prelude::*;
 
-use crate::pages::{Home, Products, Settings, Users};
+use crate::pages::*;
 
 pub struct Route {
     pub path: &'static str,
@@ -15,6 +15,7 @@ pub struct MenuItem {
 
 pub const HOME_PATH: &'static str = "/";
 pub const PRODUCTS_PATH: &'static str = "/products";
+pub const ORDERS_PATH: &'static str = "/orders";
 pub const USERS_PATH: &'static str = "/users";
 pub const SETTINGS_PATH: &'static str = "/settings";
 
@@ -26,6 +27,10 @@ pub const ROUTES: &[Route] = &[
     Route {
         path: PRODUCTS_PATH,
         component: Products,
+    },
+    Route {
+        path: ORDERS_PATH,
+        component: Orders,
     },
     Route {
         path: USERS_PATH,
@@ -46,6 +51,11 @@ pub const MENU: &[MenuItem] = &[
     MenuItem {
         name: "Products",
         path: PRODUCTS_PATH,
+        subitems: &[],
+    },
+    MenuItem {
+        name: "orders",
+        path: ORDERS_PATH,
         subitems: &[],
     },
     MenuItem {

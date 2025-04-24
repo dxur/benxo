@@ -183,6 +183,8 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
 
     let mut input_trait = parse_macro_input!(input as ItemTrait);
 
+    // TODO: check the routes for duplicate routes same method same path!!
+
     #[cfg(not(feature = "wasm"))]
     {
         let mut route_entries = vec![];

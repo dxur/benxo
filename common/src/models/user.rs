@@ -5,9 +5,25 @@ use serde::{Deserialize, Serialize};
 use super::Model;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub enum UserPermissions {
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum Permission {
+    Full,
+    Products,
+    Orders,
+    Users,
+    Site,
+    Settings,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum Access {
+    Read,
+    Write,
     Full,
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct UserPermissions(Vec<(Permission, Access)>);
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserModelFetch {

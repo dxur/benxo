@@ -1,7 +1,4 @@
-use common::models::{
-    product::ProductVarModel,
-    user::{UserModel, UserPermissions},
-};
+use common::models::user::{UserModel, UserPermissions};
 use field::*;
 use mongodb::bson::{doc, oid::ObjectId, to_document, Document};
 use serde::{Deserialize, Serialize};

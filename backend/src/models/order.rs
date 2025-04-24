@@ -1,64 +1,13 @@
+use common::models::order::*;
+use common::models::product::ProductVarModel;
 use field::*;
-use mongodb::bson::serde_helpers::serialize_object_id_as_hex_string;
 use mongodb::bson::{doc, oid::ObjectId, to_document, Document};
 use mongodb::options::TransactionOptions;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use crate::models::product::ProductVarModelInDb;
-
-use super::product::ProductVarModel;
+use super::product::ProductVarModelInDb;
 use super::Model;
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "lowercase")]
-pub enum OrderStatus {
-    Pending,
-    Confirmed,
-    UnConfirmed,
-    Delivered,
-    Done,
-    Returned,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct CartItem {
-    pub product_sku: String,
-    pub quantity: u32,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct OrderModelFetch {
-    id: ObjectId,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct OrderModelCreate {
-    full_name: String,
-    items: Vec<CartItem>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct OrderModelUpdate {
-    #[serde(skip_serializing)]
-    id: ObjectId,
-    status: Option<OrderStatus>,
-    full_name: Option<String>,
-    items: Option<Vec<CartItem>>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct OrderModelDelete {
-    id: ObjectId,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct OrderModelPublic {
-    #[serde(serialize_with = "serialize_object_id_as_hex_string")]
-    id: ObjectId,
-    full_name: String,
-    items: Vec<CartItem>,
-}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct OrderModelInDb {
@@ -68,18 +17,10 @@ pub struct OrderModelInDb {
     pub items: Vec<CartItem>,
 }
 
-pub struct OrderModel;
-
 impl Model for OrderModel {
     const COLLECTION_NAME: &'static str = "orders";
     const UNIQUE_INDICES: &'static [&'static str] = &[];
 
-    type ModelFetch = OrderModelFetch;
-    type ModelFilter = ();
-    type ModelCreate = OrderModelCreate;
-    type ModelUpdate = OrderModelUpdate;
-    type ModelDelete = OrderModelDelete;
-    type ModelPublic = OrderModelPublic;
     type ModelInDb = OrderModelInDb;
 
     fn fetch(body: Self::ModelFetch) -> Document {
@@ -118,7 +59,7 @@ impl Model for OrderModel {
         db: &crate::db::DB,
         body: Self::ModelCreate,
     ) -> Result<Option<Self::ModelInDb>, ()> {
-        let mut session = db.0.client().start_session().await.map_err(|_| ())?;
+        let mut session = db.client().start_session().await.map_err(|_| ())?;
         let txn_options = TransactionOptions::builder().build();
         session
             .start_transaction()
@@ -127,9 +68,8 @@ impl Model for OrderModel {
             .map_err(|_| ())?;
 
         let products = db
-            .0
             .collection::<<ProductVarModel as Model>::ModelInDb>(ProductVarModel::COLLECTION_NAME);
-        let orders = db.0.collection::<Self::ModelInDb>(Self::COLLECTION_NAME);
+        let orders = db.collection::<Self::ModelInDb>(Self::COLLECTION_NAME);
 
         let mut products_qnt = HashMap::<String, u32>::new();
 
@@ -143,7 +83,7 @@ impl Model for OrderModel {
         for (sku, qnt) in &products_qnt {
             let filter = doc! {
                 field!(sku @ ProductVarModelInDb): sku,
-                field!(quantity @ ProductVarModelInDb): { "$gte": qnt }
+                field!(stocks @ ProductVarModelInDb): { "$gte": qnt }
             };
 
             let product = products
@@ -160,7 +100,8 @@ impl Model for OrderModel {
 
         for item in &body.items {
             let filter = doc! { field!(sku @ ProductVarModelInDb): &item.product_sku };
-            let update = doc! { "$inc": { field!(quantity @ ProductVarModelInDb): -(item.quantity as i32) } };
+            let update =
+                doc! { "$inc": { field!(stocks @ ProductVarModelInDb): -(item.quantity as i32) } };
 
             products
                 .update_one(filter, update)
@@ -179,5 +120,19 @@ impl Model for OrderModel {
         session.commit_transaction().await.map_err(|_| ())?;
 
         Ok(Some(order))
+    }
+
+    async fn update_in_db(
+        _: &crate::db::DB,
+        _: &Self::ModelUpdate,
+    ) -> Result<Option<Self::ModelInDb>, ()> {
+        todo!("recalculate the stocks")
+    }
+
+    async fn delete_in_db(
+        _: &crate::db::DB,
+        _: &Self::ModelDelete,
+    ) -> Result<Option<Self::ModelInDb>, ()> {
+        todo!("release the stocks")
     }
 }
