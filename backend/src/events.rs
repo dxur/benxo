@@ -1,8 +1,9 @@
-use common::models::ObjectId;
+use crate::models::ObjectId;
 use tokio::{sync::mpsc::*, task};
 use tracing::info;
 
-use crate::{models::product::ProductInDb, AppState};
+use crate::db::product::ProductInDb;
+use crate::AppState;
 
 #[derive(Debug)]
 pub enum Event {

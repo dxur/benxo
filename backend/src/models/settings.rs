@@ -1,30 +1,25 @@
-use common::models::settings::*;
-use field::*;
-use mongodb::bson::{doc, oid::ObjectId};
+use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
-use super::Model;
-use crate::{
-    db::{DB, DEFAULT_UUID},
-    events::Event,
-};
+use super::*;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct SettingsInDb {
-    pub store_name: String,
-    pub store_domain: String,
-    pub active_theme: ObjectId,
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SettingsUpdate {
+    store_name: Option<String>,
+    store_domain: Option<String>,
+    active_theme: Option<ObjectId>,
 }
 
-impl Into<SettingsPublic> for SettingsInDb {
-    fn into(self) -> SettingsPublic {
-        todo!()
-    }
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SettingsPublic {
+    store_name: String,
+    store_domain: String,
 }
 
+pub struct Settings;
 impl Model for Settings {
-    const COLLECTION_NAME: &'static str = "settings";
-    const UNIQUE_INDICES: &'static [&'static str] = &[];
-
-    type InDb = SettingsInDb;
+    type Public = SettingsPublic;
+}
+impl Updatable for Settings {
+    type Update = SettingsUpdate;
 }

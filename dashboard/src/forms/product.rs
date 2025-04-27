@@ -1,4 +1,4 @@
-use common::models::{product::*, ObjectId};
+use backend::models::{product::*, ObjectId};
 use leptos::prelude::*;
 
 use super::{Accessor, IntoForm};

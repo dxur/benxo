@@ -1,107 +1,77 @@
-use common::models::user::*;
-use field::*;
-use mongodb::bson::{doc, oid::ObjectId, to_document, Document};
+use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
 use super::*;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct UserInDb {
-    pub _id: ObjectId,
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum Permission {
+    Full,
+    Products,
+    Orders,
+    Users,
+    Site,
+    Settings,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum Access {
+    Read,
+    Write,
+    Full,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct UserPermissions(Vec<(Permission, Access)>);
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UserFetch {
+    pub id: ObjectId,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UserCreate {
     pub name: String,
     pub email: String,
     pub password: String,
     pub permissions: UserPermissions,
 }
 
-#[derive(Debug, Serialize)]
-pub struct UserFindInDb(pub UserFetch);
-
-#[derive(Debug, Serialize)]
-pub struct UserUpdateInDb(pub UserUpdate);
-
-impl Into<UserPublic> for UserInDb {
-    fn into(self) -> UserPublic {
-        UserPublic {
-            id: self._id,
-            name: self.name,
-            email: self.email,
-            permissions: self.permissions,
-        }
-    }
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UserUpdate {
+    pub id: ObjectId,
+    pub name: Option<String>,
+    pub email: Option<String>,
+    pub password: Option<String>,
+    pub permissions: Option<UserPermissions>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UserDelete {
+    pub id: ObjectId,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UserPublic {
+    pub id: ObjectId,
+    pub name: String,
+    pub email: String,
+    pub permissions: UserPermissions,
+}
+
+pub struct User;
 impl Model for User {
-    const COLLECTION_NAME: &'static str = "users";
-    const UNIQUE_INDICES: &'static [&'static str] = &[];
-
-    type InDb = UserInDb;
+    type Public = UserPublic;
 }
-
-impl Into<Result<Document>> for &UserFindInDb {
-    fn into(self) -> Result<Document> {
-        to_document(self).map_err(|e| Error { msg: e.to_string() })
-    }
-}
-
-impl Findable for User {
-    type FindInDb = UserFindInDb;
-}
-
-impl Into<UserFindInDb> for &UserFetch {
-    fn into(self) -> UserFindInDb {
-        UserFindInDb(UserFetch { id: self.id })
-    }
-}
-
 impl Fetchable for User {
-    type FetchInDb = UserFetch;
+    type Fetch = UserFetch;
 }
-
-impl Into<UserInDb> for UserCreate {
-    fn into(self) -> UserInDb {
-        UserInDb {
-            _id: ObjectId::new(),
-            name: self.name,
-            email: self.email,
-            password: self.password,
-            permissions: self.permissions,
-        }
-    }
-}
-
 impl Creatable for User {
-    type CreateInDb = UserCreate;
+    type Create = UserCreate;
 }
-
-impl From<UserUpdate> for UserUpdateInDb {
-    fn from(value: UserUpdate) -> Self {
-        UserUpdateInDb(value)
-    }
-}
-
-impl Into<UserFindInDb> for &UserUpdateInDb {
-    fn into(self) -> UserFindInDb {
-        UserFindInDb(UserFetch { id: self.0.id })
-    }
-}
-
-impl Into<Result<Document>> for &UserUpdateInDb {
-    fn into(self) -> Result<Document> {
-        to_document(&self.0).map_err(|e| Error { msg: e.to_string() })
-    }
-}
-
 impl Updatable for User {
-    type UpdateInDb = UserUpdateInDb;
+    type Update = UserUpdate;
 }
-
-impl Into<UserFindInDb> for &UserDelete {
-    fn into(self) -> UserFindInDb {
-        UserFindInDb(UserFetch { id: self.id })
-    }
-}
-
 impl Deletable for User {
-    type DeleteInDb = UserDelete;
+    type Delete = UserDelete;
 }

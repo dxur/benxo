@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["backend", "dashboard", "common", "macros"]
+members = ["backend", "dashboard", "macros"]
 
 [profile.dev]
 debug = false

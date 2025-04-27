@@ -1,12 +1,12 @@
+use crate::db::*;
+use crate::models::{Page, Pagination};
 use axum::extract::{Query, State};
 use axum::http::StatusCode;
 use axum::response::Json;
-use common::models::{Page, Pagination};
 
-use crate::models::*;
 use crate::AppState;
 
-pub async fn create<M: Creatable>(
+pub async fn create<M: CreatableInDb>(
     State(state): State<AppState>,
     Json(body): Json<M::Create>,
 ) -> Result<Json<M::Public>, StatusCode> {
@@ -17,7 +17,7 @@ pub async fn create<M: Creatable>(
     Ok(Json(value.into()))
 }
 
-pub async fn get_all<M: Model>(
+pub async fn get_all<M: ModelInDb>(
     State(state): State<AppState>,
     Query(pagination): Query<Pagination>,
 ) -> Result<Json<Page<M::Public>>, StatusCode> {
@@ -32,7 +32,7 @@ pub async fn get_all<M: Model>(
     }))
 }
 
-pub async fn get_some<M: Filterable>(
+pub async fn get_some<M: FilterableInDb>(
     State(state): State<AppState>,
     Query(pagination): Query<Pagination>,
     Json(body): Json<M::Filter>,
@@ -48,7 +48,7 @@ pub async fn get_some<M: Filterable>(
     }))
 }
 
-pub async fn get_one<M: Fetchable>(
+pub async fn get_one<M: FetchableInDb>(
     State(state): State<AppState>,
     Json(body): Json<M::Fetch>,
 ) -> Result<Json<M::Public>, StatusCode> {
@@ -61,7 +61,7 @@ pub async fn get_one<M: Fetchable>(
     ))
 }
 
-pub async fn update<M: Updatable>(
+pub async fn update<M: UpdatableInDb>(
     State(state): State<AppState>,
     Json(body): Json<M::Update>,
 ) -> Result<Json<M::Public>, StatusCode> {
@@ -73,7 +73,7 @@ pub async fn update<M: Updatable>(
     Ok(Json(value.1.into()))
 }
 
-pub async fn delete<M: Deletable>(
+pub async fn delete<M: DeletableInDb>(
     State(state): State<AppState>,
     Json(body): Json<M::Delete>,
 ) -> Result<Json<M::Public>, StatusCode> {

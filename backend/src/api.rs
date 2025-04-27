@@ -1,6 +1,7 @@
 use macros::{route, routes};
 
 use crate::models::product::*;
+
 use crate::models::user::*;
 use crate::models::{Page, Pagination};
 

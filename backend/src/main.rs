@@ -1,17 +1,25 @@
+#[cfg(target_arch = "wasm32")]
+compile_error!("The binary should not be compiled for `wasm32`.");
+
+#[cfg(not(feature = "server"))]
+compile_error!("Should be compiled with the `server` feature enabled.");
+
+mod api;
 mod db;
 mod events;
 mod middlewares;
 mod models;
 mod routes;
 mod utils;
+mod validators;
 
 #[macro_use]
 extern crate dotenv_codegen;
 
+use crate::api::*;
 use axum::Router;
-use common::routes::*;
+use db::{product::Product, ModelInDb};
 use events::EventBus;
-use models::{product::Product, Model};
 use std::sync::Arc;
 use tokio::net::TcpListener;
 use tower_http::trace::TraceLayer;
@@ -20,7 +28,7 @@ use utils::router::RoutePacked;
 
 #[derive(Clone)]
 struct AppState {
-    db: Arc<db::DB>,
+    db: Arc<db::Db>,
     event_bus: Arc<events::EventBus>,
 }
 
@@ -34,7 +42,7 @@ fn init_tracing() {
 async fn main() {
     init_tracing();
 
-    let db = db::DB::new(dotenv!("DB_URI"), dotenv!("DB_NAME")).await;
+    let db = db::Db::new(dotenv!("DB_URI"), dotenv!("DB_NAME")).await;
     Product::init_coll(&db).await.unwrap();
 
     let (tx, rx) = tokio::sync::mpsc::channel(10);

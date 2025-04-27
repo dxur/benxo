@@ -2,7 +2,7 @@ use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
 use super::*;
-use crate::utils::validators::*;
+use crate::validators::*;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DeliveryFetch {

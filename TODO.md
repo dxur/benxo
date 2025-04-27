@@ -2,6 +2,7 @@
 
 ## High priority
 
+[x] Merge the common and backend crates.
 [ ] Fix db schema.
 [ ] Enhance the Product page to the frontend.
 [ ] Add Orders page to the frontend.

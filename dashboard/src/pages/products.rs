@@ -1,6 +1,6 @@
-use common::{
+use backend::{
+    api::{ApiRoutes, Routes},
     models::{Page, Pagination, product::*},
-    routes::{ApiRoutes, Routes},
 };
 use leptos::{prelude::*, task::spawn_local};
 
