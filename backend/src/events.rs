@@ -2,13 +2,13 @@ use common::models::ObjectId;
 use tokio::{sync::mpsc::*, task};
 use tracing::info;
 
-use crate::{models::product::ProductModelInDb, AppState};
+use crate::{models::product::ProductInDb, AppState};
 
 #[derive(Debug)]
 pub enum Event {
-    ProductCreated(ProductModelInDb),
-    ProductUpdated(ProductModelInDb),
-    ProductDeleted(ProductModelInDb),
+    ProductCreated(ProductInDb),
+    ProductUpdated(ProductInDb),
+    ProductDeleted(ProductInDb),
     ProductVarUpdated((String, ObjectId)), // (sku, product_id)
     ProductVarDeleted((String, ObjectId)), // (sku, product_id)
     ThemeUpdated(ObjectId),
@@ -53,15 +53,15 @@ pub async fn on_theme_updated(_: &AppState, id: ObjectId) {
     info!("Updating theme {:?}", id);
 }
 
-pub async fn on_product_updated(_: &AppState, product: ProductModelInDb) {
+pub async fn on_product_updated(_: &AppState, product: ProductInDb) {
     info!("Updating product {:?}", product);
 }
 
-pub async fn on_product_created(_: &AppState, product: ProductModelInDb) {
+pub async fn on_product_created(_: &AppState, product: ProductInDb) {
     info!("Creating product {:?}", product);
 }
 
-pub async fn on_product_deleted(_: &AppState, product: ProductModelInDb) {
+pub async fn on_product_deleted(_: &AppState, product: ProductInDb) {
     info!("Deleting product {:?}", product);
 }
 

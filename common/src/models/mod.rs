@@ -9,15 +9,27 @@ pub use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
 pub trait Model {
-    type ModelFetch: Send + Sync + Serialize + for<'a> Deserialize<'a>;
-    type ModelCreate: Send + Sync + Serialize + for<'a> Deserialize<'a>;
-    type ModelUpdate: Send + Sync + Serialize + for<'a> Deserialize<'a>;
-    type ModelDelete: Send + Sync + Serialize + for<'a> Deserialize<'a>;
-    type ModelPublic: Send + Sync + Serialize + for<'a> Deserialize<'a>;
+    type Public: Send + Sync + Serialize + for<'a> Deserialize<'a>;
 }
 
-pub trait ModelFilter: Model {
-    type ModelFilter: Send + Sync + Serialize + for<'a> Deserialize<'a>;
+pub trait Fetchable: Model {
+    type Fetch: Send + Sync + Serialize + for<'a> Deserialize<'a>;
+}
+
+pub trait Creatable: Model {
+    type Create: Send + Sync + Serialize + for<'a> Deserialize<'a>;
+}
+
+pub trait Updatable: Model {
+    type Update: Send + Sync + Serialize + for<'a> Deserialize<'a>;
+}
+
+pub trait Deletable: Model {
+    type Delete: Send + Sync + Serialize + for<'a> Deserialize<'a>;
+}
+
+pub trait Filterable: Model {
+    type Filter: Send + Sync + Serialize + for<'a> Deserialize<'a>;
 }
 
 #[derive(Debug, Serialize, Deserialize)]

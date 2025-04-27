@@ -11,52 +11,52 @@ pub struct ApiRoutes;
 pub trait Routes {
     // ---- Products ----
     #[route(method=get, path = "/products")]
-    async fn get_all_products(#[query] pagination: Pagination) -> Page<ProductModelPublic>;
+    async fn get_all_products(#[query] pagination: Pagination) -> Page<ProductPublic>;
 
     #[route(method=get, path = "/products/")]
-    async fn get_one_product(#[body] body: ProductModelFetch) -> ProductModelPublic;
+    async fn get_one_product(#[body] body: ProductFetch) -> ProductPublic;
 
     #[route(method=post, path = "/products/")]
-    async fn create_product(#[body] body: ProductModelCreate) -> ProductModelPublic;
+    async fn create_product(#[body] body: ProductCreate) -> ProductPublic;
 
     #[route(method=patch, path = "/products/")]
-    async fn update_product(#[body] body: ProductModelUpdate) -> ProductModelPublic;
+    async fn update_product(#[body] body: ProductUpdate) -> ProductPublic;
 
     #[route(method=delete, path = "/products/")]
-    async fn delete_product(#[body] body: ProductModelDelete) -> ProductModelPublic;
+    async fn delete_product(#[body] body: ProductDelete) -> ProductPublic;
 
     // ---- Product Variants ----
     #[route(method=get, path = "/products/variants")]
     async fn get_some_variants(
         #[query] pagination: Pagination,
-        #[body] body: ProductVarModelFilter,
-    ) -> Page<ProductVarModelPublic>;
+        #[body] body: ProductVarFilter,
+    ) -> Page<ProductVarPublic>;
 
     #[route(method=get, path = "/products/variants/")]
-    async fn get_one_variant(#[body] body: ProductVarModelFetch) -> ProductVarModelPublic;
+    async fn get_one_variant(#[body] body: ProductVarFetch) -> ProductVarPublic;
 
     #[route(method=post, path = "/products/variants/")]
-    async fn create_variant(#[body] body: ProductVarModelCreate) -> ProductVarModelPublic;
+    async fn create_variant(#[body] body: ProductVarCreate) -> ProductVarPublic;
 
     #[route(method=patch, path = "/products/variants/")]
-    async fn update_variant(#[body] body: ProductVarModelUpdate) -> ProductVarModelPublic;
+    async fn update_variant(#[body] body: ProductVarUpdate) -> ProductVarPublic;
 
     #[route(method=delete, path = "/products/variants/")]
-    async fn delete_variant(#[body] body: ProductVarModelDelete) -> ProductVarModelPublic;
+    async fn delete_variant(#[body] body: ProductVarDelete) -> ProductVarPublic;
 
     // ---- Users ----
     #[route(method=get, path = "/users")]
-    async fn get_all_users(#[query] pagination: Pagination) -> Page<UserModelPublic>;
+    async fn get_all_users(#[query] pagination: Pagination) -> Page<UserPublic>;
 
     #[route(method=get, path = "/users/")]
-    async fn get_one_user(#[body] body: UserModelFetch) -> UserModelPublic;
+    async fn get_one_user(#[body] body: UserFetch) -> UserPublic;
 
     #[route(method=post, path = "/users/")]
-    async fn create_user(#[body] body: UserModelCreate) -> UserModelPublic;
+    async fn create_user(#[body] body: UserCreate) -> UserPublic;
 
     #[route(method=patch, path = "/users/")]
-    async fn update_user(#[body] body: UserModelUpdate) -> UserModelPublic;
+    async fn update_user(#[body] body: UserUpdate) -> UserPublic;
 
     #[route(method=delete, path = "/users/")]
-    async fn delete_user(#[body] body: UserModelDelete) -> UserModelPublic;
+    async fn delete_user(#[body] body: UserDelete) -> UserPublic;
 }

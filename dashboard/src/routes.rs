@@ -16,6 +16,8 @@ pub struct MenuItem {
 pub const HOME_PATH: &'static str = "/";
 pub const PRODUCTS_PATH: &'static str = "/products";
 pub const ORDERS_PATH: &'static str = "/orders";
+pub const DELIVERY_PATH: &'static str = "/delivery";
+pub const CHANNELS_PATH: &'static str = "/channels";
 pub const USERS_PATH: &'static str = "/users";
 pub const SETTINGS_PATH: &'static str = "/settings";
 
@@ -30,7 +32,7 @@ pub const ROUTES: &[Route] = &[
     },
     Route {
         path: ORDERS_PATH,
-        component: Orders,
+        component: || todo!(), // Orders,
     },
     Route {
         path: USERS_PATH,
@@ -49,17 +51,38 @@ pub const MENU: &[MenuItem] = &[
         subitems: &[],
     },
     MenuItem {
-        name: "Products",
+        name: "Orders",
+        path: "",
+        subitems: &[
+            MenuItem {
+                name: "Confirmation",
+                path: ORDERS_PATH,
+                subitems: &[],
+            },
+            MenuItem {
+                name: "Tracking",
+                path: ORDERS_PATH,
+                subitems: &[],
+            },
+        ],
+    },
+    MenuItem {
+        name: "Stock",
         path: PRODUCTS_PATH,
         subitems: &[],
     },
     MenuItem {
-        name: "orders",
-        path: ORDERS_PATH,
+        name: "Delivery",
+        path: DELIVERY_PATH,
         subitems: &[],
     },
     MenuItem {
-        name: "Users",
+        name: "Sale channels",
+        path: CHANNELS_PATH,
+        subitems: &[],
+    },
+    MenuItem {
+        name: "Team",
         path: USERS_PATH,
         subitems: &[],
     },

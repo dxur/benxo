@@ -1,7 +1,4 @@
-use common::models::{
-    ObjectId,
-    product::{ProductModel, ProductModelCreate, ProductModelPublic, ProductModelUpdate},
-};
+use common::models::{product::*, ObjectId};
 use leptos::prelude::*;
 
 use super::{Accessor, IntoForm};
@@ -18,14 +15,14 @@ pub struct ProductCreateAccessor {
     pub slug: RwSignal<String>,
 }
 
-impl TryFrom<ProductCreateAccessor> for ProductModelCreate {
+impl TryFrom<ProductCreateAccessor> for ProductCreate {
     type Error = ();
 
     fn try_from(value: ProductCreateAccessor) -> Result<Self, Self::Error> {
         let base_price = value.base_price.get().parse().map_err(|_| ())?;
         let base_discount = value.base_discount.get().parse().map_err(|_| ())?;
 
-        Ok(ProductModelCreate {
+        Ok(ProductCreate {
             name: value.name.get(),
             description: value.description.get(),
             featured: value.featured.get(),
@@ -52,7 +49,7 @@ pub struct ProductUpdateAccessor {
     pub slug: RwSignal<String>,
 }
 
-impl TryFrom<ProductUpdateAccessor> for ProductModelUpdate {
+impl TryFrom<ProductUpdateAccessor> for ProductUpdate {
     type Error = ();
 
     fn try_from(value: ProductUpdateAccessor) -> Result<Self, Self::Error> {
@@ -66,22 +63,24 @@ impl TryFrom<ProductUpdateAccessor> for ProductModelUpdate {
             s => Some(s.parse().map_err(|_| ())?),
         };
 
-        Ok(ProductModelUpdate {
+        Ok(ProductUpdate {
             id: value.id,
-            name: Some(value.name.get()).filter(|s| !s.is_empty()),
-            description: Some(value.description.get()).filter(|s| !s.is_empty()),
-            featured: if value.featured.get() != value.featured_origin.get() { Some(value.featured.get()) } else { None },
-            category: Some(value.category.get()).filter(|s| !s.is_empty()),
-            base_price: base_price,
-            base_discount: base_discount,
-            base_images: Some(value.base_images.get()).filter(|s| !s.is_empty()),
-            slug: Some(value.slug.get()).filter(|s| !s.is_empty()),
+            body: ProductUpdateBody {
+                name: Some(value.name.get()).filter(|s| !s.is_empty()),
+                description: Some(value.description.get()).filter(|s| !s.is_empty()),
+                featured: if value.featured.get() != value.featured_origin.get() { Some(value.featured.get()) } else { None },
+                category: Some(value.category.get()).filter(|s| !s.is_empty()),
+                base_price: base_price,
+                base_discount: base_discount,
+                base_images: Some(value.base_images.get()).filter(|s| !s.is_empty()),
+                slug: Some(value.slug.get()).filter(|s| !s.is_empty()),
+            }
         })
     }
 }
 
-impl From<ProductModelPublic> for ProductUpdateAccessor {
-    fn from(value: ProductModelPublic) -> Self {
+impl From<ProductPublic> for ProductUpdateAccessor {
+    fn from(value: ProductPublic) -> Self {
         Self {
             id: value.id,
             name: RwSignal::new(value.name),
@@ -97,12 +96,12 @@ impl From<ProductModelPublic> for ProductUpdateAccessor {
     }
 }
 
-impl Accessor for ProductModel {
+impl Accessor for Product {
     type CreateAccessor = ProductCreateAccessor;
     type UpdateAccessor = ProductUpdateAccessor;
 }
 
-impl IntoForm<ProductModelPublic> for ProductModel {
+impl IntoForm<ProductPublic> for Product {
     fn build_create_form(acc: Self::CreateAccessor, outlet: AnyView) -> AnyView {
         view! {
             <fieldset>
@@ -151,7 +150,7 @@ impl IntoForm<ProductModelPublic> for ProductModel {
     }
 
     fn build_update_form(
-        val: ProductModelPublic,
+        val: ProductPublic,
         acc: Self::UpdateAccessor,
         outlet: AnyView,
     ) -> AnyView {

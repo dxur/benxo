@@ -1,8 +1,7 @@
 use bson::oid::ObjectId;
-use bson::serde_helpers::serialize_object_id_as_hex_string;
 use serde::{Deserialize, Serialize};
 
-use super::Model;
+use super::*;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
@@ -22,19 +21,18 @@ pub struct CartItem {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct OrderModelFetch {
+pub struct OrderFetch {
     pub id: ObjectId,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct OrderModelCreate {
+pub struct OrderCreate {
     pub full_name: String,
     pub items: Vec<CartItem>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct OrderModelUpdate {
-    #[serde(skip_serializing)]
+pub struct OrderUpdate {
     pub id: ObjectId,
     pub status: Option<OrderStatus>,
     pub full_name: Option<String>,
@@ -42,23 +40,30 @@ pub struct OrderModelUpdate {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct OrderModelDelete {
+pub struct OrderDelete {
     pub id: ObjectId,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct OrderModelPublic {
-    #[serde(serialize_with = "serialize_object_id_as_hex_string")]
+pub struct OrderPublic {
     pub id: ObjectId,
     pub full_name: String,
     pub items: Vec<CartItem>,
 }
 
-pub struct OrderModel;
-impl Model for OrderModel {
-    type ModelFetch = OrderModelFetch;
-    type ModelCreate = OrderModelCreate;
-    type ModelUpdate = OrderModelUpdate;
-    type ModelDelete = OrderModelDelete;
-    type ModelPublic = OrderModelPublic;
+pub struct Order;
+impl Model for Order {
+    type Public = OrderPublic;
+}
+impl Fetchable for Order {
+    type Fetch = OrderFetch;
+}
+impl Creatable for Order {
+    type Create = OrderCreate;
+}
+impl Updatable for Order {
+    type Update = OrderUpdate;
+}
+impl Deletable for Order {
+    type Delete = OrderDelete;
 }

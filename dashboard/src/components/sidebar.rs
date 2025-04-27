@@ -5,13 +5,15 @@ use crate::routes::{MENU, MenuItem};
 
 fn sidebar_item(item: &'static MenuItem) -> impl IntoView {
     view! {
-        <A href=item.path>
-            <button
-                disabled=move || use_location().pathname.get() == item.path
-            >
-                {item.name}
-            </button>
-        </A>
+        <Show when=|| item.path != "">
+            <A href=item.path>
+                <button
+                    disabled=move || use_location().pathname.get() == item.path
+                >
+                    {item.name}
+                </button>
+            </A>
+        </Show>
         {
             item.subitems.iter().map(|subitem| {
                 sidebar_item(subitem)

@@ -1,12 +1,12 @@
-use common::models::user::{UserModel, UserPermissions};
+use common::models::user::*;
 use field::*;
 use mongodb::bson::{doc, oid::ObjectId, to_document, Document};
 use serde::{Deserialize, Serialize};
 
-use super::Model;
+use super::*;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct UserModelInDb {
+pub struct UserInDb {
     pub _id: ObjectId,
     pub name: String,
     pub email: String,
@@ -14,43 +14,94 @@ pub struct UserModelInDb {
     pub permissions: UserPermissions,
 }
 
-impl Model for UserModel {
+#[derive(Debug, Serialize)]
+pub struct UserFindInDb(pub UserFetch);
+
+#[derive(Debug, Serialize)]
+pub struct UserUpdateInDb(pub UserUpdate);
+
+impl Into<UserPublic> for UserInDb {
+    fn into(self) -> UserPublic {
+        UserPublic {
+            id: self._id,
+            name: self.name,
+            email: self.email,
+            permissions: self.permissions,
+        }
+    }
+}
+
+impl Model for User {
     const COLLECTION_NAME: &'static str = "users";
     const UNIQUE_INDICES: &'static [&'static str] = &[];
 
-    type ModelInDb = UserModelInDb;
+    type InDb = UserInDb;
+}
 
-    fn fetch(body: Self::ModelFetch) -> Document {
-        doc! {field!(_id @ UserModelInDb): body.id}
+impl Into<Result<Document>> for &UserFindInDb {
+    fn into(self) -> Result<Document> {
+        to_document(self).map_err(|e| Error { msg: e.to_string() })
     }
+}
 
-    fn create(body: Self::ModelCreate) -> Self::ModelInDb {
-        Self::ModelInDb {
+impl Findable for User {
+    type FindInDb = UserFindInDb;
+}
+
+impl Into<UserFindInDb> for &UserFetch {
+    fn into(self) -> UserFindInDb {
+        UserFindInDb(UserFetch { id: self.id })
+    }
+}
+
+impl Fetchable for User {
+    type FetchInDb = UserFetch;
+}
+
+impl Into<UserInDb> for UserCreate {
+    fn into(self) -> UserInDb {
+        UserInDb {
             _id: ObjectId::new(),
-            name: body.name,
-            email: body.email,
-            password: body.password,
-            permissions: body.permissions,
+            name: self.name,
+            email: self.email,
+            password: self.password,
+            permissions: self.permissions,
         }
     }
+}
 
-    fn update(body: &Self::ModelUpdate) -> Result<(Document, Document), ()> {
-        Ok((
-            doc! {field!(_id @ UserModelInDb): body.id},
-            to_document(body).map_err(|_| ())?,
-        ))
-    }
+impl Creatable for User {
+    type CreateInDb = UserCreate;
+}
 
-    fn delete(body: &Self::ModelDelete) -> Document {
-        doc! {field!(_id @ UserModelInDb): body.id}
+impl From<UserUpdate> for UserUpdateInDb {
+    fn from(value: UserUpdate) -> Self {
+        UserUpdateInDb(value)
     }
+}
 
-    fn publish(body: Self::ModelInDb) -> Self::ModelPublic {
-        Self::ModelPublic {
-            id: body._id,
-            name: body.name,
-            email: body.email,
-            permissions: body.permissions,
-        }
+impl Into<UserFindInDb> for &UserUpdateInDb {
+    fn into(self) -> UserFindInDb {
+        UserFindInDb(UserFetch { id: self.0.id })
     }
+}
+
+impl Into<Result<Document>> for &UserUpdateInDb {
+    fn into(self) -> Result<Document> {
+        to_document(&self.0).map_err(|e| Error { msg: e.to_string() })
+    }
+}
+
+impl Updatable for User {
+    type UpdateInDb = UserUpdateInDb;
+}
+
+impl Into<UserFindInDb> for &UserDelete {
+    fn into(self) -> UserFindInDb {
+        UserFindInDb(UserFetch { id: self.id })
+    }
+}
+
+impl Deletable for User {
+    type DeleteInDb = UserDelete;
 }

@@ -1,18 +1,17 @@
 use bson::oid::ObjectId;
-use bson::serde_helpers::serialize_object_id_as_hex_string;
 use serde::{Deserialize, Serialize};
 
 use crate::utils::validators::*;
 
-use super::{Model, ModelFilter};
+use super::*;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ProductModelFetch {
+pub struct ProductFetch {
     pub id: ObjectId,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ProductModelCreate {
+pub struct ProductCreate {
     pub name: String,
     pub description: String,
     pub featured: bool,
@@ -26,8 +25,7 @@ pub struct ProductModelCreate {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ProductModelUpdate {
-    pub id: ObjectId,
+pub struct ProductUpdateBody {
     pub name: Option<String>,
     pub description: Option<String>,
     pub featured: Option<bool>,
@@ -40,7 +38,13 @@ pub struct ProductModelUpdate {
     pub slug: Option<String>,
 }
 
-impl ProductModelUpdate {
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ProductUpdate {
+    pub id: ObjectId,
+    pub body: ProductUpdateBody,
+}
+
+impl ProductUpdateBody {
     pub fn is_none(&self) -> bool {
         self.name.is_none()
             && self.description.is_none()
@@ -54,13 +58,12 @@ impl ProductModelUpdate {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ProductModelDelete {
+pub struct ProductDelete {
     pub id: ObjectId,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ProductModelPublic {
-    #[serde(serialize_with = "serialize_object_id_as_hex_string")]
+pub struct ProductPublic {
     pub id: ObjectId,
     pub name: String,
     pub description: String,
@@ -74,22 +77,30 @@ pub struct ProductModelPublic {
     pub slug: String,
 }
 
-pub struct ProductModel;
-impl Model for ProductModel {
-    type ModelFetch = ProductModelFetch;
-    type ModelCreate = ProductModelCreate;
-    type ModelUpdate = ProductModelUpdate;
-    type ModelDelete = ProductModelDelete;
-    type ModelPublic = ProductModelPublic;
+pub struct Product;
+impl Model for Product {
+    type Public = ProductPublic;
+}
+impl Fetchable for Product {
+    type Fetch = ProductFetch;
+}
+impl Creatable for Product {
+    type Create = ProductCreate;
+}
+impl Updatable for Product {
+    type Update = ProductUpdate;
+}
+impl Deletable for Product {
+    type Delete = ProductDelete;
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ProductVarModelFetch {
+pub struct ProductVarFetch {
     pub sku: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ProductVarModelCreate {
+pub struct ProductVarCreate {
     pub sku: String,
     pub product_id: ObjectId,
     pub name: String,
@@ -104,7 +115,7 @@ pub struct ProductVarModelCreate {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ProductVarModelUpdate {
+pub struct ProductVarUpdate {
     pub sku: String,
     pub name: Option<String>,
     pub description: Option<String>,
@@ -118,9 +129,8 @@ pub struct ProductVarModelUpdate {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ProductVarModelPublic {
+pub struct ProductVarPublic {
     pub sku: String,
-    #[serde(serialize_with = "serialize_object_id_as_hex_string")]
     pub product_id: ObjectId,
     pub name: String,
     pub description: String,
@@ -134,24 +144,31 @@ pub struct ProductVarModelPublic {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ProductVarModelDelete {
+pub struct ProductVarDelete {
     pub sku: String,
 }
 
-pub struct ProductVarModel;
-impl Model for ProductVarModel {
-    type ModelFetch = ProductVarModelFetch;
-    type ModelCreate = ProductVarModelCreate;
-    type ModelUpdate = ProductVarModelUpdate;
-    type ModelDelete = ProductVarModelDelete;
-    type ModelPublic = ProductVarModelPublic;
-}
-
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ProductVarModelFilter {
+pub struct ProductVarFilter {
     pub product_id: ObjectId,
 }
 
-impl ModelFilter for ProductVarModel {
-    type ModelFilter = ProductVarModelFilter;
+pub struct ProductVar;
+impl Model for ProductVar {
+    type Public = ProductVarPublic;
+}
+impl Fetchable for ProductVar {
+    type Fetch = ProductVarFetch;
+}
+impl Creatable for ProductVar {
+    type Create = ProductVarCreate;
+}
+impl Updatable for ProductVar {
+    type Update = ProductVarUpdate;
+}
+impl Deletable for ProductVar {
+    type Delete = ProductVarDelete;
+}
+impl Filterable for ProductVar {
+    type Filter = ProductVarFilter;
 }

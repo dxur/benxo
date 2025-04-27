@@ -1,26 +1,16 @@
 use common::{
-    models::{
-        Page, Pagination,
-        product::{
-            ProductModel, ProductModelCreate, ProductModelDelete, ProductModelPublic,
-            ProductModelUpdate,
-        },
-    },
+    models::{Page, Pagination, product::*},
     routes::{ApiRoutes, Routes},
 };
-use leptos::{
-    ev::Event,
-    html::{self, *},
-    prelude::*,
-    task::spawn_local,
-};
+use leptos::{prelude::*, task::spawn_local};
 
+use crate::components::dialog::Dialog;
 use crate::forms::Accessor;
 use crate::forms::IntoForm;
 
 #[component]
 pub fn Products() -> AnyView {
-    let (products, set_products) = signal(Option::<Result<Page<ProductModelPublic>, String>>::None);
+    let (products, set_products) = signal(Option::<Result<Page<ProductPublic>, String>>::None);
     let (current_page, set_current_page) = signal::<usize>(1);
     let (page, set_page) = signal(1 as usize);
     let (reload, set_reload) = signal(());
@@ -46,7 +36,7 @@ pub fn Products() -> AnyView {
     );
 
     let (create_modal, set_create_modal) = signal(false);
-    let update_modal = RwSignal::new(Option::<ProductModelPublic>::None);
+    let update_modal = RwSignal::new(Option::<ProductPublic>::None);
 
     view! {
         <Show
@@ -108,7 +98,7 @@ pub fn Products() -> AnyView {
                                                         <button type="reset"
                                                             on:click=move |_| {
                                                                 spawn_local(async move {
-                                                                    match ApiRoutes::delete_product(ProductModelDelete { id: product.id }).await {
+                                                                    match ApiRoutes::delete_product(ProductDelete { id: product.id }).await {
                                                                         Ok(_) => set_page.set(current_page.get_untracked()),
                                                                         Err(err) => log::error!("Failed to delete product: {err}"),
                                                                     }
@@ -164,105 +154,82 @@ pub fn Products() -> AnyView {
 
 #[component]
 fn ProductCreate(set_modal: WriteSignal<bool>, set_on_create: WriteSignal<()>) -> impl IntoView {
-    let acc = <ProductModel as Accessor>::CreateAccessor::default();
-    let dialog_element: NodeRef<html::Dialog> = NodeRef::new();
-    let show = move || {
-        dialog_element.get().map(|dialog| dialog.show_modal());
-    };
-    let close = move || {
-        dialog_element.get().map(|dialog| dialog.close());
-        set_modal.set(false);
-    };
+    let acc = <Product as Accessor>::CreateAccessor::default();
 
     view! {
-        <dialog node_ref=dialog_element on:cancel=move |_: Event| { close(); }>
-            <iframe on:load=move |_| { show(); }></iframe>
-            <section aria-modal="true">
-                <header>
-                    <h2>Create Product</h2>
-                </header>
-                <form on:submit=move |ev| {
-                    ev.prevent_default();
-                    match ProductModelCreate::try_from(acc) {
-                        Ok(prod) => {
-                            spawn_local(async move {
-                                let res = ApiRoutes::create_product(prod).await;
-                                log::debug!("Created product: {:?}", res);
-                                set_on_create.set(());
-                                close();
-                            });
-                        }
-                        Err(err) => {
-                            log::error!("Failed to create product: {:?}", err);
-                        }
+        <Dialog show_on_mount=true on_close=move || { set_modal.set(false); }>
+            <header>
+                <h2>Create Product</h2>
+            </header>
+            <form on:submit=move |ev| {
+                ev.prevent_default();
+                match ProductCreate::try_from(acc) {
+                    Ok(prod) => {
+                        spawn_local(async move {
+                            let res = ApiRoutes::create_product(prod).await;
+                            log::debug!("Created product: {:?}", res);
+                            set_on_create.set(());
+                            set_modal.set(false);
+                        });
                     }
-                }>
-                    {
-                        ProductModel::build_create_form(
-                            acc,
-                            view! {
-                                <button type="button" on:click=move |_| { close(); }>Close</button>
-                                <button type="submit">Submit</button>
-                            }.into_any())
+                    Err(err) => {
+                        log::error!("Failed to create product: {:?}", err);
                     }
-                </form>
-            </section>
-        </dialog>
+                }
+            }>
+                {
+                    Product::build_create_form(
+                        acc,
+                        view! {
+                            <button type="button" on:click=move |_| { set_modal.set(false) }>Close</button>
+                            <button type="submit">Submit</button>
+                        }.into_any())
+                }
+            </form>
+        </Dialog>
     }
 }
 
 #[component]
 fn ProductUpdate(
-    set_modal: RwSignal<Option<ProductModelPublic>>,
+    set_modal: RwSignal<Option<ProductPublic>>,
     set_on_update: WriteSignal<()>,
 ) -> impl IntoView {
-    let acc = <ProductModel as Accessor>::UpdateAccessor::default();
-    let dialog_element: NodeRef<html::Dialog> = NodeRef::new();
-    let show = move || {
-        dialog_element.get().map(|dialog| dialog.show_modal());
-    };
-    let close = move || {
-        dialog_element.get().map(|dialog| dialog.close());
-        set_modal.set(None);
-    };
-
+    let acc = <Product as Accessor>::UpdateAccessor::default();
     view! {
-        <dialog node_ref=dialog_element on:cancel=move |_: Event| { close(); }>
-            <iframe on:load=move |_| { show(); }></iframe>
-            <section aria-modal="true">
-                <header>
-                    <h2>Update Product</h2>
-                </header>
-                <form on:submit=move |ev| {
-                    let a = acc.clone();
-                    ev.prevent_default();
-                    match ProductModelUpdate::try_from(a) {
-                        Ok(prod) => {
-                            if !prod.is_none() {
-                                spawn_local(async move {
-                                    let res = ApiRoutes::update_product(prod).await;
-                                    log::debug!("Updated product: {:?}", res);
-                                    set_on_update.set(());
-                                    close();
-                                });
-                            }
-                        }
-                        Err(err) => {
-                            log::error!("Failed to update product: {:?}", err);
+        <Dialog show_on_mount=true on_close=move || { set_modal.set(None); }>
+            <header>
+                <h2>Update Product</h2>
+            </header>
+            <form on:submit=move |ev| {
+                let a = acc.clone();
+                ev.prevent_default();
+                match ProductUpdate::try_from(a) {
+                    Ok(prod) => {
+                        if !prod.body.is_none() {
+                            spawn_local(async move {
+                                let res = ApiRoutes::update_product(prod).await;
+                                log::debug!("Updated product: {:?}", res);
+                                set_on_update.set(());
+                                set_modal.set(None);
+                            });
                         }
                     }
-                }>
-                    {
-                        ProductModel::build_update_form(
-                            set_modal.get_untracked().unwrap(),
-                            acc,
-                            view! {
-                                <button type="button" on:click=move |_| { close(); }>Close</button>
-                                <button type="submit">Submit</button>
-                            }.into_any())
+                    Err(err) => {
+                        log::error!("Failed to update product: {:?}", err);
                     }
-                </form>
-            </section>
-        </dialog>
+                }
+            }>
+                {
+                    Product::build_update_form(
+                        set_modal.get_untracked().unwrap(),
+                        acc,
+                        view! {
+                            <button type="button" on:click=move |_| { set_modal.set(None) }>Close</button>
+                            <button type="submit">Submit</button>
+                        }.into_any())
+                }
+            </form>
+        </Dialog>
     }
 }

@@ -1,11 +1,5 @@
 use common::{
-    models::{
-        Page, Pagination,
-        product::{
-            ProductModel, ProductModelCreate, ProductModelDelete, ProductModelPublic,
-            ProductModelUpdate,
-        },
-    },
+    models::{Page, Pagination, order::*},
     routes::{ApiRoutes, Routes},
 };
 use leptos::{html::*, prelude::*, task::spawn_local};

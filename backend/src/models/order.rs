@@ -1,64 +1,105 @@
 use common::models::order::*;
-use common::models::product::ProductVarModel;
+use common::models::product::ProductVar;
 use field::*;
 use mongodb::bson::{doc, oid::ObjectId, to_document, Document};
 use mongodb::options::TransactionOptions;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-use super::product::ProductVarModelInDb;
-use super::Model;
+use super::product::ProductVarInDb;
+use super::*;
+use super::{Error, Fetchable, Findable, Model};
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct OrderModelInDb {
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OrderInDb {
     pub _id: ObjectId,
     pub status: OrderStatus,
     pub full_name: String,
     pub items: Vec<CartItem>,
 }
 
-impl Model for OrderModel {
+#[derive(Debug, Serialize)]
+pub struct OrderFindInDb(pub OrderFetch);
+
+#[derive(Debug, Serialize)]
+pub struct OrderUpdateInDb(pub OrderUpdate);
+
+impl Into<OrderPublic> for OrderInDb {
+    fn into(self) -> OrderPublic {
+        OrderPublic {
+            id: self._id,
+            full_name: self.full_name,
+            items: self.items,
+        }
+    }
+}
+
+impl From<OrderUpdate> for OrderUpdateInDb {
+    fn from(value: OrderUpdate) -> Self {
+        OrderUpdateInDb(value)
+    }
+}
+
+impl Into<Result<Document>> for &OrderFindInDb {
+    fn into(self) -> Result<Document> {
+        to_document(&self.0).map_err(|e| Error { msg: e.to_string() })
+    }
+}
+
+impl Into<Result<Document>> for &OrderUpdateInDb {
+    fn into(self) -> Result<Document> {
+        to_document(&self.0).map_err(|e| Error { msg: e.to_string() })
+    }
+}
+
+impl Into<OrderFindInDb> for &OrderFetch {
+    fn into(self) -> OrderFindInDb {
+        OrderFindInDb(OrderFetch { id: self.id })
+    }
+}
+
+impl Into<OrderFindInDb> for &OrderDelete {
+    fn into(self) -> OrderFindInDb {
+        OrderFindInDb(OrderFetch { id: self.id })
+    }
+}
+
+impl Into<OrderFindInDb> for &OrderUpdateInDb {
+    fn into(self) -> OrderFindInDb {
+        OrderFindInDb(OrderFetch { id: self.0.id })
+    }
+}
+
+impl From<OrderCreate> for OrderInDb {
+    fn from(value: OrderCreate) -> Self {
+        OrderInDb {
+            _id: ObjectId::new(),
+            status: OrderStatus::Pending,
+            full_name: value.full_name,
+            items: value.items,
+        }
+    }
+}
+
+impl Model for Order {
     const COLLECTION_NAME: &'static str = "orders";
     const UNIQUE_INDICES: &'static [&'static str] = &[];
 
-    type ModelInDb = OrderModelInDb;
+    type InDb = OrderInDb;
+}
 
-    fn fetch(body: Self::ModelFetch) -> Document {
-        doc! {field!(_id @ OrderModelInDb): body.id}
-    }
+impl Findable for Order {
+    type FindInDb = OrderFindInDb;
+}
 
-    fn create(body: Self::ModelCreate) -> Self::ModelInDb {
-        Self::ModelInDb {
-            _id: ObjectId::new(),
-            status: OrderStatus::Pending,
-            full_name: body.full_name,
-            items: body.items,
-        }
-    }
+impl Fetchable for Order {
+    type FetchInDb = OrderFetch;
+}
 
-    fn update(body: &Self::ModelUpdate) -> Result<(Document, Document), ()> {
-        Ok((
-            doc! {field!(_id @ OrderModelInDb): body.id},
-            to_document(body).map_err(|_| ())?,
-        ))
-    }
+impl Creatable for Order {
+    type CreateInDb = OrderCreate;
 
-    fn delete(body: &Self::ModelDelete) -> Document {
-        doc! {field!(_id @ OrderModelInDb): body.id}
-    }
-
-    fn publish(body: Self::ModelInDb) -> Self::ModelPublic {
-        Self::ModelPublic {
-            id: body._id,
-            full_name: body.full_name,
-            items: body.items,
-        }
-    }
-
-    async fn create_in_db(
-        db: &crate::db::DB,
-        body: Self::ModelCreate,
-    ) -> Result<Option<Self::ModelInDb>, ()> {
+    async fn create(db: &DB, body: Self::Create) -> Result<Self::InDb> {
         let mut session = db.client().start_session().await.map_err(|_| ())?;
         let txn_options = TransactionOptions::builder().build();
         session
@@ -67,9 +108,8 @@ impl Model for OrderModel {
             .await
             .map_err(|_| ())?;
 
-        let products = db
-            .collection::<<ProductVarModel as Model>::ModelInDb>(ProductVarModel::COLLECTION_NAME);
-        let orders = db.collection::<Self::ModelInDb>(Self::COLLECTION_NAME);
+        let products = db.collection::<<ProductVar as Model>::InDb>(ProductVar::COLLECTION_NAME);
+        let orders = db.collection::<Self::InDb>(Self::COLLECTION_NAME);
 
         let mut products_qnt = HashMap::<String, u32>::new();
 
@@ -82,8 +122,8 @@ impl Model for OrderModel {
 
         for (sku, qnt) in &products_qnt {
             let filter = doc! {
-                field!(sku @ ProductVarModelInDb): sku,
-                field!(stocks @ ProductVarModelInDb): { "$gte": qnt }
+                field!(sku @ ProductVarInDb): sku,
+                field!(stocks @ ProductVarInDb): { "$gte": qnt }
             };
 
             let product = products
@@ -94,14 +134,16 @@ impl Model for OrderModel {
 
             if product.is_none() {
                 session.abort_transaction().await.map_err(|_| ())?;
-                return Err(());
+                return Err(Error {
+                    msg: "Not enough stocks".to_string(),
+                });
             }
         }
 
         for item in &body.items {
-            let filter = doc! { field!(sku @ ProductVarModelInDb): &item.product_sku };
+            let filter = doc! { field!(sku @ ProductVarInDb): &item.product_sku };
             let update =
-                doc! { "$inc": { field!(stocks @ ProductVarModelInDb): -(item.quantity as i32) } };
+                doc! { "$inc": { field!(stocks @ ProductVarInDb): -(item.quantity as i32) } };
 
             products
                 .update_one(filter, update)
@@ -110,7 +152,7 @@ impl Model for OrderModel {
                 .map_err(|_| ())?;
         }
 
-        let order = Self::create(body);
+        let order: Self::InDb = body.into();
         orders
             .insert_one(&order)
             .session(&mut session)
@@ -119,20 +161,22 @@ impl Model for OrderModel {
 
         session.commit_transaction().await.map_err(|_| ())?;
 
-        Ok(Some(order))
+        Ok(order)
     }
+}
 
-    async fn update_in_db(
-        _: &crate::db::DB,
-        _: &Self::ModelUpdate,
-    ) -> Result<Option<Self::ModelInDb>, ()> {
-        todo!("recalculate the stocks")
+impl Updatable for Order {
+    type UpdateInDb = OrderUpdateInDb;
+
+    async fn update(_: &DB, _: Self::Update) -> Result<Option<(Self::UpdateInDb, Self::InDb)>> {
+        todo!("Not implemented")
     }
+}
 
-    async fn delete_in_db(
-        _: &crate::db::DB,
-        _: &Self::ModelDelete,
-    ) -> Result<Option<Self::ModelInDb>, ()> {
-        todo!("release the stocks")
+impl Deletable for Order {
+    type DeleteInDb = OrderDelete;
+
+    async fn delete(_: &DB, _: Self::Delete) -> Result<Option<(Self::DeleteInDb, Self::InDb)>> {
+        todo!("Not implemented")
     }
 }

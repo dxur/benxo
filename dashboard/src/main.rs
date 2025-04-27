@@ -10,6 +10,7 @@ use leptos_router::{
     StaticSegment,
     components::{FlatRoutes, Route, RouteProps, Router},
 };
+use pages::NotFound;
 use routes::*;
 
 #[component]
@@ -23,7 +24,7 @@ fn App() -> impl IntoView {
                     <button> Account </button>
                 </header>
                 <section data-page>
-                    <FlatRoutes fallback=|| "" children=ToChildren::to_children(|| {
+                    <FlatRoutes fallback=NotFound children=ToChildren::to_children(|| {
                         StaticVec::from(
                             ROUTES
                                 .iter()

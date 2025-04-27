@@ -1,16 +1,16 @@
 use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
-use super::Model;
+use super::*;
 use crate::utils::validators::*;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct DeliveryModelFetch {
+pub struct DeliveryFetch {
     pub id: ObjectId,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct DeliveryModelCreate {
+pub struct DeliveryCreate {
     pub id: ObjectId,
     pub name: String,
     #[serde(deserialize_with = "non_negative")]
@@ -18,7 +18,7 @@ pub struct DeliveryModelCreate {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct DeliveryModelUpdate {
+pub struct DeliveryUpdate {
     pub id: ObjectId,
     pub name: Option<String>,
     #[serde(deserialize_with = "non_negative_option")]
@@ -26,7 +26,7 @@ pub struct DeliveryModelUpdate {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct DeliveryModelPublic {
+pub struct DeliveryPublic {
     pub id: ObjectId,
     pub name: String,
     #[serde(deserialize_with = "non_negative")]
@@ -34,15 +34,23 @@ pub struct DeliveryModelPublic {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct DeliveryModelDelete {
+pub struct DeliveryDelete {
     pub id: ObjectId,
 }
 
-pub struct DeliveryModel;
-impl Model for DeliveryModel {
-    type ModelFetch = DeliveryModelFetch;
-    type ModelCreate = DeliveryModelCreate;
-    type ModelUpdate = DeliveryModelUpdate;
-    type ModelDelete = DeliveryModelDelete;
-    type ModelPublic = DeliveryModelPublic;
+pub struct Delivery;
+impl Model for Delivery {
+    type Public = DeliveryPublic;
+}
+impl Fetchable for Delivery {
+    type Fetch = DeliveryFetch;
+}
+impl Creatable for Delivery {
+    type Create = DeliveryCreate;
+}
+impl Updatable for Delivery {
+    type Update = DeliveryUpdate;
+}
+impl Deletable for Delivery {
+    type Delete = DeliveryDelete;
 }

@@ -1,5 +1,5 @@
-pub use common::models::product::ProductModel;
-use common::models::product::{ProductModelFetch, ProductVarModel};
+use common::models::product::*;
+pub use common::models::product::{Product, ProductVar};
 use common::utils::validators::{non_negative, non_negative_option};
 use field::*;
 use mongodb::bson::to_document;
@@ -7,13 +7,12 @@ use mongodb::bson::{doc, oid::ObjectId, Document};
 use mongodb::options::TransactionOptions;
 use serde::{Deserialize, Serialize};
 
-use super::{Model, ModelFilter};
-use crate::db::DB;
+use super::*;
 use crate::events::Event;
 use crate::AppState;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ProductModelInDb {
+pub struct ProductInDb {
     pub _id: ObjectId,
     pub name: String,
     pub description: String,
@@ -23,76 +22,124 @@ pub struct ProductModelInDb {
     pub base_price: f32,
     #[serde(deserialize_with = "non_negative")]
     pub base_discount: f32,
-    pub default_var: Option<ObjectId>,
     pub base_images: Vec<String>,
     pub slug: String,
 }
 
-impl Model for common::models::product::ProductModel {
-    const COLLECTION_NAME: &'static str = "products";
-    const UNIQUE_INDICES: &'static [&'static str] = &[field!(slug @ ProductModelInDb)];
+#[derive(Debug, Serialize)]
+pub struct ProductFind(pub ProductFetch);
 
-    type ModelInDb = ProductModelInDb;
+#[derive(Debug, Serialize)]
+pub struct ProductUpdateInDb(pub ProductUpdate);
 
-    fn fetch(body: Self::ModelFetch) -> Document {
-        doc! {field!(_id @ ProductModelInDb): body.id}
+impl Into<ProductPublic> for ProductInDb {
+    fn into(self) -> ProductPublic {
+        ProductPublic {
+            id: self._id,
+            name: self.name,
+            description: self.description,
+            featured: self.featured,
+            category: self.category,
+            base_price: self.base_price,
+            base_discount: self.base_discount,
+            base_images: self.base_images,
+            slug: self.slug,
+        }
     }
+}
 
-    fn create(body: Self::ModelCreate) -> Self::ModelInDb {
-        Self::ModelInDb {
+impl Into<Result<Document>> for &ProductFind {
+    fn into(self) -> Result<Document> {
+        to_document(&self).map_err(|e| Error { msg: e.to_string() })
+    }
+}
+
+impl Into<ProductInDb> for ProductCreate {
+    fn into(self) -> ProductInDb {
+        ProductInDb {
             _id: ObjectId::new(),
-            name: body.name,
-            description: body.description,
-            featured: body.featured,
-            category: body.category,
-            base_price: body.base_price,
-            base_discount: body.base_discount,
-            default_var: None,
-            base_images: body.base_images,
-            slug: body.slug,
+            name: self.name,
+            description: self.description,
+            featured: self.featured,
+            category: self.category,
+            base_price: self.base_price,
+            base_discount: self.base_discount,
+            base_images: self.base_images,
+            slug: self.slug,
         }
     }
+}
 
-    fn update(body: &Self::ModelUpdate) -> Result<(Document, Document), ()> {
-        Ok((
-            doc! {field!(_id @ ProductModelInDb): body.id},
-            to_document(body).map_err(|_| ())?,
-        ))
+impl Into<ProductFind> for &ProductUpdateInDb {
+    fn into(self) -> ProductFind {
+        ProductFind(ProductFetch { id: self.0.id })
     }
+}
 
-    fn delete(body: &Self::ModelDelete) -> Document {
-        doc! {field!(_id @ ProductModelInDb): body.id}
+impl Into<ProductFind> for &ProductDelete {
+    fn into(self) -> ProductFind {
+        ProductFind(ProductFetch { id: self.id })
     }
+}
 
-    fn publish(body: Self::ModelInDb) -> Self::ModelPublic {
-        Self::ModelPublic {
-            id: body._id,
-            name: body.name,
-            description: body.description,
-            featured: body.featured,
-            category: body.category,
-            base_price: body.base_price,
-            base_discount: body.base_discount,
-            base_images: body.base_images,
-            slug: body.slug,
-        }
+impl Into<ProductFind> for &ProductFetch {
+    fn into(self) -> ProductFind {
+        ProductFind(ProductFetch { id: self.id })
     }
+}
 
-    async fn on_create(state: &AppState, body: &Self::ModelInDb) {
+impl Into<Result<Document>> for &ProductUpdateInDb {
+    fn into(self) -> Result<Document> {
+        to_document(&self.0).map_err(|e| Error { msg: e.to_string() })
+    }
+}
+
+impl From<ProductUpdate> for ProductUpdateInDb {
+    fn from(value: ProductUpdate) -> Self {
+        ProductUpdateInDb(value)
+    }
+}
+
+impl Model for common::models::product::Product {
+    const COLLECTION_NAME: &'static str = "products";
+    const UNIQUE_INDICES: &'static [&'static str] = &[field!(slug @ ProductInDb)];
+
+    type InDb = ProductInDb;
+}
+
+impl Findable for Product {
+    type FindInDb = ProductFind;
+}
+
+impl Fetchable for Product {
+    type FetchInDb = ProductFetch;
+}
+
+impl Creatable for Product {
+    type CreateInDb = ProductCreate;
+    async fn on_create(state: &AppState, body: &Self::InDb) {
         state
             .event_bus
             .emit(Event::ProductCreated(body.clone()))
             .await;
     }
+}
 
-    async fn on_update(state: &AppState, _: &Self::ModelUpdate, value: &Self::ModelInDb) {
+impl Updatable for Product {
+    type UpdateInDb = ProductUpdateInDb;
+
+    async fn on_update(state: &AppState, _: &Self::UpdateInDb, value: &Self::InDb) {
         state
             .event_bus
             .emit(Event::ProductUpdated(value.clone()))
             .await;
     }
+}
 
-    async fn on_delete(state: &AppState, _: Self::ModelDelete, value: &Self::ModelInDb) {
+impl Deletable for Product {
+    type DeleteInDb = ProductDelete;
+
+    async fn on_delete(state: &AppState, _: &Self::DeleteInDb, value: &Self::InDb) {
         state
             .event_bus
             .emit(Event::ProductDeleted(value.clone()))
@@ -101,7 +148,7 @@ impl Model for common::models::product::ProductModel {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ProductVarModelInDb {
+pub struct ProductVarInDb {
     pub sku: String,
     pub product_id: ObjectId,
     pub name: String,
@@ -115,56 +162,128 @@ pub struct ProductVarModelInDb {
     pub attrs: Vec<String>,
 }
 
-impl Model for ProductVarModel {
+#[derive(Debug, Serialize)]
+pub struct ProductVarFindInDb(pub ProductVarFetch);
+
+#[derive(Debug, Serialize)]
+pub struct ProductVarUpdateInDb(pub ProductVarUpdate);
+
+#[derive(Debug, Serialize)]
+pub struct ProductVarFilterInDb(pub ProductVarFilter);
+
+impl Into<ProductVarPublic> for ProductVarInDb {
+    fn into(self) -> ProductVarPublic {
+        ProductVarPublic {
+            sku: self.sku,
+            product_id: self.product_id,
+            name: self.name,
+            description: self.description,
+            price: self.price,
+            discount: self.discount,
+            stocks: self.stocks,
+            images: self.images,
+            attrs: self.attrs,
+        }
+    }
+}
+
+impl Into<Result<Document>> for &ProductVarFindInDb {
+    fn into(self) -> Result<Document> {
+        to_document(&self.0).map_err(|e| Error { msg: e.to_string() })
+    }
+}
+
+impl Into<ProductVarInDb> for ProductVarCreate {
+    fn into(self) -> ProductVarInDb {
+        ProductVarInDb {
+            sku: self.sku,
+            product_id: self.product_id,
+            name: self.name,
+            description: self.description,
+            price: self.price,
+            discount: self.discount,
+            stocks: self.stocks,
+            images: self.images,
+            attrs: self.attrs,
+        }
+    }
+}
+
+impl Into<ProductVarFindInDb> for &ProductVarUpdateInDb {
+    fn into(self) -> ProductVarFindInDb {
+        ProductVarFindInDb(ProductVarFetch {
+            sku: self.0.sku.clone(),
+        })
+    }
+}
+
+impl Into<Result<Document>> for &ProductVarUpdateInDb {
+    fn into(self) -> Result<Document> {
+        to_document(&self.0).map_err(|e| Error { msg: e.to_string() })
+    }
+}
+
+impl From<ProductVarUpdate> for ProductVarUpdateInDb {
+    fn from(value: ProductVarUpdate) -> Self {
+        ProductVarUpdateInDb(value)
+    }
+}
+
+impl Into<ProductVarFindInDb> for &ProductVarFetch {
+    fn into(self) -> ProductVarFindInDb {
+        ProductVarFindInDb(ProductVarFetch {
+            sku: self.sku.clone(),
+        })
+    }
+}
+
+impl Into<ProductVarFindInDb> for &ProductVarUpdate {
+    fn into(self) -> ProductVarFindInDb {
+        ProductVarFindInDb(ProductVarFetch {
+            sku: self.sku.clone(),
+        })
+    }
+}
+
+impl Into<ProductVarFindInDb> for &ProductVarDelete {
+    fn into(self) -> ProductVarFindInDb {
+        ProductVarFindInDb(ProductVarFetch {
+            sku: self.sku.clone(),
+        })
+    }
+}
+
+impl From<ProductVarFilter> for ProductVarFilterInDb {
+    fn from(value: ProductVarFilter) -> Self {
+        ProductVarFilterInDb(value)
+    }
+}
+
+impl Into<Result<Document>> for &ProductVarFilterInDb {
+    fn into(self) -> Result<Document> {
+        to_document(&self.0).map_err(|e| Error { msg: e.to_string() })
+    }
+}
+
+impl Model for ProductVar {
     const COLLECTION_NAME: &'static str = "variants";
-    const UNIQUE_INDICES: &'static [&'static str] = &[field!(sku @ ProductVarModelInDb)];
+    const UNIQUE_INDICES: &'static [&'static str] = &[field!(sku @ ProductVarInDb)];
 
-    type ModelInDb = ProductVarModelInDb;
+    type InDb = ProductVarInDb;
+}
 
-    fn fetch(body: Self::ModelFetch) -> Document {
-        doc! {field!(sku @ ProductVarModelInDb): body.sku}
-    }
+impl Findable for ProductVar {
+    type FindInDb = ProductVarFindInDb;
+}
 
-    fn create(body: Self::ModelCreate) -> Self::ModelInDb {
-        Self::ModelInDb {
-            sku: body.sku,
-            product_id: body.product_id,
-            name: body.name,
-            description: body.description,
-            price: body.price,
-            discount: body.discount,
-            stocks: body.stocks,
-            images: body.images,
-            attrs: body.attrs,
-        }
-    }
+impl Fetchable for ProductVar {
+    type FetchInDb = ProductVarFetch;
+}
 
-    fn update(body: &Self::ModelUpdate) -> Result<(Document, Document), ()> {
-        Ok((
-            doc! {field!(sku @ ProductVarModelInDb): &body.sku},
-            to_document(body).map_err(|_| ())?,
-        ))
-    }
+impl Creatable for ProductVar {
+    type CreateInDb = ProductVarCreate;
 
-    fn delete(body: &Self::ModelDelete) -> Document {
-        doc! {field!(sku @ ProductVarModelInDb): &body.sku}
-    }
-
-    fn publish(body: Self::ModelInDb) -> Self::ModelPublic {
-        Self::ModelPublic {
-            sku: body.sku,
-            product_id: body.product_id,
-            name: body.name,
-            description: body.description,
-            price: body.price,
-            discount: body.discount,
-            stocks: body.stocks,
-            images: body.images,
-            attrs: body.attrs,
-        }
-    }
-
-    async fn create_in_db(db: &DB, body: Self::ModelCreate) -> Result<Option<Self::ModelInDb>, ()> {
+    async fn create(db: &DB, body: Self::Create) -> Result<Self::InDb> {
         let mut session = db.client().start_session().await.map_err(|_| ())?;
         let txn_options = TransactionOptions::builder().build();
         session
@@ -173,11 +292,14 @@ impl Model for ProductVarModel {
             .await
             .map_err(|_| ())?;
 
+        let filter: Result<Document> = ProductFind(ProductFetch {
+            id: body.product_id,
+        })
+        .ref_into();
+
         let product_exists = db
-            .collection::<<ProductModel as Model>::ModelInDb>(ProductModel::COLLECTION_NAME)
-            .find_one(ProductModel::fetch(ProductModelFetch {
-                id: body.product_id,
-            }))
+            .collection::<<Product as Model>::InDb>(Product::COLLECTION_NAME)
+            .find_one(filter?)
             .session(&mut session)
             .await
             .map_err(|_| ())?
@@ -185,12 +307,14 @@ impl Model for ProductVarModel {
 
         if !product_exists {
             session.abort_transaction().await.ok();
-            return Err(());
+            return Err(Error {
+                msg: "Product does not exist".to_string(),
+            });
         }
 
-        let model = Self::create(body);
+        let model: Self::InDb = body.into();
         match db
-            .collection::<Self::ModelInDb>(Self::COLLECTION_NAME)
+            .collection::<Self::InDb>(Self::COLLECTION_NAME)
             .insert_one(&model)
             .session(&mut session)
             .await
@@ -198,15 +322,15 @@ impl Model for ProductVarModel {
             Ok(_) => session
                 .commit_transaction()
                 .await
-                .map_or_else(|_| Ok(None), |_| Ok(Some(model))),
-            Err(_) => {
+                .map_or_else(|e| Err(Error { msg: e.to_string() }), |_| Ok(model)),
+            Err(e) => {
                 session.abort_transaction().await.ok();
-                Ok(None)
+                Err(Error { msg: e.to_string() })
             }
         }
     }
 
-    async fn on_create(state: &AppState, body: &Self::ModelInDb) {
+    async fn on_create(state: &AppState, body: &Self::InDb) {
         state
             .event_bus
             .emit(Event::ProductVarUpdated((
@@ -215,8 +339,12 @@ impl Model for ProductVarModel {
             )))
             .await;
     }
+}
 
-    async fn on_update(state: &AppState, _: &Self::ModelUpdate, value: &Self::ModelInDb) {
+impl Updatable for ProductVar {
+    type UpdateInDb = ProductVarUpdateInDb;
+
+    async fn on_update(state: &AppState, _: &Self::UpdateInDb, value: &Self::InDb) {
         state
             .event_bus
             .emit(Event::ProductVarUpdated((
@@ -225,8 +353,11 @@ impl Model for ProductVarModel {
             )))
             .await;
     }
+}
 
-    async fn on_delete(state: &AppState, _: Self::ModelDelete, value: &Self::ModelInDb) {
+impl Deletable for ProductVar {
+    type DeleteInDb = ProductVarDelete;
+    async fn on_delete(state: &AppState, _: &Self::DeleteInDb, value: &Self::InDb) {
         state
             .event_bus
             .emit(Event::ProductVarDeleted((
@@ -237,8 +368,6 @@ impl Model for ProductVarModel {
     }
 }
 
-impl ModelFilter for ProductVarModel {
-    fn filter(body: Self::ModelFilter) -> Document {
-        doc! {field!(product_id @ ProductVarModelInDb): body.product_id}
-    }
+impl Filterable for ProductVar {
+    type FilterInDb = ProductVarFilterInDb;
 }

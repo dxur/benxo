@@ -11,7 +11,7 @@ extern crate dotenv_codegen;
 use axum::Router;
 use common::routes::*;
 use events::EventBus;
-use models::{product::ProductModel, Model};
+use models::{product::Product, Model};
 use std::sync::Arc;
 use tokio::net::TcpListener;
 use tower_http::trace::TraceLayer;
@@ -35,7 +35,7 @@ async fn main() {
     init_tracing();
 
     let db = db::DB::new(dotenv!("DB_URI"), dotenv!("DB_NAME")).await;
-    ProductModel::init_coll_in_db(&db).await.unwrap();
+    Product::init_coll(&db).await.unwrap();
 
     let (tx, rx) = tokio::sync::mpsc::channel(10);
     let event_bus = events::EventBus::new(tx);
