@@ -1,5 +1,5 @@
 use backend::models::{product::*, ObjectId};
-use leptos::{attr::default, prelude::*};
+use leptos::{prelude::*};
 
 use super::{Accessor, IntoForm};
 
@@ -38,32 +38,15 @@ impl TryFrom<ProductCreateAccessor> for ProductCreate {
 #[derive(Debug, Clone, Copy)]
 pub struct ProductUpdateAccessor {
     pub id: ObjectId,
+    pub featured_origin: bool,
     pub name: RwSignal<String>,
     pub description: RwSignal<String>,
     pub featured: RwSignal<bool>,
-    pub featured_origin: RwSignal<bool>,
     pub category: RwSignal<String>,
     pub base_price: RwSignal<String>,
     pub base_discount: RwSignal<String>,
     pub base_images: RwSignal<Vec<String>>,
     pub slug: RwSignal<String>,
-}
-
-impl ProductUpdateAccessor {
-    pub fn new(id: ObjectId) -> Self {
-        Self {
-            id: id,
-            name: RwSignal::default(),
-            description: RwSignal::default(),
-            featured: RwSignal::default(),
-            featured_origin: RwSignal::default(),
-            category: RwSignal::default(),
-            base_price: RwSignal::default(),
-            base_discount: RwSignal::default(),
-            base_images: RwSignal::default(),
-            slug: RwSignal::default()
-        }
-    }
 }
 
 impl TryFrom<ProductUpdateAccessor> for ProductUpdate {
@@ -85,7 +68,7 @@ impl TryFrom<ProductUpdateAccessor> for ProductUpdate {
             body: ProductUpdateBody {
                 name: Some(value.name.get()).filter(|s| !s.is_empty()),
                 description: Some(value.description.get()).filter(|s| !s.is_empty()),
-                featured: if value.featured.get() != value.featured_origin.get() { Some(value.featured.get()) } else { None },
+                featured: if value.featured.get() != value.featured_origin { Some(value.featured.get()) } else { None },
                 category: Some(value.category.get()).filter(|s| !s.is_empty()),
                 base_price: base_price,
                 base_discount: base_discount,
@@ -100,15 +83,15 @@ impl From<ProductPublic> for ProductUpdateAccessor {
     fn from(value: ProductPublic) -> Self {
         Self {
             id: value.id,
-            name: RwSignal::new(value.name),
-            description: RwSignal::new(value.description),
-            featured: RwSignal::new(value.featured),
-            featured_origin: RwSignal::new(value.featured),
-            category: RwSignal::new(value.category),
-            base_price: RwSignal::new(value.base_price.to_string()),
-            base_discount: RwSignal::new(value.base_discount.to_string()),
-            base_images: RwSignal::new(value.base_images),
-            slug: RwSignal::new(value.slug),
+            featured_origin: value.featured,
+            name: RwSignal::default(),
+            description: RwSignal::default(),
+            featured: RwSignal::default(),
+            category: RwSignal::default(),
+            base_price: RwSignal::default(),
+            base_discount: RwSignal::default(),
+            base_images: RwSignal::default(),
+            slug: RwSignal::default(),
         }
     }
 }
@@ -171,8 +154,6 @@ impl IntoForm<ProductPublic> for Product {
         acc: Self::UpdateAccessor,
         outlet: AnyView,
     ) -> AnyView {
-        acc.featured_origin.set(val.featured);
-        acc.featured.set(val.featured);
         view! {
             <fieldset>
                 <label> Name

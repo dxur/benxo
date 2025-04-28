@@ -195,7 +195,7 @@ fn ProductUpdate(
     set_modal: RwSignal<Option<ProductPublic>>,
     set_on_update: WriteSignal<()>,
 ) -> impl IntoView {
-    let acc = <Product as Accessor>::UpdateAccessor::new(set_modal.get_untracked().unwrap().id);
+    let acc = <Product as Accessor>::UpdateAccessor::from(set_modal.get_untracked().unwrap());
     view! {
         <Dialog show_on_mount=true on_close=move || { set_modal.set(None); }>
             <header>
