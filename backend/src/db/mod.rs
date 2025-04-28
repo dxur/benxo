@@ -11,6 +11,7 @@ use mongodb::options::{FindOneAndUpdateOptions, FindOptions, IndexOptions, Retur
 use mongodb::IndexModel;
 use mongodb::{options::ClientOptions, Client, Database};
 use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
 use std::ops::Deref;
 
 use crate::models::{Creatable, Deletable, Fetchable, Filterable, Model, Updatable};
@@ -40,7 +41,7 @@ pub trait ModelInDb: Model {
     const COLLECTION_NAME: &'static str;
     const UNIQUE_INDICES: &'static [&'static str];
 
-    type InDb: Send + Sync + Serialize + for<'a> Deserialize<'a> + Into<Self::Public>;
+    type InDb: Debug + Send + Sync + Serialize + for<'a> Deserialize<'a> + Into<Self::Public>;
 
     async fn init_coll(db: &Db) -> Result<()> {
         if Self::UNIQUE_INDICES.len() == 0 {
@@ -98,11 +99,11 @@ pub trait ModelInDb: Model {
 }
 
 pub trait FindableInDb: ModelInDb {
-    type FindInDb: Serialize + RefInto<Result<Document>>;
+    type FindInDb: Debug + Serialize + RefInto<Result<Document>>;
 }
 
 pub trait CreatableInDb: ModelInDb + Creatable {
-    type CreateInDb: Send + Sync + Serialize + From<Self::Create> + Into<Self::InDb>;
+    type CreateInDb: Debug + Send + Sync + Serialize + From<Self::Create> + Into<Self::InDb>;
 
     async fn on_create(_: &AppState, _: &Self::InDb) {}
 
@@ -123,7 +124,7 @@ pub trait CreatableInDb: ModelInDb + Creatable {
 }
 
 pub trait FetchableInDb: FindableInDb + Fetchable {
-    type FetchInDb: Send + Sync + Serialize + From<Self::Fetch> + RefInto<Self::FindInDb>;
+    type FetchInDb: Debug + Send + Sync + Serialize + From<Self::Fetch> + RefInto<Self::FindInDb>;
 
     async fn get_one(db: &Db, body: Self::Fetch) -> Result<Option<Self::InDb>> {
         db.collection::<Self::InDb>(Self::COLLECTION_NAME)
@@ -149,6 +150,7 @@ pub trait FetchableInDb: FindableInDb + Fetchable {
 
 pub trait UpdatableInDb: FindableInDb + Updatable {
     type UpdateInDb: Send
+        + Debug
         + Sync
         + Serialize
         + From<Self::Update>
@@ -183,7 +185,6 @@ pub trait UpdatableInDb: FindableInDb + Updatable {
                 tracing::debug!("Failed to find {}: {}", Self::COLLECTION_NAME, e);
                 Error { msg: e.to_string() }
             })?;
-
         Ok(match res {
             Some(v) => Some((update, v)),
             None => None,
@@ -192,7 +193,7 @@ pub trait UpdatableInDb: FindableInDb + Updatable {
 }
 
 pub trait DeletableInDb: FindableInDb + Deletable {
-    type DeleteInDb: Send + Sync + From<Self::Delete> + RefInto<Self::FindInDb>;
+    type DeleteInDb: Debug + Send + Sync + From<Self::Delete> + RefInto<Self::FindInDb>;
 
     async fn on_delete(_: &AppState, _: &Self::DeleteInDb, _: &Self::InDb) {}
 
@@ -215,7 +216,7 @@ pub trait DeletableInDb: FindableInDb + Deletable {
 }
 
 pub trait FilterableInDb: ModelInDb + Filterable {
-    type FilterInDb: Send + Sync + Serialize + From<Self::Filter> + RefInto<Result<Document>>;
+    type FilterInDb: Debug + Send + Sync + Serialize + From<Self::Filter> + RefInto<Result<Document>>;
 
     async fn get_some(
         db: &Db,

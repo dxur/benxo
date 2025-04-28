@@ -5,31 +5,33 @@ pub mod settings;
 pub mod theme;
 pub mod user;
 
+use std::fmt::Debug;
+
 pub use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
 pub trait Model {
-    type Public: Send + Sync + Serialize + for<'a> Deserialize<'a>;
+    type Public: Debug + Send + Sync + Serialize + for<'a> Deserialize<'a>;
 }
 
 pub trait Fetchable: Model {
-    type Fetch: Send + Sync + Serialize + for<'a> Deserialize<'a>;
+    type Fetch: Debug + Send + Sync + Serialize + for<'a> Deserialize<'a>;
 }
 
 pub trait Creatable: Model {
-    type Create: Send + Sync + Serialize + for<'a> Deserialize<'a>;
+    type Create: Debug + Send + Sync + Serialize + for<'a> Deserialize<'a>;
 }
 
 pub trait Updatable: Model {
-    type Update: Send + Sync + Serialize + for<'a> Deserialize<'a>;
+    type Update: Debug + Send + Sync + Serialize + for<'a> Deserialize<'a>;
 }
 
 pub trait Deletable: Model {
-    type Delete: Send + Sync + Serialize + for<'a> Deserialize<'a>;
+    type Delete: Debug + Send + Sync + Serialize + for<'a> Deserialize<'a>;
 }
 
 pub trait Filterable: Model {
-    type Filter: Send + Sync + Serialize + for<'a> Deserialize<'a>;
+    type Filter: Debug + Send + Sync + Serialize + for<'a> Deserialize<'a>;
 }
 
 #[derive(Debug, Serialize, Deserialize)]

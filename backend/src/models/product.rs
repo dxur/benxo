@@ -1,7 +1,6 @@
 use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
-
-use crate::validators::*;
+use serde_with::skip_serializing_none;
 
 use super::*;
 
@@ -16,23 +15,20 @@ pub struct ProductCreate {
     pub description: String,
     pub featured: bool,
     pub category: String,
-    #[serde(deserialize_with = "non_negative")]
     pub base_price: f32,
-    #[serde(deserialize_with = "non_negative")]
     pub base_discount: f32,
     pub base_images: Vec<String>,
     pub slug: String,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ProductUpdateBody {
     pub name: Option<String>,
     pub description: Option<String>,
     pub featured: Option<bool>,
     pub category: Option<String>,
-    #[serde(deserialize_with = "non_negative_option")]
     pub base_price: Option<f32>,
-    #[serde(deserialize_with = "non_negative_option")]
     pub base_discount: Option<f32>,
     pub base_images: Option<Vec<String>>,
     pub slug: Option<String>,
@@ -69,9 +65,7 @@ pub struct ProductPublic {
     pub description: String,
     pub featured: bool,
     pub category: String,
-    #[serde(deserialize_with = "non_negative")]
     pub base_price: f32,
-    #[serde(deserialize_with = "non_negative")]
     pub base_discount: f32,
     pub base_images: Vec<String>,
     pub slug: String,
@@ -105,27 +99,30 @@ pub struct ProductVarCreate {
     pub product_id: ObjectId,
     pub name: String,
     pub description: String,
-    #[serde(deserialize_with = "non_negative_option")]
     pub price: Option<f32>,
-    #[serde(deserialize_with = "non_negative_option")]
     pub discount: Option<f32>,
     pub stocks: usize,
     pub images: Vec<String>,
     pub attrs: Vec<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ProductVarUpdate {
-    pub sku: String,
+pub struct ProductVarUpdateBody {
     pub name: Option<String>,
     pub description: Option<String>,
-    #[serde(deserialize_with = "non_negative_option")]
     pub price: Option<f32>,
-    #[serde(deserialize_with = "non_negative_option")]
     pub discount: Option<f32>,
     pub stocks: Option<usize>,
     pub images: Option<Vec<String>>,
     pub attrs: Option<Vec<String>>,
+}
+
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ProductVarUpdate {
+    pub sku: String,
+    pub body: ProductVarUpdateBody,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -134,9 +131,7 @@ pub struct ProductVarPublic {
     pub product_id: ObjectId,
     pub name: String,
     pub description: String,
-    #[serde(deserialize_with = "non_negative_option")]
     pub price: Option<f32>,
-    #[serde(deserialize_with = "non_negative_option")]
     pub discount: Option<f32>,
     pub stocks: usize,
     pub images: Vec<String>,

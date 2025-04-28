@@ -34,7 +34,7 @@ struct AppState {
 
 fn init_tracing() {
     tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::DEBUG)
+        .with_max_level(tracing::Level::TRACE)
         .init();
 }
 
@@ -73,7 +73,7 @@ async fn main() {
             ApiRoutes::update_user,
             ApiRoutes::delete_user,
         ))
-        .layer(TraceLayer::new_for_http())
+        // .layer(TraceLayer::new_for_http())
         .with_state(state);
 
     let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();

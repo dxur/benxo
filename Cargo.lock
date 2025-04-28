@@ -236,6 +236,7 @@ dependencies = [
  "mongodb",
  "serde",
  "serde_urlencoded",
+ "serde_with",
  "tokio",
  "tower",
  "tower-cookies",

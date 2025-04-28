@@ -1,5 +1,6 @@
 use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
 use super::*;
 
@@ -31,12 +32,19 @@ pub struct OrderCreate {
     pub items: Vec<CartItem>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize)]
-pub struct OrderUpdate {
-    pub id: ObjectId,
+pub struct OrderUpdateBody {
     pub status: Option<OrderStatus>,
     pub full_name: Option<String>,
     pub items: Option<Vec<CartItem>>,
+}
+
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OrderUpdate {
+    pub id: ObjectId,
+    pub body: OrderUpdateBody
 }
 
 #[derive(Debug, Serialize, Deserialize)]

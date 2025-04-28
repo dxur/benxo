@@ -1,5 +1,5 @@
 use backend::models::{product::*, ObjectId};
-use leptos::prelude::*;
+use leptos::{attr::default, prelude::*};
 
 use super::{Accessor, IntoForm};
 
@@ -35,7 +35,7 @@ impl TryFrom<ProductCreateAccessor> for ProductCreate {
     }
 }
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy)]
 pub struct ProductUpdateAccessor {
     pub id: ObjectId,
     pub name: RwSignal<String>,
@@ -47,6 +47,23 @@ pub struct ProductUpdateAccessor {
     pub base_discount: RwSignal<String>,
     pub base_images: RwSignal<Vec<String>>,
     pub slug: RwSignal<String>,
+}
+
+impl ProductUpdateAccessor {
+    pub fn new(id: ObjectId) -> Self {
+        Self {
+            id: id,
+            name: RwSignal::default(),
+            description: RwSignal::default(),
+            featured: RwSignal::default(),
+            featured_origin: RwSignal::default(),
+            category: RwSignal::default(),
+            base_price: RwSignal::default(),
+            base_discount: RwSignal::default(),
+            base_images: RwSignal::default(),
+            slug: RwSignal::default()
+        }
+    }
 }
 
 impl TryFrom<ProductUpdateAccessor> for ProductUpdate {
