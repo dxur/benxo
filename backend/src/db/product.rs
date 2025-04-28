@@ -1,6 +1,5 @@
 use crate::models::product::*;
 pub use crate::models::product::{Product, ProductVar};
-use crate::validators::{non_negative, non_negative_option};
 use field::*;
 use mongodb::bson::to_document;
 use mongodb::bson::{doc, oid::ObjectId, Document};
@@ -18,9 +17,7 @@ pub struct ProductInDb {
     pub description: String,
     pub featured: bool,
     pub category: String,
-    #[serde(deserialize_with = "non_negative")]
     pub base_price: f32,
-    #[serde(deserialize_with = "non_negative")]
     pub base_discount: f32,
     pub base_images: Vec<String>,
     pub slug: String,
@@ -146,9 +143,7 @@ pub struct ProductVarInDb {
     pub product_id: ObjectId,
     pub name: String,
     pub description: String,
-    #[serde(deserialize_with = "non_negative_option")]
     pub price: Option<f32>,
-    #[serde(deserialize_with = "non_negative_option")]
     pub discount: Option<f32>,
     pub stocks: usize,
     pub images: Vec<String>,

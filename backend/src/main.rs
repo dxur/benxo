@@ -72,6 +72,11 @@ async fn main() {
             ApiRoutes::create_user,
             ApiRoutes::update_user,
             ApiRoutes::delete_user,
+            ApiRoutes::get_all_orders,
+            ApiRoutes::get_one_order,
+            ApiRoutes::create_order,
+            ApiRoutes::update_order,
+            ApiRoutes::delete_order,
         ))
         // .layer(TraceLayer::new_for_http())
         .with_state(state);

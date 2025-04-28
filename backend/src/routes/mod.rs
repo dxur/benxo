@@ -1,16 +1,15 @@
 pub mod auth;
 pub mod generic;
 
-use crate::api::*;
-use crate::models::product::*;
-use crate::models::user::*;
-use crate::models::{Page, Pagination};
 use axum::extract::Query;
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::Json;
 
+use crate::api::*;
 use crate::models::product::*;
+use crate::models::order::*;
+use crate::models::user::*;
 use crate::models::*;
 use crate::AppState;
 
@@ -122,5 +121,41 @@ impl Routes<AppState> for ApiRoutes {
         body: Json<UserDelete>,
     ) -> Result<Json<UserPublic>, StatusCode> {
         generic::delete::<User>(state, body).await
+    }
+    
+    // ---- Orders ----
+    async fn get_all_orders(
+        state: State<AppState>,
+        pagination: Query<Pagination>,
+    ) -> Result<Json<Page<OrderPublic>>, StatusCode> {
+        generic::get_all::<Order>(state, pagination).await
+    }
+
+    async fn get_one_order(
+        state: State<AppState>,
+        body: Json<OrderFetch>,
+    ) -> Result<Json<OrderPublic>, StatusCode> {
+        generic::get_one::<Order>(state, body).await
+    }
+
+    async fn create_order(
+        state: State<AppState>,
+        body: Json<OrderCreate>,
+    ) -> Result<Json<OrderPublic>, StatusCode> {
+        generic::create::<Order>(state, body).await
+    }
+
+    async fn update_order(
+        state: State<AppState>,
+        body: Json<OrderUpdate>,
+    ) -> Result<Json<OrderPublic>, StatusCode> {
+        generic::update::<Order>(state, body).await
+    }
+
+    async fn delete_order(
+        state: State<AppState>,
+        body: Json<OrderDelete>,
+    ) -> Result<Json<OrderPublic>, StatusCode> {
+        generic::delete::<Order>(state, body).await
     }
 }

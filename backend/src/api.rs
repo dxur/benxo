@@ -1,7 +1,7 @@
 use macros::{route, routes};
 
+use crate::models::order::*;
 use crate::models::product::*;
-
 use crate::models::user::*;
 use crate::models::{Page, Pagination};
 
@@ -44,6 +44,22 @@ pub trait Routes {
 
     #[route(method=delete, path = "/products/variants/")]
     async fn delete_variant(#[body] body: ProductVarDelete) -> ProductVarPublic;
+
+    // ---- Orders ----
+    #[route(method=get, path = "/orders")]
+    async fn get_all_orders(#[query] pagination: Pagination) -> Page<OrderPublic>;
+
+    #[route(method=get, path = "/orders/")]
+    async fn get_one_order(#[body] body: OrderFetch) -> OrderPublic;
+
+    #[route(method=post, path = "/orders/")]
+    async fn create_order(#[body] body: OrderCreate) -> OrderPublic;
+
+    #[route(method=patch, path = "/orders/")]
+    async fn update_order(#[body] body: OrderUpdate) -> OrderPublic;
+
+    #[route(method=delete, path = "/orders/")]
+    async fn delete_order(#[body] body: OrderDelete) -> OrderPublic;
 
     // ---- Users ----
     #[route(method=get, path = "/users")]

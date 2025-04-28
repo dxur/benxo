@@ -1,6 +1,6 @@
 use backend::{
     api::{ApiRoutes, Routes},
-    models::{Page, Pagination, product::*},
+    models::{Page, Pagination, order::*},
 };
 use leptos::{prelude::*, task::spawn_local};
 
@@ -9,8 +9,8 @@ use crate::forms::Accessor;
 use crate::forms::IntoForm;
 
 #[component]
-pub fn Products() -> AnyView {
-    let (products, set_products) = signal(Option::<Result<Page<ProductPublic>, String>>::None);
+pub fn Confirmation() -> AnyView {
+    let (orders, set_orders) = signal(Option::<Result<Page<OrderPublic>, String>>::None);
     let (current_page, set_current_page) = signal::<usize>(1);
     let (page, set_page) = signal(1 as usize);
     let (reload, set_reload) = signal(());
@@ -20,7 +20,7 @@ pub fn Products() -> AnyView {
         move |this_page, _, _| {
             let (req_page, _) = *this_page;
             spawn_local(async move {
-                let res = ApiRoutes::get_all_products(Pagination {
+                let res = ApiRoutes::get_all_orders(Pagination {
                     page: Some(req_page),
                     per_page: None, // server default
                 })
@@ -29,20 +29,20 @@ pub fn Products() -> AnyView {
                 if let Ok(data) = &res {
                     set_current_page.set(data.page);
                 }
-                set_products.set(Some(res));
+                set_orders.set(Some(res));
             });
         },
         true,
     );
 
     let (create_modal, set_create_modal) = signal(false);
-    let update_modal = RwSignal::new(Option::<ProductPublic>::None);
+    let update_modal = RwSignal::new(Option::<OrderPublic>::None);
 
     view! {
         <Show
             when=move || { create_modal.get() }
         >
-            <ProductCreate set_modal=set_create_modal set_on_create=set_reload />
+            <OrderCreate set_modal=set_create_modal set_on_create=set_reload />
         </Show>
         <Show
             when=move || { update_modal.get().is_some() }
@@ -50,14 +50,14 @@ pub fn Products() -> AnyView {
             <ProductUpdate set_modal=update_modal set_on_update=set_reload />
         </Show>
         <header>
-            <title>Products</title>
-            <h1>Products</h1>
+            <title>Confirmation</title>
+            <h1>Confirmation</h1>
             <button on:click=move |_| { set_create_modal.set(true); } >
                 New
             </button>
         </header>
         {
-            move || match products.get() {
+            move || match orders.get() {
                 Some(Ok(data)) => {
                     if data.data.len() > 0 {
                         let has_next = data.has_next();
@@ -78,16 +78,13 @@ pub fn Products() -> AnyView {
                                     </thead>
                                     <tbody>
                                         {
-                                            data.data.into_iter().map(|product| {
-                                                let prod = product.clone();
+                                            data.data.into_iter().map(|order| {
+                                                let prod = order.clone();
                                                 view! {
                                                     <tr>
-                                                        <td>{product.slug}</td>
-                                                        <td>{product.name}</td>
-                                                        <td>{product.category}</td>
-                                                        <td>{if product.featured {"Yes"} else {"No"}}</td>
-                                                        <td>{product.base_price}</td>
-                                                        <td>{product.base_discount}</td>
+                                                        <td>{order.id.to_hex()}</td>
+                                                        <td>{order.full_name.clone()}</td>
+                                                        <td>{99.99}</td>
                                                         <td>
                                                             <button
                                                                 on:click=move |_| {
@@ -98,10 +95,11 @@ pub fn Products() -> AnyView {
                                                             </button>
                                                             <button type="reset"
                                                                 on:click=move |_| {
+                                                                    let value = order.clone();
                                                                     spawn_local(async move {
-                                                                        match ApiRoutes::delete_product(ProductDelete { id: product.id }).await {
+                                                                        match ApiRoutes::delete_order(OrderDelete { id: value.id }).await {
                                                                             Ok(_) => set_page.set(current_page.get_untracked()),
-                                                                            Err(err) => log::error!("Failed to delete product: {err}"),
+                                                                            Err(err) => log::error!("Failed to delete order: {err}"),
                                                                         }
                                                                     });
                                                                 }
@@ -161,8 +159,8 @@ pub fn Products() -> AnyView {
 }
 
 #[component]
-fn ProductCreate(set_modal: WriteSignal<bool>, set_on_create: WriteSignal<()>) -> impl IntoView {
-    let acc = <Product as Accessor>::CreateAccessor::default();
+fn OrderCreate(set_modal: WriteSignal<bool>, set_on_create: WriteSignal<()>) -> impl IntoView {
+    let acc = <Order as Accessor>::CreateAccessor::default();
 
     view! {
         <Dialog show_on_mount=true on_close=move || { set_modal.set(false); }>
@@ -171,28 +169,27 @@ fn ProductCreate(set_modal: WriteSignal<bool>, set_on_create: WriteSignal<()>) -
             </header>
             <form on:submit=move |ev| {
                 ev.prevent_default();
-                match ProductCreate::try_from(acc) {
-                    Ok(prod) => {
+                match OrderCreate::try_from(acc) {
+                    Ok(ord) => {
                         spawn_local(async move {
-                            let res = ApiRoutes::create_product(prod).await;
-                            log::debug!("Created product: {:?}", res);
+                            let res = ApiRoutes::create_order(ord).await;
+                            log::debug!("Created order: {:?}", res);
                             set_on_create.set(());
                             set_modal.set(false);
                         });
                     }
                     Err(err) => {
-                        log::error!("Failed to create product: {:?}", err);
+                        log::error!("Failed to create order: {:?}", err);
                     }
                 }
             }>
                 {
-                    Product::build_create_form(
+                    Order::build_create_form(
                         acc,
                         view! {
                             <button type="button" on:click=move |_| { set_modal.set(false) }>Close</button>
                             <button type="submit">Submit</button>
-                        }.into_any()
-                    )
+                        }.into_any())
                 }
             </form>
         </Dialog>
@@ -201,11 +198,11 @@ fn ProductCreate(set_modal: WriteSignal<bool>, set_on_create: WriteSignal<()>) -
 
 #[component]
 fn ProductUpdate(
-    set_modal: RwSignal<Option<ProductPublic>>,
+    set_modal: RwSignal<Option<OrderPublic>>,
     set_on_update: WriteSignal<()>,
 ) -> impl IntoView {
-    if let Some(product) = set_modal.get_untracked() {
-        let acc = <Product as Accessor>::UpdateAccessor::from(&product);
+    if let Some(order) = set_modal.get_untracked() {
+        let acc = <Order as Accessor>::UpdateAccessor::from(&order);
         view! {
             <Dialog show_on_mount=true on_close=move || { set_modal.set(None); }>
                 <header>
@@ -214,11 +211,11 @@ fn ProductUpdate(
                 <form on:submit=move |ev| {
                     let a = acc.clone();
                     ev.prevent_default();
-                    match ProductUpdate::try_from(a) {
-                        Ok(prod) => {
-                            if !prod.body.is_none() {
+                    match OrderUpdate::try_from(a) {
+                        Ok(order) => {
+                            if !order.body.is_none() {
                                 spawn_local(async move {
-                                    let res = ApiRoutes::update_product(prod).await;
+                                    let res = ApiRoutes::update_order(order).await;
                                     log::debug!("Updated product: {:?}", res);
                                     set_on_update.set(());
                                     set_modal.set(None);
@@ -231,8 +228,8 @@ fn ProductUpdate(
                     }
                 }>
                     {
-                        Product::build_update_form(
-                            product,
+                        Order::build_update_form(
+                            order,
                             acc,
                             view! {
                                 <button type="button" on:click=move |_| { set_modal.set(None) }>Close</button>

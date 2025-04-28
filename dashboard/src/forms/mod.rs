@@ -1,6 +1,7 @@
 use leptos::{prelude::*, view};
 
 pub mod product;
+pub mod order;
 
 pub trait Accessor {
     type CreateAccessor: Copy;

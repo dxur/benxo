@@ -13,7 +13,6 @@ pub struct DeliveryFetch {
 pub struct DeliveryCreate {
     pub id: ObjectId,
     pub name: String,
-    #[serde(deserialize_with = "non_negative")]
     pub tax: f32,
 }
 
@@ -21,7 +20,6 @@ pub struct DeliveryCreate {
 pub struct DeliveryUpdate {
     pub id: ObjectId,
     pub name: Option<String>,
-    #[serde(deserialize_with = "non_negative_option")]
     pub tax: Option<f32>,
 }
 
@@ -29,7 +27,6 @@ pub struct DeliveryUpdate {
 pub struct DeliveryPublic {
     pub id: ObjectId,
     pub name: String,
-    #[serde(deserialize_with = "non_negative")]
     pub tax: f32,
 }
 

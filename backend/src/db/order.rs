@@ -28,6 +28,7 @@ impl Into<OrderPublic> for OrderInDb {
     fn into(self) -> OrderPublic {
         OrderPublic {
             id: self._id,
+            status: self.status,
             full_name: self.full_name,
             items: self.items,
         }

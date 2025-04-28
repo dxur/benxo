@@ -4,7 +4,7 @@ use serde_with::skip_serializing_none;
 
 use super::*;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Copy)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum OrderStatus {
     Pending,
@@ -47,14 +47,24 @@ pub struct OrderUpdate {
     pub body: OrderUpdateBody
 }
 
+impl OrderUpdateBody {
+    pub fn is_none(&self) -> bool {
+        self.full_name.is_none()
+            && self.status.is_none()
+            && self.items.is_none()
+    }
+}
+
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct OrderDelete {
     pub id: ObjectId,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct OrderPublic {
     pub id: ObjectId,
+    pub status: OrderStatus,
     pub full_name: String,
     pub items: Vec<CartItem>,
 }

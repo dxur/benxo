@@ -1,5 +1,5 @@
 use backend::models::{product::*, ObjectId};
-use leptos::{prelude::*};
+use leptos::prelude::*;
 
 use super::{Accessor, IntoForm};
 
@@ -79,8 +79,8 @@ impl TryFrom<ProductUpdateAccessor> for ProductUpdate {
     }
 }
 
-impl From<ProductPublic> for ProductUpdateAccessor {
-    fn from(value: ProductPublic) -> Self {
+impl From<&ProductPublic> for ProductUpdateAccessor {
+    fn from(value: &ProductPublic) -> Self {
         Self {
             id: value.id,
             featured_origin: value.featured,
