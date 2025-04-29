@@ -82,7 +82,7 @@ body {
 }
 
 aside {
-    background-color: var(--bg-sidebar);
+    background-color: var(--bg);
     padding: var(--spacing-lg) 0;
     box-shadow: var(--shadow);
     width: var(--sidebar-width);

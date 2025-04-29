@@ -47,7 +47,7 @@ pub fn Confirmation() -> AnyView {
         <Show
             when=move || { update_modal.get().is_some() }
         >
-            <ProductUpdate set_modal=update_modal set_on_update=set_reload />
+            <OrderUpdate set_modal=update_modal set_on_update=set_reload />
         </Show>
         <header>
             <title>Confirmation</title>
@@ -165,7 +165,7 @@ fn OrderCreate(set_modal: WriteSignal<bool>, set_on_create: WriteSignal<()>) -> 
     view! {
         <Dialog show_on_mount=true on_close=move || { set_modal.set(false); }>
             <header>
-                <h2>Create Product</h2>
+                <h2>Create Order</h2>
             </header>
             <form on:submit=move |ev| {
                 ev.prevent_default();
@@ -197,7 +197,7 @@ fn OrderCreate(set_modal: WriteSignal<bool>, set_on_create: WriteSignal<()>) -> 
 }
 
 #[component]
-fn ProductUpdate(
+fn OrderUpdate(
     set_modal: RwSignal<Option<OrderPublic>>,
     set_on_update: WriteSignal<()>,
 ) -> impl IntoView {
@@ -206,7 +206,7 @@ fn ProductUpdate(
         view! {
             <Dialog show_on_mount=true on_close=move || { set_modal.set(None); }>
                 <header>
-                    <h2>Update Product</h2>
+                    <h2>Update Order</h2>
                 </header>
                 <form on:submit=move |ev| {
                     let a = acc.clone();
@@ -216,14 +216,14 @@ fn ProductUpdate(
                             if !order.body.is_none() {
                                 spawn_local(async move {
                                     let res = ApiRoutes::update_order(order).await;
-                                    log::debug!("Updated product: {:?}", res);
+                                    log::debug!("Updated order: {:?}", res);
                                     set_on_update.set(());
                                     set_modal.set(None);
                                 });
                             }
                         }
                         Err(err) => {
-                            log::error!("Failed to update product: {:?}", err);
+                            log::error!("Failed to update order: {:?}", err);
                         }
                     }
                 }>

@@ -15,6 +15,11 @@ pub struct OrderInDb {
     pub _id: ObjectId,
     pub status: OrderStatus,
     pub full_name: String,
+    pub phone: String,
+    pub email: String,
+    pub province: String,
+    pub address: String,
+    pub note: String,
     pub items: Vec<CartItem>,
 }
 
@@ -30,6 +35,11 @@ impl Into<OrderPublic> for OrderInDb {
             id: self._id,
             status: self.status,
             full_name: self.full_name,
+            phone: self.phone,
+            email: self.email,
+            province: self.province,
+            address: self.address,
+            note: self.note,
             items: self.items,
         }
     }
@@ -77,6 +87,11 @@ impl From<OrderCreate> for OrderInDb {
             _id: ObjectId::new(),
             status: OrderStatus::Pending,
             full_name: value.full_name,
+            phone: value.phone,
+            email: value.email,
+            province: value.province,
+            address: value.address,
+            note: value.note,
             items: value.items,
         }
     }

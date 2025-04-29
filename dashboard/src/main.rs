@@ -21,7 +21,7 @@ fn App() -> impl IntoView {
             <main>
                 <header>
                     <input type="text" placeholder="Search"/>
-                    <button> Account </button>
+                    // <button> Account </button>
                 </header>
                 <section data-page>
                     <FlatRoutes fallback=NotFound children=ToChildren::to_children(|| {

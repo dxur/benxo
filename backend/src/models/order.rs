@@ -29,6 +29,11 @@ pub struct OrderFetch {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct OrderCreate {
     pub full_name: String,
+    pub phone: String,
+    pub email: String,
+    pub province: String,
+    pub address: String,
+    pub note: String,
     pub items: Vec<CartItem>,
 }
 
@@ -37,24 +42,32 @@ pub struct OrderCreate {
 pub struct OrderUpdateBody {
     pub status: Option<OrderStatus>,
     pub full_name: Option<String>,
+    pub phone: Option<String>,
+    pub email: Option<String>,
+    pub province: Option<String>,
+    pub address: Option<String>,
+    pub note: Option<String>,
     pub items: Option<Vec<CartItem>>,
 }
-
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct OrderUpdate {
     pub id: ObjectId,
-    pub body: OrderUpdateBody
+    pub body: OrderUpdateBody,
 }
 
 impl OrderUpdateBody {
     pub fn is_none(&self) -> bool {
-        self.full_name.is_none()
-            && self.status.is_none()
+        self.status.is_none()
+            && self.full_name.is_none()
+            && self.phone.is_none()
+            && self.email.is_none()
+            && self.province.is_none()
+            && self.address.is_none()
+            && self.note.is_none()
             && self.items.is_none()
     }
 }
-
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct OrderDelete {
@@ -66,6 +79,11 @@ pub struct OrderPublic {
     pub id: ObjectId,
     pub status: OrderStatus,
     pub full_name: String,
+    pub phone: String,
+    pub email: String,
+    pub province: String,
+    pub address: String,
+    pub note: String,
     pub items: Vec<CartItem>,
 }
 
