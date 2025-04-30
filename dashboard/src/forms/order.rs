@@ -1,5 +1,8 @@
+use std::{str::FromStr, sync::Arc};
+
 use backend::models::{ObjectId, order::*};
 use leptos::prelude::*;
+use strum::VariantNames;
 
 use super::{Accessor, IntoForm};
 
@@ -10,6 +13,7 @@ pub struct OrderCreateAccessor {
     pub email: RwSignal<String>,
     pub province: RwSignal<String>,
     pub address: RwSignal<String>,
+    pub delivery: RwSignal<String>,
     pub note: RwSignal<String>,
     pub items: RwSignal<Vec<CartItem>>,
 }
@@ -18,28 +22,31 @@ impl TryFrom<OrderCreateAccessor> for OrderCreate {
     type Error = ();
 
     fn try_from(value: OrderCreateAccessor) -> Result<Self, Self::Error> {
+        let dlv = DeliveryType::from_str(value.delivery.get().as_str()).map_err(|_| ())?;
         Ok(OrderCreate {
             full_name: value.full_name.get(),
             phone: value.phone.get(),
             email: value.email.get(),
             province: value.province.get(),
             address: value.address.get(),
+            delivery: dlv,
             note: value.note.get(),
             items: value.items.get(),
         })
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct OrderUpdateAccessor {
     pub id: ObjectId,
-    pub status_original: OrderStatus,
+    pub origin: Arc<(OrderStatus, Vec<CartItem>, DeliveryType)>,
     pub status: RwSignal<OrderStatus>,
     pub full_name: RwSignal<String>,
     pub phone: RwSignal<String>,
     pub email: RwSignal<String>,
     pub province: RwSignal<String>,
     pub address: RwSignal<String>,
+    pub delivery: RwSignal<String>,
     pub note: RwSignal<String>,
     pub items: RwSignal<Vec<CartItem>>,
 }
@@ -48,16 +55,18 @@ impl TryFrom<OrderUpdateAccessor> for OrderUpdate {
     type Error = ();
 
     fn try_from(value: OrderUpdateAccessor) -> Result<Self, Self::Error> {
+        let dlv = DeliveryType::from_str(value.delivery.get().as_str()).map_err(|_| ())?;
         Ok(OrderUpdate {
             id: value.id,
             body: OrderUpdateBody {
                 full_name: Some(value.full_name.get()).filter(|s| !s.is_empty()),
-                status: Some(value.status.get()).filter(|s| *s == value.status_original),
+                status: Some(value.status.get()).filter(|s| *s == value.origin.0),
                 items: Some(value.items.get()),
                 phone: Some(value.phone.get()).filter(|s| !s.is_empty()),
                 email: Some(value.email.get()).filter(|s| !s.is_empty()),
                 province: Some(value.province.get()).filter(|s| !s.is_empty()),
                 address: Some(value.address.get()).filter(|s| !s.is_empty()),
+                delivery: Some(dlv).filter(|s| *s == value.origin.2),
                 note: Some(value.note.get()).filter(|s| !s.is_empty()),
             },
         })
@@ -68,15 +77,16 @@ impl From<&OrderPublic> for OrderUpdateAccessor {
     fn from(value: &OrderPublic) -> Self {
         Self {
             id: value.id,
-            status_original: value.status,
+            origin: Arc::new((value.status, value.items.clone(), value.delivery)),
             status: RwSignal::new(value.status),
-            full_name: RwSignal::default(),
-            phone: RwSignal::default(),
-            email: RwSignal::default(),
-            province: RwSignal::default(),
-            address: RwSignal::default(),
-            note: RwSignal::default(),
-            items: RwSignal::default(),
+            full_name: Default::default(),
+            phone: Default::default(),
+            email: Default::default(),
+            province: Default::default(),
+            address: Default::default(),
+            delivery: Default::default(),
+            note: Default::default(),
+            items: Default::default(),
         }
     }
 }
@@ -115,6 +125,18 @@ impl IntoForm<OrderPublic> for Order {
                 </label>
             </fieldset>
             <fieldset>
+                <label> Delivery
+                    <select bind:value=acc.delivery>
+                        {
+                            DeliveryType::VARIANTS
+                                .iter()
+                                .map(|v| view! { <option> {*v} </option> })
+                                .collect::<Vec<_>>()
+                        }
+                    </select>
+                </label>
+            </fieldset>
+            <fieldset>
                 <label> Note
                     <input type="text" bind:value=acc.note required />
                 </label>
@@ -149,6 +171,18 @@ impl IntoForm<OrderPublic> for Order {
             <fieldset>
                 <label> Address
                     <input type="text" placeholder=val.address bind:value=acc.address />
+                </label>
+            </fieldset>
+            <fieldset>
+                <label> Delivery
+                    <select bind:value=acc.delivery>
+                        {
+                            DeliveryType::VARIANTS
+                                .iter()
+                                .map(|v| view! { <option value=*v> {*v} </option> })
+                                .collect::<Vec<_>>()
+                        }
+                    </select>
                 </label>
             </fieldset>
             <fieldset>

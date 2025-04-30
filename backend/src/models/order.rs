@@ -1,10 +1,19 @@
 use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
+use strum::{EnumString, VariantNames, Display};
 
 use super::*;
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, EnumString, Display, VariantNames, PartialEq, Clone, Copy)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum DeliveryType {
+    StopDesk,
+    Domicil,
+    Other,
+}
+
+#[derive(Debug, Serialize, Deserialize, EnumString, Display, VariantNames, PartialEq, Clone, Copy)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum OrderStatus {
     Pending,
@@ -33,6 +42,7 @@ pub struct OrderCreate {
     pub email: String,
     pub province: String,
     pub address: String,
+    pub delivery: DeliveryType,
     pub note: String,
     pub items: Vec<CartItem>,
 }
@@ -46,6 +56,7 @@ pub struct OrderUpdateBody {
     pub email: Option<String>,
     pub province: Option<String>,
     pub address: Option<String>,
+    pub delivery: Option<DeliveryType>,
     pub note: Option<String>,
     pub items: Option<Vec<CartItem>>,
 }
@@ -64,6 +75,7 @@ impl OrderUpdateBody {
             && self.email.is_none()
             && self.province.is_none()
             && self.address.is_none()
+            && self.delivery.is_none()
             && self.note.is_none()
             && self.items.is_none()
     }
@@ -83,6 +95,7 @@ pub struct OrderPublic {
     pub email: String,
     pub province: String,
     pub address: String,
+    pub delivery: DeliveryType,
     pub note: String,
     pub items: Vec<CartItem>,
 }

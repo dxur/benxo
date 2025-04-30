@@ -9,7 +9,7 @@ use crate::forms::Accessor;
 use crate::forms::IntoForm;
 
 #[component]
-pub fn Confirmation() -> AnyView {
+pub fn OrderPlacement() -> AnyView {
     let (orders, set_orders) = signal(Option::<Result<Page<OrderPublic>, String>>::None);
     let (current_page, set_current_page) = signal::<usize>(1);
     let (page, set_page) = signal(1 as usize);
@@ -27,6 +27,11 @@ pub fn Confirmation() -> AnyView {
                 .await
                 .map_err(|e| e.to_string());
                 if let Ok(data) = &res {
+                    if data.data.len() == 0 && data.page != 1 {
+                        let target = data.total_pages();
+                        set_page.set(target);
+                        return;
+                    }
                     set_current_page.set(data.page);
                 }
                 set_orders.set(Some(res));
@@ -50,8 +55,8 @@ pub fn Confirmation() -> AnyView {
             <OrderUpdate set_modal=update_modal set_on_update=set_reload />
         </Show>
         <header>
-            <title>Confirmation</title>
-            <h1>Confirmation</h1>
+            <title>Order Placement</title>
+            <h1>Order Placement</h1>
             <button on:click=move |_| { set_create_modal.set(true); } >
                 New
             </button>
@@ -67,12 +72,14 @@ pub fn Confirmation() -> AnyView {
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>Slug</th>
-                                            <th>Name</th>
-                                            <th>Category</th>
-                                            <th>Featured</th>
-                                            <th>Base Price</th>
-                                            <th>Base Discount</th>
+                                            <th>Full Name</th>
+                                            <th>Phone</th>
+                                            <th>Email</th>
+                                            <th>Province</th>
+                                            <th>Address</th>
+                                            <th>Delivery</th>
+                                            <th>Total</th>
+                                            <th>Status</th>
                                             <th>Options</th>
                                         </tr>
                                     </thead>
@@ -82,10 +89,20 @@ pub fn Confirmation() -> AnyView {
                                                 let prod = order.clone();
                                                 view! {
                                                     <tr>
-                                                        <td>{order.id.to_hex()}</td>
                                                         <td>{order.full_name.clone()}</td>
+                                                        <td>{order.phone.clone()}</td>
+                                                        <td>{order.email.clone()}</td>
+                                                        <td>{order.province.clone()}</td>
+                                                        <td>{order.address.clone()}</td>
+                                                        <td>{order.delivery.to_string()}</td>
                                                         <td>{99.99}</td>
+                                                        <td>{order.status.to_string()}</td>
                                                         <td>
+                                                            <button type="submit"
+                                                                on:click=move |_| {}
+                                                            >
+                                                                Confirm
+                                                            </button>
                                                             <button
                                                                 on:click=move |_| {
                                                                     update_modal.set(Some(prod.clone()));
@@ -230,7 +247,7 @@ fn OrderUpdate(
                     {
                         Order::build_update_form(
                             order,
-                            acc,
+                            acc.clone(),
                             view! {
                                 <button type="button" on:click=move |_| { set_modal.set(None) }>Close</button>
                                 <button type="submit">Submit</button>

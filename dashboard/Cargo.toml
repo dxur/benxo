@@ -14,3 +14,5 @@ leptos_router = "0.8.0-rc2"
 log = "0.4.27"
 serde = "1.0.219"
 serde_urlencoded = "0.7.1"
+strum = { version = "0.27.1", features = ["derive"] }
+url = "2.5.4"

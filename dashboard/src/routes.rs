@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 
 use crate::pages::*;
-
+use crate::paths::*;
 pub struct Route {
     pub path: &'static str,
     pub component: fn() -> AnyView,
@@ -13,15 +13,6 @@ pub struct MenuItem {
     pub subitems: &'static [MenuItem],
 }
 
-pub const HOME_PATH: &'static str = "/";
-pub const PRODUCTS_PATH: &'static str = "/products";
-pub const CONFIRMATION_PATH: &'static str = "/confirmation";
-pub const TRACKING_PATH: &'static str = "/tracking";
-pub const DELIVERY_PATH: &'static str = "/delivery";
-pub const CHANNELS_PATH: &'static str = "/channels";
-pub const USERS_PATH: &'static str = "/users";
-pub const SETTINGS_PATH: &'static str = "/settings";
-
 pub const ROUTES: &[Route] = &[
     Route {
         path: HOME_PATH,
@@ -32,8 +23,8 @@ pub const ROUTES: &[Route] = &[
         component: Products,
     },
     Route {
-        path: CONFIRMATION_PATH,
-        component: Confirmation,
+        path: ORDER_PLACEMENT_PATH,
+        component: OrderPlacement,
     },
     Route {
         path: USERS_PATH,
@@ -56,8 +47,8 @@ pub const MENU: &[MenuItem] = &[
         path: "",
         subitems: &[
             MenuItem {
-                name: "Confirmation",
-                path: CONFIRMATION_PATH,
+                name: "Order Placement",
+                path: ORDER_PLACEMENT_PATH,
                 subitems: &[],
             },
             MenuItem {
@@ -68,7 +59,7 @@ pub const MENU: &[MenuItem] = &[
         ],
     },
     MenuItem {
-        name: "Stock",
+        name: "Products",
         path: PRODUCTS_PATH,
         subitems: &[],
     },

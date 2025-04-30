@@ -17,7 +17,7 @@ where
     view! {
         <dialog node_ref=dialog_element on:cancel=move |_: Event| { close() }>
             <iframe on:load=move |_| { if show_on_mount { show() } }></iframe>
-            <section aria-modal="true">
+            <section aria-modal="true" data-dialog>
                 {children()}
             </section>
         </dialog>

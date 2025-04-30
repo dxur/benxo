@@ -67,18 +67,18 @@ async fn main() {
             ApiRoutes::create_variant,
             ApiRoutes::update_variant,
             ApiRoutes::delete_variant,
-            ApiRoutes::get_all_users,
-            ApiRoutes::get_one_user,
-            ApiRoutes::create_user,
-            ApiRoutes::update_user,
-            ApiRoutes::delete_user,
             ApiRoutes::get_all_orders,
             ApiRoutes::get_one_order,
             ApiRoutes::create_order,
             ApiRoutes::update_order,
             ApiRoutes::delete_order,
+            ApiRoutes::get_all_users,
+            ApiRoutes::get_one_user,
+            ApiRoutes::create_user,
+            ApiRoutes::update_user,
+            ApiRoutes::delete_user,
         ))
-        // .layer(TraceLayer::new_for_http())
+        .layer(TraceLayer::new_for_http())
         .with_state(state);
 
     let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();

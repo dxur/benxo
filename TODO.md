@@ -4,8 +4,8 @@
 
 [x] Merge the common and backend crates.
 [x] Fix db schema.
-[ ] Enhance the Product page to the frontend.
-[ ] Add Orders page to the frontend.
+[x] Enhance the Product page to the frontend.
+[x] Add Orders page to the frontend.
 [ ] Add Other page to the frontend.
 [ ] Site theme based generation. !important
 

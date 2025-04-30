@@ -4,8 +4,8 @@ pub mod product;
 pub mod order;
 
 pub trait Accessor {
-    type CreateAccessor: Copy;
-    type UpdateAccessor: Copy;
+    type CreateAccessor: Clone;
+    type UpdateAccessor: Clone;
 }
 
 pub trait IntoForm<T>: Accessor {

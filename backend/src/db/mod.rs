@@ -5,6 +5,7 @@ pub mod product;
 pub mod user;
 
 use bson::oid::ObjectId;
+use bson::to_document;
 use futures::TryStreamExt;
 use mongodb::bson::{doc, Document};
 use mongodb::options::{FindOneAndUpdateOptions, FindOptions, IndexOptions, ReturnDocument};
@@ -95,6 +96,17 @@ pub trait ModelInDb: Model {
                     ()
                 })?,
         ))
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub struct FindInDb {
+    pub _id: ObjectId,
+}
+
+impl Into<Result<Document>> for &FindInDb {
+    fn into(self) -> Result<Document> {
+        to_document(self).map_err(|e| Error { msg: e.to_string() })
     }
 }
 
@@ -210,7 +222,10 @@ pub trait DeletableInDb: FindableInDb + Deletable {
                 e
             })?)
             .await
-            .map_err(|e| Error { msg: e.to_string() })?;
+            .map_err(|e| {
+                tracing::debug!("Failed to find {}: {}", Self::COLLECTION_NAME, e);
+                Error { msg: e.to_string() }
+            })?;
         Ok(res.map(|v| (model, v)))
     }
 }

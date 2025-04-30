@@ -2,13 +2,14 @@ mod components;
 mod forms;
 mod pages;
 mod routes;
+mod utils;
+mod paths;
 
 use components::sidebar::Sidebar;
 use leptos::prelude::*;
 use leptos::tachys::view::iterators::StaticVec;
 use leptos_router::{
-    StaticSegment,
-    components::{FlatRoutes, Route, RouteProps, Router},
+    components::{FlatRoutes, Route, RouteProps, Router}, path, StaticSegment
 };
 use pages::NotFound;
 use routes::*;
@@ -31,7 +32,7 @@ fn App() -> impl IntoView {
                                 .map(|route| {
                                     Route(
                                         RouteProps::builder()
-                                            .path(StaticSegment(route.path))
+                                            .path((StaticSegment(route.path)))
                                             .view(route.component)
                                             .build(),
                                     )

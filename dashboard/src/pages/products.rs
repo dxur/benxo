@@ -27,6 +27,11 @@ pub fn Products() -> AnyView {
                 .await
                 .map_err(|e| e.to_string());
                 if let Ok(data) = &res {
+                    if data.data.len() == 0 && data.page != 1 {
+                        let target = data.total_pages();
+                        set_page.set(target);
+                        return;
+                    }
                     set_current_page.set(data.page);
                 }
                 set_products.set(Some(res));
@@ -163,7 +168,6 @@ pub fn Products() -> AnyView {
 #[component]
 fn ProductCreate(set_modal: WriteSignal<bool>, set_on_create: WriteSignal<()>) -> impl IntoView {
     let acc = <Product as Accessor>::CreateAccessor::default();
-
     view! {
         <Dialog show_on_mount=true on_close=move || { set_modal.set(false); }>
             <header>
@@ -171,7 +175,7 @@ fn ProductCreate(set_modal: WriteSignal<bool>, set_on_create: WriteSignal<()>) -
             </header>
             <form on:submit=move |ev| {
                 ev.prevent_default();
-                match ProductCreate::try_from(acc) {
+                match ProductCreate::try_from(acc.clone()) {
                     Ok(prod) => {
                         spawn_local(async move {
                             let res = ApiRoutes::create_product(prod).await;
@@ -187,7 +191,7 @@ fn ProductCreate(set_modal: WriteSignal<bool>, set_on_create: WriteSignal<()>) -
             }>
                 {
                     Product::build_create_form(
-                        acc,
+                        acc.clone(),
                         view! {
                             <button type="button" on:click=move |_| { set_modal.set(false) }>Close</button>
                             <button type="submit">Submit</button>
@@ -233,7 +237,7 @@ fn ProductUpdate(
                     {
                         Product::build_update_form(
                             product,
-                            acc,
+                            acc.clone(),
                             view! {
                                 <button type="button" on:click=move |_| { set_modal.set(None) }>Close</button>
                                 <button type="submit">Submit</button>

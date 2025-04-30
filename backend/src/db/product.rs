@@ -1,3 +1,5 @@
+use std::collections::{HashMap, HashSet};
+
 use crate::models::product::*;
 pub use crate::models::product::{Product, ProductVar};
 use field::*;
@@ -20,12 +22,8 @@ pub struct ProductInDb {
     pub base_price: f32,
     pub base_discount: f32,
     pub base_images: Vec<String>,
+    pub attributes: HashSet<String>,
     pub slug: String,
-}
-
-#[derive(Debug, Serialize)]
-pub struct ProductFindInDb {
-    pub _id: ObjectId,
 }
 
 impl Into<ProductPublic> for ProductInDb {
@@ -39,14 +37,9 @@ impl Into<ProductPublic> for ProductInDb {
             base_price: self.base_price,
             base_discount: self.base_discount,
             base_images: self.base_images,
+            attributes: self.attributes,
             slug: self.slug,
         }
-    }
-}
-
-impl Into<Result<Document>> for &ProductFindInDb {
-    fn into(self) -> Result<Document> {
-        to_document(&self).map_err(|e| Error { msg: e.to_string() })
     }
 }
 
@@ -61,26 +54,27 @@ impl Into<ProductInDb> for ProductCreate {
             base_price: self.base_price,
             base_discount: self.base_discount,
             base_images: self.base_images,
+            attributes: self.attributes,
             slug: self.slug,
         }
     }
 }
 
-impl Into<ProductFindInDb> for &ProductUpdate {
-    fn into(self) -> ProductFindInDb {
-        ProductFindInDb { _id: self.id }
+impl Into<FindInDb> for &ProductUpdate {
+    fn into(self) -> FindInDb {
+        FindInDb { _id: self.id }
     }
 }
 
-impl Into<ProductFindInDb> for &ProductDelete {
-    fn into(self) -> ProductFindInDb {
-        ProductFindInDb { _id: self.id }
+impl Into<FindInDb> for &ProductDelete {
+    fn into(self) -> FindInDb {
+        FindInDb { _id: self.id }
     }
 }
 
-impl Into<ProductFindInDb> for &ProductFetch {
-    fn into(self) -> ProductFindInDb {
-        ProductFindInDb { _id: self.id }
+impl Into<FindInDb> for &ProductFetch {
+    fn into(self) -> FindInDb {
+        FindInDb { _id: self.id }
     }
 }
 
@@ -98,7 +92,7 @@ impl ModelInDb for Product {
 }
 
 impl FindableInDb for Product {
-    type FindInDb = ProductFindInDb;
+    type FindInDb = FindInDb;
 }
 
 impl FetchableInDb for Product {
@@ -147,7 +141,7 @@ pub struct ProductVarInDb {
     pub discount: Option<f32>,
     pub stocks: usize,
     pub images: Vec<String>,
-    pub attrs: Vec<String>,
+    pub attrs: HashMap<String, String>,
 }
 
 impl Into<ProductVarPublic> for ProductVarInDb {
@@ -251,7 +245,7 @@ impl CreatableInDb for ProductVar {
             .await
             .map_err(|_| ())?;
 
-        let filter: Result<Document> = ProductFindInDb {
+        let filter: Result<Document> = FindInDb {
             _id: body.product_id,
         }
         .ref_into();
@@ -270,6 +264,8 @@ impl CreatableInDb for ProductVar {
                 msg: "Product does not exist".to_string(),
             });
         }
+
+        // TODO: check attributes
 
         let model: Self::InDb = body.into();
         match db

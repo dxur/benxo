@@ -1,6 +1,7 @@
 use leptos::prelude::*;
 use leptos_router::{components::A, hooks::use_location};
 
+use crate::utils::is_subpath;
 use crate::routes::{MENU, MenuItem};
 
 fn sidebar_item(item: &'static MenuItem) -> impl IntoView {
@@ -8,7 +9,7 @@ fn sidebar_item(item: &'static MenuItem) -> impl IntoView {
         <Show when=|| item.path != "">
             <A href=item.path>
                 <button
-                    disabled=move || use_location().pathname.get() == item.path
+                    disabled=move || is_subpath(item.path, use_location().pathname.get().as_str())
                 >
                     {item.name}
                 </button>

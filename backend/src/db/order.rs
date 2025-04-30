@@ -19,12 +19,10 @@ pub struct OrderInDb {
     pub email: String,
     pub province: String,
     pub address: String,
+    pub delivery: DeliveryType,
     pub note: String,
     pub items: Vec<CartItem>,
 }
-
-#[derive(Debug, Serialize)]
-pub struct OrderFindInDb(pub OrderFetch);
 
 #[derive(Debug, Serialize)]
 pub struct OrderUpdateInDb(pub OrderUpdate);
@@ -39,6 +37,7 @@ impl Into<OrderPublic> for OrderInDb {
             email: self.email,
             province: self.province,
             address: self.address,
+            delivery: self.delivery,
             note: self.note,
             items: self.items,
         }
@@ -51,33 +50,27 @@ impl From<OrderUpdate> for OrderUpdateInDb {
     }
 }
 
-impl Into<Result<Document>> for &OrderFindInDb {
-    fn into(self) -> Result<Document> {
-        to_document(&self.0).map_err(|e| Error { msg: e.to_string() })
-    }
-}
-
 impl Into<Result<Document>> for &OrderUpdateInDb {
     fn into(self) -> Result<Document> {
         to_document(&self.0).map_err(|e| Error { msg: e.to_string() })
     }
 }
 
-impl Into<OrderFindInDb> for &OrderFetch {
-    fn into(self) -> OrderFindInDb {
-        OrderFindInDb(OrderFetch { id: self.id })
+impl Into<FindInDb> for &OrderFetch {
+    fn into(self) -> FindInDb {
+        FindInDb { _id: self.id }
     }
 }
 
-impl Into<OrderFindInDb> for &OrderDelete {
-    fn into(self) -> OrderFindInDb {
-        OrderFindInDb(OrderFetch { id: self.id })
+impl Into<FindInDb> for &OrderDelete {
+    fn into(self) -> FindInDb {
+        FindInDb { _id: self.id }
     }
 }
 
-impl Into<OrderFindInDb> for &OrderUpdateInDb {
-    fn into(self) -> OrderFindInDb {
-        OrderFindInDb(OrderFetch { id: self.0.id })
+impl Into<FindInDb> for &OrderUpdateInDb {
+    fn into(self) -> FindInDb {
+        FindInDb { _id: self.0.id }
     }
 }
 
@@ -91,6 +84,7 @@ impl From<OrderCreate> for OrderInDb {
             email: value.email,
             province: value.province,
             address: value.address,
+            delivery: value.delivery,
             note: value.note,
             items: value.items,
         }
@@ -105,7 +99,7 @@ impl ModelInDb for Order {
 }
 
 impl FindableInDb for Order {
-    type FindInDb = OrderFindInDb;
+    type FindInDb = FindInDb;
 }
 
 impl FetchableInDb for Order {
@@ -116,6 +110,12 @@ impl CreatableInDb for Order {
     type CreateInDb = OrderCreate;
 
     async fn create(db: &Db, body: Self::Create) -> Result<Self::InDb> {
+        if body.items.len() == 0 {
+            return Err(Error {
+                msg: "Order must have at least one item".to_string(),
+            });
+        }
+        
         let mut session = db.client().start_session().await.map_err(|_| ())?;
         let txn_options = TransactionOptions::builder().build();
         session
@@ -185,15 +185,15 @@ impl CreatableInDb for Order {
 impl UpdatableInDb for Order {
     type UpdateInDb = OrderUpdateInDb;
 
-    async fn update(_: &Db, _: Self::Update) -> Result<Option<(Self::UpdateInDb, Self::InDb)>> {
-        todo!("Not implemented")
-    }
+    // async fn update(_: &Db, _: Self::Update) -> Result<Option<(Self::UpdateInDb, Self::InDb)>> {
+    //     todo!("Not implemented")
+    // }
 }
 
 impl DeletableInDb for Order {
     type DeleteInDb = OrderDelete;
 
-    async fn delete(_: &Db, _: Self::Delete) -> Result<Option<(Self::DeleteInDb, Self::InDb)>> {
-        todo!("Not implemented")
-    }
+    // async fn delete(_: &Db, _: Self::Delete) -> Result<Option<(Self::DeleteInDb, Self::InDb)>> {
+    //     todo!("Not implemented")
+    // }
 }
