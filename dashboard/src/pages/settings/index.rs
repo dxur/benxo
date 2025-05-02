@@ -1,22 +1,20 @@
-use std::sync::Arc;
-
 use leptos::prelude::*;
 
-use super::Page;
+use crate::pages::Page;
 
 #[allow(non_upper_case_globals)]
-pub const Users: Page = Page {
-    title: "Users",
-    view: UsersView,
+pub const SettingsIndex: Page = Page {
+    title: "Settings",
+    view: SettingsView,
 };
 
 #[component]
-pub fn UsersView() -> AnyView {
+pub fn SettingsView() -> AnyView {
     view! {
         <div class="flex flex-1 flex-col w-full p-3 space-y-6 overflow-y-auto">
             <div class="flex items-center justify-between h-16 border-b-2 border-surface-border pb-2">
-                <title>Users</title>
-                <h1 class="text-3xl font-semibold text-gray-800">Users</h1>
+                <title>Settings</title>
+                <h1 class="text-3xl font-semibold text-gray-800">Settings</h1>
             </div>
         </div>
     }

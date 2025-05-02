@@ -24,12 +24,12 @@ impl RouteExt for Route {
 pub struct AppRoutes;
 #[routes_builder(as = RoutesBuilder)]
 impl AppRoutes {
-    pub const HOME: Route = ("/", Home);
-    pub const PRODUCTS: Route = ("/products", Products);
-    pub const PRODUCT_EDIT: Route = ("/products/:id", Products);
+    pub const HOME: Route = ("/", HomeIndex);
+    pub const PRODUCTS: Route = ("/products", ProductsIndex);
+    pub const PRODUCT_EDIT: Route = ("/products/:id", ProductEdit);
     // pub const ORDERS: Route = ("/orders", Orders);
     // pub const DELIVERY: Route = ("/delivery", Delivery);
     // pub const CHANNELS: Route = ("/channels", Channels);
-    pub const USERS: Route = ("/users", Users);
-    pub const SETTINGS: Route = ("/settings", Settings);
+    // pub const USERS: Route = ("/users", Users);
+    pub const SETTINGS: Route = ("/settings", SettingsIndex);
 }

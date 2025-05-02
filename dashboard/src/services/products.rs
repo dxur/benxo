@@ -10,7 +10,7 @@ use crate::utils::LoadingStatus;
 
 
 #[derive(Clone, Copy)]
-pub struct ProductsService {
+pub struct ProductsIndexService {
     pub products: RwSignal<Page<ProductPublic>>,
     pub status: RwSignal<LoadingStatus>,
     pub page: RwSignal<usize>,
@@ -18,7 +18,7 @@ pub struct ProductsService {
     pub dialog: NodeRef<Dialog>,
 }
 
-impl ProductsService {
+impl ProductsIndexService {
     pub fn new() -> Self {
         let service = Self {
             products: Default::default(),
@@ -35,7 +35,6 @@ impl ProductsService {
             },
             true,
         );
-
         service
     }
 
@@ -62,13 +61,15 @@ impl ProductsService {
         });
     }
 
-
-    pub fn create_product(self, acc: &ProductCreateAccessor, navigate: impl Fn(&str, NavigateOptions) + 'static) {
+    pub fn create_product(
+        self, acc: &ProductCreateAccessor,
+        navigate: impl Fn(&str, NavigateOptions) + 'static)
+    {
         let res: Result<ProductCreate, ()> = acc.try_into();
         log::debug!("Into product: {:?}", res);
         match res {
             Ok(product) => spawn_local(async move {
-                let res = ApiRoutes::create_product(todo!()).await;
+                let res = ApiRoutes::create_product(product).await;
                 log::debug!("Created product: {:?}", res);
                 match res {
                     Ok(product) => {

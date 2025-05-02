@@ -3,19 +3,20 @@ use leptos_router::hooks::use_navigate;
 
 use crate::components::*;
 use crate::forms::product::ProductCreateAccessor;
-use crate::services::products::ProductsService;
+use crate::pages::Page;
+use crate::services::products::ProductsIndexService as Service;
 
 #[allow(non_upper_case_globals)]
-pub const Products : super::Page = super::Page {
+pub const ProductsIndex : Page = Page {
     title: "Products",
-    view: ProductsView,
+    view: View,
 };
 
 #[component]
-fn ProductsView() -> AnyView {
-    let service = ProductsService::new();
+fn View() -> AnyView {
+    let service = Service::new();
     view! {
-        <Header title=Products.title>
+        <Header title=ProductsIndex.title>
             <button on:click=move |_| { service.dialog.get().map(|d| d.show()); }>
                 New
             </button>
@@ -30,7 +31,7 @@ fn ProductsView() -> AnyView {
 }
 
 #[component]
-fn ProductsTable(service: ProductsService) -> impl IntoView {
+fn ProductsTable(service: Service) -> impl IntoView {
     view! {
         <Table head=move || {
             view! {
@@ -72,22 +73,22 @@ fn ProductsTable(service: ProductsService) -> impl IntoView {
 }
 
 #[component]
-fn ProductCreate(service: ProductsService) -> impl IntoView {
+fn ProductCreate(service: Service) -> impl IntoView {
     let navigate = use_navigate();
     let acc: ProductCreateAccessor = Default::default();
-    let new_attr = RwSignal::<String>::default();
+    // let new_attr = RwSignal::<String>::default();
     
-    let add_attr = move |_| {
-        if !new_attr.get_untracked().is_empty() {
-            acc.attributes.update(|attrs| {attrs.insert(new_attr.get_untracked().trim().to_string());});
-            new_attr.set("".to_string());
-        }
-    };
+    // let add_attr = move |_| {
+    //     if !new_attr.get_untracked().is_empty() {
+    //         acc.attributes.update(|attrs| {attrs.insert(new_attr.get_untracked().trim().to_string());});
+    //         new_attr.set("".to_string());
+    //     }
+    // };
 
-    let remove_attr = move |attr: String| {
-        acc.attributes.update(|attrs| {attrs.remove(&attr);});
-        new_attr.set(attr.clone());
-    };
+    // let remove_attr = move |attr: String| {
+    //     acc.attributes.update(|attrs| {attrs.remove(&attr);});
+    //     new_attr.set(attr.clone());
+    // };
 
     view! {
         <Dialog node_ref=service.dialog on_cancel=move || { service.dialog.get().map(|d| d.close()); }>
@@ -138,32 +139,32 @@ fn ProductCreate(service: ProductsService) -> impl IntoView {
                         <input type="number" step=".01" bind:value=acc.base_discount required />
                     </label>
                 </fieldset>
-                <fieldset>
-                    <label> Attributes
-                        <div>
-                            <input type="text" bind:value=new_attr />
-                            <button
-                                type="button"
-                                on:click=add_attr> Add </button>
-                        </div>
-                        <ul>
-                            <For
-                                each=move || acc.attributes.get()
-                                key=|attr| attr.clone()
-                                let(attr)
-                            >
-                                <li>
-                                    <span> {attr.clone()} </span>
-                                    <button
-                                        type="button"
-                                        on:click=move |_| {
-                                            remove_attr(attr.clone())
-                                    }>"×"</button>
-                                </li>
-                            </For>
-                        </ul>
-                    </label>
-                </fieldset>
+                // <fieldset>
+                //     <label> Attributes
+                //         <div>
+                //             <input type="text" bind:value=new_attr />
+                //             <button
+                //                 type="button"
+                //                 on:click=add_attr> Add </button>
+                //         </div>
+                //         <ul>
+                //             <For
+                //                 each=move || acc.attributes.get()
+                //                 key=|attr| attr.clone()
+                //                 let(attr)
+                //             >
+                //                 <li>
+                //                     <span> {attr.clone()} </span>
+                //                     <button
+                //                         type="button"
+                //                         on:click=move |_| {
+                //                             remove_attr(attr.clone())
+                //                     }>"×"</button>
+                //                 </li>
+                //             </For>
+                //         </ul>
+                //     </label>
+                // </fieldset>
                 // TODO: base_images
                 <button type="button" 
                     on:click=move |_| { service.dialog.get().map(|d| d.close()); }

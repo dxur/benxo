@@ -1,9 +1,9 @@
 use leptos::prelude::*;
 
-use super::Page;
+use crate::pages::Page;
 
 #[allow(non_upper_case_globals)]
-pub const Home: Page = Page {
+pub const HomeIndex: Page = Page {
     title: "Home",
     view: HomeView,
 };
