@@ -1,7 +1,15 @@
 use leptos::prelude::*;
 
+use super::Page;
+
+#[allow(non_upper_case_globals)]
+pub const Home: Page = Page {
+    title: "Home",
+    view: HomeView,
+};
+
 #[component]
-pub fn Home() -> AnyView {
+pub fn HomeView() -> AnyView {
     view! {
         <div class="flex flex-col">
             <span> Home </span>

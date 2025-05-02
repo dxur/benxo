@@ -88,3 +88,14 @@ impl<T> Page<T> {
         usize::min(self.page * self.per_page, self.total)
     }
 }
+
+impl<T> Default for Page<T> {
+    fn default() -> Self {
+        Self {
+            data: vec![],
+            total: 0,
+            page: 1,
+            per_page: 10,
+        }
+    }
+}

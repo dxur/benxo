@@ -474,7 +474,7 @@ table tr:hover td {
     transition: var(--transition-base);
 }
 
-[data-table]+nav button:hover {
+[data-table]+nav button:not(:disabled):hover {
     background: var(--bg-hover);
     color: var(--on-bg);
     border-color: #d1d5db;
@@ -605,7 +605,6 @@ dialog {
     height: 100vh;
     max-width: 100vw;
     max-height: 100vh;
-    display: flex;
     justify-content: center;
     align-items: center;
     overflow: hidden;
@@ -615,6 +614,7 @@ dialog {
 }
 
 dialog[open] {
+    display: flex;
     animation: fadeIn 0.2s ease;
 }
 

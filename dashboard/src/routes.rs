@@ -1,86 +1,35 @@
 use leptos::prelude::*;
+use leptos_router::path;
+use macros::routes_builder;
 
 use crate::pages::*;
-use crate::paths::*;
-pub struct Route {
-    pub path: &'static str,
-    pub component: fn() -> AnyView,
+
+pub type Route = (&'static str, Page);
+
+pub trait RouteExt {
+    fn path(&self) -> &'static str;
+    fn page(&self) -> &Page;
 }
 
-pub struct MenuItem {
-    pub name: &'static str,
-    pub path: &'static str,
-    pub subitems: &'static [MenuItem],
+impl RouteExt for Route {
+    fn path(&self) -> &'static str {
+        self.0
+    }
+
+    fn page(&self) -> &Page {
+        &self.1
+    }
 }
 
-pub const ROUTES: &[Route] = &[
-    Route {
-        path: HOME_PATH,
-        component: Home,
-    },
-    Route {
-        path: PRODUCTS_PATH,
-        component: Products,
-    },
-    Route {
-        path: ORDER_PLACEMENT_PATH,
-        component: OrderPlacement,
-    },
-    Route {
-        path: USERS_PATH,
-        component: Users,
-    },
-    Route {
-        path: SETTINGS_PATH,
-        component: Settings,
-    },
-];
-
-pub const MENU: &[MenuItem] = &[
-    MenuItem {
-        name: "Home",
-        path: HOME_PATH,
-        subitems: &[],
-    },
-    MenuItem {
-        name: "Orders",
-        path: "",
-        subitems: &[
-            MenuItem {
-                name: "Order Placement",
-                path: ORDER_PLACEMENT_PATH,
-                subitems: &[],
-            },
-            MenuItem {
-                name: "Tracking",
-                path: TRACKING_PATH,
-                subitems: &[],
-            },
-        ],
-    },
-    MenuItem {
-        name: "Products",
-        path: PRODUCTS_PATH,
-        subitems: &[],
-    },
-    MenuItem {
-        name: "Delivery",
-        path: DELIVERY_PATH,
-        subitems: &[],
-    },
-    MenuItem {
-        name: "Sale channels",
-        path: CHANNELS_PATH,
-        subitems: &[],
-    },
-    MenuItem {
-        name: "Team",
-        path: USERS_PATH,
-        subitems: &[],
-    },
-    MenuItem {
-        name: "Settings",
-        path: SETTINGS_PATH,
-        subitems: &[],
-    },
-];
+pub struct AppRoutes;
+#[routes_builder(as = RoutesBuilder)]
+impl AppRoutes {
+    pub const HOME: Route = ("/", Home);
+    pub const PRODUCTS: Route = ("/products", Products);
+    pub const PRODUCT_EDIT: Route = ("/products/:id", Products);
+    // pub const ORDERS: Route = ("/orders", Orders);
+    // pub const DELIVERY: Route = ("/delivery", Delivery);
+    // pub const CHANNELS: Route = ("/channels", Channels);
+    pub const USERS: Route = ("/users", Users);
+    pub const SETTINGS: Route = ("/settings", Settings);
+}

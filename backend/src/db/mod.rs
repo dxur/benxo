@@ -40,7 +40,7 @@ impl Deref for Db {
 
 pub trait ModelInDb: Model {
     const COLLECTION_NAME: &'static str;
-    const UNIQUE_INDICES: &'static [&'static str];
+    const UNIQUE_INDICES: &'static [&'static str] = &[];
 
     type InDb: Debug + Send + Sync + Serialize + for<'a> Deserialize<'a> + Into<Self::Public>;
 

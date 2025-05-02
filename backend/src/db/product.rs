@@ -86,9 +86,32 @@ impl Into<Result<Document>> for &ProductUpdate {
 
 impl ModelInDb for Product {
     const COLLECTION_NAME: &'static str = "products";
-    const UNIQUE_INDICES: &'static [&'static str] = &[field!(slug @ ProductInDb)];
 
     type InDb = ProductInDb;
+
+    async fn init_coll(db: &Db) -> Result<()> {
+        let keys_doc = doc! {
+            field!(slug @ ProductInDb): 1,
+        };
+
+        let partial_filter_expression = doc! {
+            field!(slug @ ProductInDb): { "$gt": "" }
+        };
+        
+        db.collection::<Self::InDb>(Self::COLLECTION_NAME)
+            .create_index(
+                IndexModel::builder()
+                    .keys(keys_doc)
+                    .options(
+                        IndexOptions::builder()
+                        .unique(true)
+                        .partial_filter_expression(partial_filter_expression)
+                        .build())
+                    .build(),
+            )
+            .await
+            .map_or_else(|e| Err(Error { msg: e.to_string() }), |_| Ok(()))
+    }
 }
 
 impl FindableInDb for Product {

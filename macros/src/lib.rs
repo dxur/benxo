@@ -273,3 +273,67 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
         .into()
     }
 }
+
+#[cfg(feature = "wasm")]
+#[proc_macro_attribute]
+pub fn routes_builder(args: TokenStream, input: TokenStream) -> TokenStream {
+    use syn::{ImplItem, ItemImpl, Type, Expr, ExprTuple};
+
+    let mut as_ident_opt: Option<Ident> = None;
+    
+    let parser = meta::parser(|meta| {
+        if meta.path.is_ident("as") {
+            as_ident_opt = Some(meta.value()?.parse()?);
+            Ok(())
+        } else {
+            Err(meta.error("unsupported attribute key, expected: as"))
+        }
+    });
+    
+    parse_macro_input!(args with parser);
+    let as_ident = as_ident_opt.expect("expected #[routes(as = ...)]");
+    
+    let input_impl = parse_macro_input!(input as ItemImpl);
+    
+    let mut route_views = Vec::new();
+    
+    for item in &input_impl.items {
+        if let ImplItem::Const(const_item) = item {
+            if let Type::Path(type_path) = &const_item.ty {
+                if type_path.path.segments.last().map(|s| s.ident.to_string()) == Some("Route".to_string()) {
+                    if let Expr::Tuple(ExprTuple { elems, .. }) = &const_item.expr {
+                        if elems.len() == 2 {
+                            let path = &elems[0];
+                            let component = &elems[1];
+                            
+                            let route_view = quote! {
+                                <leptos_router::components::Route path=path!(#path) view=*#component/>
+                            };
+                            
+                            route_views.push(route_view);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    let expanded = quote! {
+        #input_impl
+        
+        #[component(transparent)]
+        pub fn #as_ident() -> impl leptos_router::MatchNestedRoutes + Clone {
+            use leptos::prelude::*;
+            use leptos_router::*;
+            use leptos_router::components::*;
+            
+            view! {
+                #(#route_views)*
+            }
+            .into_inner()
+        }
+    }.into();
+    
+    println!("expanded: {}", expanded);
+    expanded
+}

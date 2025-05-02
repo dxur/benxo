@@ -8,6 +8,13 @@ use crate::components::dialog::Dialog;
 use crate::forms::Accessor;
 use crate::forms::IntoForm;
 
+#[allow(non_upper_case_globals)]
+pub const Orders : super::Page = super::Page {
+    title: "Orders",
+    view: OrderPlacement,
+};
+
+
 #[component]
 pub fn OrderPlacement() -> AnyView {
     let (orders, set_orders) = signal(Option::<Result<Page<OrderPublic>, String>>::None);

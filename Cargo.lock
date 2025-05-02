@@ -612,6 +612,7 @@ dependencies = [
  "leptos",
  "leptos_router",
  "log",
+ "macros",
  "serde",
  "serde_urlencoded",
  "strum",

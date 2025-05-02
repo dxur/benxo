@@ -1,7 +1,15 @@
 use leptos::prelude::*;
 
+use super::Page;
+
+#[allow(non_upper_case_globals)]
+pub const Settings: Page = Page {
+    title: "Settings",
+    view: SettingsView,
+};
+
 #[component]
-pub fn Settings() -> AnyView {
+pub fn SettingsView() -> AnyView {
     view! {
         <div class="flex flex-1 flex-col w-full p-3 space-y-6 overflow-y-auto">
             <div class="flex items-center justify-between h-16 border-b-2 border-surface-border pb-2">

@@ -3,48 +3,11 @@ mod forms;
 mod pages;
 mod routes;
 mod utils;
-mod paths;
+mod layout;
+mod services;
 
-use components::sidebar::Sidebar;
 use leptos::prelude::*;
-use leptos::tachys::view::iterators::StaticVec;
-use leptos_router::{
-    components::{FlatRoutes, Route, RouteProps, Router}, path, StaticSegment
-};
-use pages::NotFound;
-use routes::*;
-
-#[component]
-fn App() -> impl IntoView {
-    view! {
-        <Router>
-            <Sidebar/>
-            <main>
-                <header>
-                    <input type="text" placeholder="Search"/>
-                    // <button> Account </button>
-                </header>
-                <section data-page>
-                    <FlatRoutes fallback=NotFound children=ToChildren::to_children(|| {
-                        StaticVec::from(
-                            ROUTES
-                                .iter()
-                                .map(|route| {
-                                    Route(
-                                        RouteProps::builder()
-                                            .path((StaticSegment(route.path)))
-                                            .view(route.component)
-                                            .build(),
-                                    )
-                                })
-                                .collect::<Vec<_>>(),
-                        )
-                    })/>
-                </section>
-            </main>
-        </Router>
-    }
-}
+use layout::app::App;
 
 fn main() {
     console_error_panic_hook::set_once();

@@ -1,3 +1,20 @@
+pub type Error = String;
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum LoadingStatus {
+    Loading,
+    Ok,
+    Err(Error),
+}
+
+impl Default for LoadingStatus {
+    fn default() -> Self {
+        Self::Loading
+    }
+}
+
+pub type Result<T> = std::result::Result<T, Error>;
+
 pub fn is_subpath(base: &str, current: &str) -> bool {
     let base = base.trim_end_matches('/');
     let current = if current.is_empty() { "/" } else { current };
