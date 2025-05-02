@@ -18,10 +18,10 @@ pub struct ProductCreateAccessor {
     pub slug: RwSignal<String>,
 }
 
-impl TryFrom<ProductCreateAccessor> for ProductCreate {
+impl TryFrom<&ProductCreateAccessor> for ProductCreate {
     type Error = ();
 
-    fn try_from(value: ProductCreateAccessor) -> Result<Self, Self::Error> {
+    fn try_from(value: &ProductCreateAccessor) -> Result<Self, Self::Error> {
         let base_price = value.base_price.get().parse().map_err(|_| ())?;
         let base_discount = value.base_discount.get().parse().map_err(|_| ())?;
 

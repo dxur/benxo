@@ -15,7 +15,6 @@ pub struct ProductsService {
     pub status: RwSignal<LoadingStatus>,
     pub page: RwSignal<usize>,
     pub total: RwSignal<usize>,
-    pub create_acc: RwSignal<Option<ProductCreateAccessor>>,
     pub dialog: NodeRef<Dialog>,
 }
 
@@ -26,7 +25,6 @@ impl ProductsService {
             status: Default::default(),
             page: RwSignal::new(1),
             total: Default::default(),
-            create_acc: Default::default(),
             dialog: Default::default(),
         };
 
@@ -36,27 +34,6 @@ impl ProductsService {
                 service.fetch_products();
             },
             true,
-        );
-
-        Effect::watch(
-            move || service.create_acc.get(),
-            move |new_acc, _, _| {
-                match new_acc {
-                    Some(_) => {
-                        service.dialog.get_untracked().map(|d| {
-                            log::info!("Opening dialog");
-                            let _ = d.show_modal();
-                        });
-                    }
-                    None => {
-                        service.dialog.get_untracked().map(|d| {
-                            log::info!("Closing dialog");
-                            d.close();
-                        });
-                    }
-                }
-            },
-            false,
         );
 
         service
@@ -86,8 +63,8 @@ impl ProductsService {
     }
 
 
-    pub fn create_product(self, navigate: impl Fn(&str, NavigateOptions) + 'static) {
-        let res: Result<ProductCreate, ()> = self.create_acc.get_untracked().unwrap().try_into();
+    pub fn create_product(self, acc: &ProductCreateAccessor, navigate: impl Fn(&str, NavigateOptions) + 'static) {
+        let res: Result<ProductCreate, ()> = acc.try_into();
         log::debug!("Into product: {:?}", res);
         match res {
             Ok(product) => spawn_local(async move {
