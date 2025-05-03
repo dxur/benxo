@@ -1,5 +1,4 @@
-use std::collections::{HashMap, HashSet};
-
+use indexmap::{IndexMap, IndexSet};
 use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
@@ -14,13 +13,7 @@ pub struct ProductFetch {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ProductCreate {
     pub name: String,
-    pub description: String,
-    pub featured: bool,
     pub category: String,
-    pub base_price: f32,
-    pub base_discount: f32,
-    pub base_images: Vec<String>,
-    pub attributes: HashSet<String>,
     pub slug: String,
 }
 
@@ -34,7 +27,7 @@ pub struct ProductUpdateBody {
     pub base_price: Option<f32>,
     pub base_discount: Option<f32>,
     pub base_images: Option<Vec<String>>,
-    pub attributes: Option<HashSet<String>>,
+    pub options: Option<IndexMap<String, IndexSet<String>>>,
     pub slug: Option<String>,
 }
 
@@ -53,7 +46,7 @@ impl ProductUpdateBody {
             && self.base_price.is_none()
             && self.base_discount.is_none()
             && self.base_images.is_none()
-            && self.attributes.is_none()
+            && self.options.is_none()
             && self.slug.is_none()
     }
 }
@@ -73,7 +66,7 @@ pub struct ProductPublic {
     pub base_price: f32,
     pub base_discount: f32,
     pub base_images: Vec<String>,
-    pub attributes: HashSet<String>,
+    pub options: IndexMap<String, IndexSet<String>>,
     pub slug: String,
 }
 
@@ -109,7 +102,7 @@ pub struct ProductVarCreate {
     pub discount: Option<f32>,
     pub stocks: usize,
     pub images: Vec<String>,
-    pub attrs: HashMap<String, String>,
+    pub attrs: IndexMap<String, String>,
 }
 
 #[skip_serializing_none]
@@ -121,7 +114,7 @@ pub struct ProductVarUpdateBody {
     pub discount: Option<f32>,
     pub stocks: Option<usize>,
     pub images: Option<Vec<String>>,
-    pub attrs: Option<HashMap<String, String>>,
+    pub attrs: Option<IndexMap<String, String>>,
 }
 
 
@@ -141,7 +134,7 @@ pub struct ProductVarPublic {
     pub discount: Option<f32>,
     pub stocks: usize,
     pub images: Vec<String>,
-    pub attrs: HashMap<String, String>,
+    pub attrs: IndexMap<String, String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

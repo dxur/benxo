@@ -1,17 +1,13 @@
 use leptos::prelude::*;
-use leptos_router::{components::A, hooks::use_location};
+use leptos_router::components::A;
 
-use crate::{routes::{AppRoutes, RouteExt}, utils::is_subpath};
+use crate::routes::{AppRoutes, RouteExt};
 
 #[component]
 fn Item(path: &'static str, name: &'static str) -> impl IntoView {
     view! {
         <A href=path>
-            <button
-                disabled=move || is_subpath(path, use_location().pathname.get().as_str())
-            >
-                {name}
-            </button>
+            {name}
         </A>
     }
 }

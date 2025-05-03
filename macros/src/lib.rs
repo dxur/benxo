@@ -280,18 +280,23 @@ pub fn routes_builder(args: TokenStream, input: TokenStream) -> TokenStream {
     use syn::{ImplItem, ItemImpl, Type, Expr, ExprTuple};
 
     let mut as_ident_opt: Option<Ident> = None;
+    let mut use_ident_opt: Option<Ident> = None;
     
     let parser = meta::parser(|meta| {
         if meta.path.is_ident("as") {
             as_ident_opt = Some(meta.value()?.parse()?);
             Ok(())
+        } else if meta.path.is_ident("use") {
+            use_ident_opt = Some(meta.value()?.parse()?);
+            Ok(())
         } else {
-            Err(meta.error("unsupported attribute key, expected: as"))
+            Err(meta.error("unsupported attribute key, expected: as, use"))
         }
     });
     
     parse_macro_input!(args with parser);
     let as_ident = as_ident_opt.expect("expected #[routes(as = ...)]");
+    let use_ident = use_ident_opt.expect("expected #[routes(use = ...)]");
     
     let input_impl = parse_macro_input!(input as ItemImpl);
     
@@ -326,7 +331,8 @@ pub fn routes_builder(args: TokenStream, input: TokenStream) -> TokenStream {
             use leptos::prelude::*;
             use leptos_router::*;
             use leptos_router::components::*;
-            
+
+            #use_ident.with(|cell| cell.set(Box::new(use_navigate())));
             view! {
                 #(#route_views)*
             }

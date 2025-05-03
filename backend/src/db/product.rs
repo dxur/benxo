@@ -1,16 +1,15 @@
-use std::collections::{HashMap, HashSet};
-
-use crate::models::product::*;
-pub use crate::models::product::{Product, ProductVar};
 use field::*;
+use indexmap::{IndexMap, IndexSet};
 use mongodb::bson::to_document;
 use mongodb::bson::{doc, oid::ObjectId, Document};
 use mongodb::options::TransactionOptions;
 use serde::{Deserialize, Serialize};
 
+pub use crate::models::product::{Product, ProductVar};
 use super::*;
 use crate::events::Event;
 use crate::AppState;
+use crate::models::product::*;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ProductInDb {
@@ -22,7 +21,7 @@ pub struct ProductInDb {
     pub base_price: f32,
     pub base_discount: f32,
     pub base_images: Vec<String>,
-    pub attributes: HashSet<String>,
+    pub options: IndexMap<String, IndexSet<String>>,
     pub slug: String,
 }
 
@@ -37,7 +36,7 @@ impl Into<ProductPublic> for ProductInDb {
             base_price: self.base_price,
             base_discount: self.base_discount,
             base_images: self.base_images,
-            attributes: self.attributes,
+            options: self.options,
             slug: self.slug,
         }
     }
@@ -48,14 +47,14 @@ impl Into<ProductInDb> for ProductCreate {
         ProductInDb {
             _id: ObjectId::new(),
             name: self.name,
-            description: self.description,
-            featured: self.featured,
             category: self.category,
-            base_price: self.base_price,
-            base_discount: self.base_discount,
-            base_images: self.base_images,
-            attributes: self.attributes,
             slug: self.slug,
+            description: Default::default(),
+            featured: Default::default(),
+            base_price: Default::default(),
+            base_discount: Default::default(),
+            base_images: Default::default(),
+            options: Default::default(),
         }
     }
 }
@@ -164,7 +163,7 @@ pub struct ProductVarInDb {
     pub discount: Option<f32>,
     pub stocks: usize,
     pub images: Vec<String>,
-    pub attrs: HashMap<String, String>,
+    pub attrs: IndexMap<String, String>,
 }
 
 impl Into<ProductVarPublic> for ProductVarInDb {

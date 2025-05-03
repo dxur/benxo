@@ -14,10 +14,10 @@ pub trait Routes {
     #[route(method=get, path = "/products")]
     async fn get_all_products(#[query] pagination: Pagination) -> Page<ProductPublic>;
 
-    #[route(method=get, path = "/products/")]
+    #[route(method=post, path = "/products/")]
     async fn get_one_product(#[body] body: ProductFetch) -> ProductPublic;
 
-    #[route(method=post, path = "/products/")]
+    #[route(method=post, path = "/products")]
     async fn create_product(#[body] body: ProductCreate) -> ProductPublic;
 
     #[route(method=patch, path = "/products/")]
@@ -33,10 +33,10 @@ pub trait Routes {
         #[body] body: ProductVarFilter,
     ) -> Page<ProductVarPublic>;
 
-    #[route(method=get, path = "/products/variants/")]
+    #[route(method=post, path = "/products/variants/")]
     async fn get_one_variant(#[body] body: ProductVarFetch) -> ProductVarPublic;
 
-    #[route(method=post, path = "/products/variants/")]
+    #[route(method=post, path = "/products/variants")]
     async fn create_variant(#[body] body: ProductVarCreate) -> ProductVarPublic;
 
     #[route(method=patch, path = "/products/variants/")]
@@ -49,10 +49,10 @@ pub trait Routes {
     #[route(method=get, path = "/orders")]
     async fn get_all_orders(#[query] pagination: Pagination) -> Page<OrderPublic>;
 
-    #[route(method=get, path = "/orders/")]
+    #[route(method=post, path = "/orders/")]
     async fn get_one_order(#[body] body: OrderFetch) -> OrderPublic;
 
-    #[route(method=post, path = "/orders/")]
+    #[route(method=post, path = "/orders")]
     async fn create_order(#[body] body: OrderCreate) -> OrderPublic;
 
     #[route(method=patch, path = "/orders/")]
@@ -65,10 +65,10 @@ pub trait Routes {
     #[route(method=get, path = "/users")]
     async fn get_all_users(#[query] pagination: Pagination) -> Page<UserPublic>;
 
-    #[route(method=get, path = "/users/")]
+    #[route(method=post, path = "/users/")]
     async fn get_one_user(#[body] body: UserFetch) -> UserPublic;
 
-    #[route(method=post, path = "/users/")]
+    #[route(method=post, path = "/users")]
     async fn create_user(#[body] body: UserCreate) -> UserPublic;
 
     #[route(method=patch, path = "/users/")]

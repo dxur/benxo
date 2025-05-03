@@ -1,8 +1,7 @@
 use leptos::prelude::*;
 use leptos_router::components::*;
-use leptos_router::hooks::use_navigate;
 
-use super::sidebar::Sidebar;
+use super::Sidebar;
 use crate::pages::NotFound;
 use crate::routes::*;
 
@@ -16,11 +15,13 @@ pub fn App() -> impl IntoView {
                     <input type="text" placeholder="Search"/>
                     // <button> Account </button>
                 </header>
-                <section data-page>
-                    <Routes fallback=*NotFound>
-                        <RoutesBuilder />
-                    </Routes>
-                </section>
+                <div data-page>
+                    <section data-page>
+                        <Routes fallback=*NotFound>
+                            <RoutesBuilder />
+                        </Routes>
+                    </section>
+                </div>
             </main>
         </Router>
     }

@@ -16,15 +16,15 @@ where
 
     move || match memoized_when.get() {
         LoadingStatus::Ok => Either::Left(children()),
-        LoadingStatus::Err(_) => Either::Right(view! {
+        LoadingStatus::Err(e) => Either::Right(view! {
             <div data-error>
-                <span>Error</span>
+                <span>Error: {e}</span>
             </div>
-        }),
+        }.into_any()),
         LoadingStatus::Loading => Either::Right(view! {
             <div data-loading>
                 <span>Loading</span>
             </div>
-        }),
+        }.into_any()),
     }
 }
