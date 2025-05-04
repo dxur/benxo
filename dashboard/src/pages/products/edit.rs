@@ -20,7 +20,7 @@ fn View() -> AnyView {
         >
             <form on:submit=move |ev| {
                 ev.prevent_default();
-                state.update_product();
+                state.update();
             }>
                 <Editor header=move || view! {
                     <header> {
@@ -30,7 +30,7 @@ fn View() -> AnyView {
                                 <h2> { prod.name } </h2>
                                 <h3> { prod.id.to_string() } </h3>
                             </div>
-                            <Row>                                
+                            <Row>
                                 <button type="reset"
                                     on:click=move |_| state.delete()
                                 > Delete </button>
@@ -55,8 +55,9 @@ fn View() -> AnyView {
 fn Body(state: State) -> impl IntoView {
     view! {
         <Card>
+            <header><h3> Basic </h3></header>
             <fieldset>
-                <label> Name <input type="text" bind:value=state.fields.name /></label>
+                <label> Name <input type="text" bind:value=state.fields.name required /></label>
             </fieldset>
             <fieldset>
                 <label> Description <textarea rows="10" bind:value=state.fields.description /></label>
@@ -64,16 +65,17 @@ fn Body(state: State) -> impl IntoView {
         </Card>
 
         <Card>
+            <header><h3> Pricing </h3></header>
             <fieldset>
-                <label> price <input type="number" bind:value=state.fields.base_price step=".01" /></label>
-            </fieldset>
-            <fieldset>
-                <label> discount <input type="number" bind:value=state.fields.base_discount step=".01" /></label>
+                <Row>
+                    <label> price <input type="number" bind:value=state.fields.base_price step=".01" /></label>
+                    <label> Compare-at price <input type="number" bind:value=state.fields.base_compare_price step=".01" /></label>
+                </Row>
             </fieldset>
         </Card>
 
         <Card>
-            <header><h3>Options</h3></header>
+            <header><h3> Options </h3></header>
             <Show
                 when=move || !state.fields.options.get().is_empty()
             >
@@ -140,7 +142,12 @@ fn OptionBlock(state: State, opt: (DefaultKey, OptionEntry)) -> impl IntoView {
                                 type="text"
                                 bind:value=new_value
                                 placeholder="Add value"
-                                on:keydown=move |ev| if ev.key() == "Enter" { add_value(); }
+                                on:keydown=move |ev| {
+                                    if ev.key() == "Enter" {
+                                        ev.prevent_default();
+                                        add_value();
+                                    }
+                                }
                             />
                             <button type="button" on:click=move |_| add_value()> Add </button>
                         </div>

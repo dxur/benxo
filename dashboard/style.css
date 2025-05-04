@@ -6,19 +6,31 @@
     --overlay: #f4f6f8;
     --on-bg: #202223;
     --on-surface: #202223;
+
     --accent: #008060;
     --accent-hover: #006e52;
     --accent-muted: rgba(0, 128, 96, 0.15);
-    --text-muted: #6d7175;
-    --text-disabled: #8c9196;
     --error: #d82c0d;
     --warning: #ffc453;
     --success: #008060;
     --info: #00639d;
 
+    --error-bg: #fdecea;
+    --error-border: #f5c6cb;
+    --success-bg: #e6f9ec;
+    --success-border: #b6e4c7;
+    --warning-bg: #fff4e5;
+    --warning-border: #ffe2b5;
+    --info-bg: #e7f3fe;
+    --info-border: #bee3f8;
+
+    --text-muted: #6d7175;
+    --text-disabled: #8c9196;
+
     --radius: 0.5rem;
     --radius-large: 0.75rem;
     --radius-small: 0.25rem;
+
     --border: 1px solid #e1e3e5;
     --border-table: 1px solid #e1e3e5;
     --border-focus: 2px solid rgba(0, 128, 96, 0.4);
@@ -49,6 +61,7 @@
     --shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
     --transition-speed: 200ms;
     --transition-base: all var(--transition-speed) ease;
 
@@ -719,6 +732,7 @@ label {
     color: var(--on-surface);
     display: block;
     margin-bottom: var(--spacing-sm);
+    width: 100%;
 }
 
 label>:first-child {
@@ -996,10 +1010,21 @@ input:checked+.slider:before {
         --overlay: #262626;
         --on-bg: #f9fafb;
         --on-surface: #f9fafb;
+
         --text-muted: #a3a3a3;
         --text-disabled: #6b7280;
+
         --border: 1px solid #333;
         --border-table: 1px solid #333;
+
+        --error-bg: #3b0000;
+        --error-border: #9e1b1b;
+        --success-bg: #003920;
+        --success-border: #006b42;
+        --warning-bg: #3f2c00;
+        --warning-border: #aa7c00;
+        --info-bg: #002e4e;
+        --info-border: #00558e;
     }
 
     [data-table]+nav button {
@@ -1084,4 +1109,88 @@ input:checked+.slider:before {
     gap: var(--spacing-md);
     justify-content: space-between;
     box-sizing: border-box;
+}
+
+[data-notif] {
+    position: fixed;
+    top: var(--spacing-lg);
+    right: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    z-index: 9999;
+    max-width: 320px;
+    width: calc(100% - 2 * var(--spacing-lg));
+}
+
+[data-notif] [data-msg] {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    border: var(--border);
+    background-color: var(--surface);
+    color: var(--text);
+    font-size: 0.875rem;
+    line-height: 1.4;
+    position: relative;
+    overflow: hidden;
+    animation: Massage 0.3s ease-out;
+}
+
+[data-notif] [data-msg][data-role="success"] {
+    background-color: var(--success-bg);
+    border-color: var(--success-border);
+    color: var(--success);
+}
+
+[data-notif] [data-msg][data-role="error"] {
+    background-color: var(--error-bg);
+    border-color: var(--error-border);
+    color: var(--error);
+}
+
+[data-notif] [data-msg][data-role="warn"] {
+    background-color: var(--warning-bg);
+    border-color: var(--warning-border);
+    color: var(--warning);
+}
+
+[data-notif] [data-msg][data-role="info"] {
+    background-color: var(--info-bg);
+    border-color: var(--info-border);
+    color: var(--info);
+}
+
+[data-notif] [data-msg] button[type="reset"] {
+    background: transparent;
+    border: none;
+    color: inherit;
+    font-size: 1.25rem;
+    font-weight: bold;
+    line-height: 1;
+    cursor: pointer;
+    margin-left: auto;
+    padding: 0 0.25rem;
+    opacity: 0.6;
+    transition: opacity 0.2s ease-in-out;
+}
+
+[data-notif] [data-msg] button[type="reset"]:hover {
+    opacity: 1;
+}
+
+@keyframes Massage {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }

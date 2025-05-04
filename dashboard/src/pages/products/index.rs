@@ -55,13 +55,13 @@ fn ProductsTable(state: State) -> impl IntoView {
                     <td>{product.category}</td>
                     <td>{if product.featured { "Yes" } else { "No" }}</td>
                     <td>{product.base_price}</td>
-                    <td>{product.base_discount}</td>
+                    <td>{product.base_compare_price}</td>
                     <td>
                         <button on:click=move |_| {
                             State::edit(product.id);
                         }> Edit </button>
                         <button type="reset" on:click=move |_| {
-                            state.delete_product(product.id);
+                            state.delete(product.id);
                         }> Delete </button>
                     </td>
                 </tr>
@@ -85,7 +85,7 @@ fn ProductCreate(state: State) -> impl IntoView {
             </header>
             <form on:submit=move |ev| {
                 ev.prevent_default();
-                state.create_product();
+                state.create();
             }>
                 <fieldset>
                     <label> Slug

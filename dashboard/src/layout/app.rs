@@ -2,6 +2,7 @@ use leptos::prelude::*;
 use leptos_router::components::*;
 
 use super::Sidebar;
+use crate::notifications::Notifications;
 use crate::pages::NotFound;
 use crate::routes::*;
 
@@ -16,6 +17,7 @@ pub fn App() -> impl IntoView {
                     // <button> Account </button>
                 </header>
                 <div data-page>
+                    <Notifications />
                     <section data-page>
                         <Routes fallback=*NotFound>
                             <RoutesBuilder />

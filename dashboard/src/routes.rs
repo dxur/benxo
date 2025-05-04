@@ -1,5 +1,4 @@
-use std::{cell::OnceCell, sync::{Arc, OnceLock}};
-
+use std::cell::OnceCell;
 use leptos::prelude::*;
 use leptos_router::{hooks::use_navigate, path, NavigateOptions};
 use macros::routes_builder;
@@ -24,16 +23,15 @@ impl RouteExt for Route {
 }
 
 thread_local! {
-    #[allow(non_upper_case_globals)]
-    static Navigator: OnceCell<Box<dyn Fn(&str, NavigateOptions)>> = OnceCell::new();
+    static NAVIGATOR: OnceCell<Box<dyn Fn(&str, NavigateOptions)>> = OnceCell::new();
 }
 
 pub fn navigate(path: &str, options: NavigateOptions) {
-    Navigator.with(|cell| cell.get().expect("No Navigator on this context")(path, options));
+    NAVIGATOR.with(|cell| cell.get().expect("No Navigator on this context")(path, options));
 }
 
 pub struct AppRoutes;
-#[routes_builder(as = RoutesBuilder, use = Navigator)]
+#[routes_builder(as = RoutesBuilder, use = NAVIGATOR)]
 impl AppRoutes {
     pub const HOME: Route = ("/", HomeIndex);
     pub const PRODUCTS: Route = ("/products", ProductsIndex);
@@ -41,6 +39,6 @@ impl AppRoutes {
     // pub const ORDERS: Route = ("/orders", Orders);
     // pub const DELIVERY: Route = ("/delivery", Delivery);
     // pub const CHANNELS: Route = ("/channels", Channels);
-    // pub const USERS: Route = ("/users", Users);
+    pub const USERS: Route = ("/users", UsersIndex);
     pub const SETTINGS: Route = ("/settings", SettingsIndex);
 }

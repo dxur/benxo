@@ -25,7 +25,7 @@ pub struct ProductUpdateBody {
     pub featured: Option<bool>,
     pub category: Option<String>,
     pub base_price: Option<f32>,
-    pub base_discount: Option<f32>,
+    pub base_compare_price: Option<f32>,
     pub base_images: Option<Vec<String>>,
     pub options: Option<IndexMap<String, IndexSet<String>>>,
     pub slug: Option<String>,
@@ -44,7 +44,7 @@ impl ProductUpdateBody {
             && self.featured.is_none()
             && self.category.is_none()
             && self.base_price.is_none()
-            && self.base_discount.is_none()
+            && self.base_compare_price.is_none()
             && self.base_images.is_none()
             && self.options.is_none()
             && self.slug.is_none()
@@ -64,7 +64,7 @@ pub struct ProductPublic {
     pub featured: bool,
     pub category: String,
     pub base_price: f32,
-    pub base_discount: f32,
+    pub base_compare_price: f32,
     pub base_images: Vec<String>,
     pub options: IndexMap<String, IndexSet<String>>,
     pub slug: String,

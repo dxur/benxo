@@ -51,7 +51,7 @@ pub struct UserDelete {
     pub id: ObjectId,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UserPublic {
     pub id: ObjectId,
     pub name: String,

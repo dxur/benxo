@@ -7,6 +7,7 @@ use leptos::{prelude::*, html::*, task::spawn_local};
 use leptos_router::hooks::use_params_map;
 use slotmap::{DefaultKey, SlotMap};
 
+use crate::notifications::{error, success};
 use crate::routes::*;
 use crate::utils::*;
 
@@ -41,14 +42,14 @@ impl IndexState {
         Effect::watch(
             move || state.page.get(),
             move |_, _, _| {
-                state.fetch_products();
+                state.fetch();
             },
             true,
         );
         state
     }
 
-    pub fn fetch_products(self) {
+    pub fn fetch(self) {
         self.status.set(LoadingStatus::Loading);
         spawn_local(async move {
             let res = ApiRoutes::get_all_products(
@@ -71,7 +72,7 @@ impl IndexState {
         });
     }
 
-    pub fn create_product(self) {
+    pub fn create(self) {
         let res: Result<ProductCreate> = self.try_create();
         log::debug!("Into product: {:?}", res);
         match res {
@@ -80,24 +81,26 @@ impl IndexState {
                 log::debug!("Created product: {:?}", res);
                 match res {
                     Ok(product) => {
+                        success("Product created");
                         Self::edit(product.id);
                     },
-                    Err(e) => log::error!("Failed to create product: {}", e),
+                    Err(e) => error(e),
                 }
             }),
-            Err(e) => log::error!("Failed to create product: {:?}", e),
+            Err(e) => error(e),
         }
     }
 
-    pub fn delete_product(self, id: ObjectId) {
+    pub fn delete(self, id: ObjectId) {
         spawn_local(async move {
             let res = ApiRoutes::delete_product(ProductDelete { id: id }).await;
             log::debug!("Deleted product: {:?}", res);
             match res {
                 Ok(_) => {
-                    self.fetch_products();
+                    success("Product deleted");
+                    self.fetch();
                 },
-                Err(e) => log::error!("Failed to delete product: {}", e),
+                Err(e) => error(e),
             }
         });
     }
@@ -133,7 +136,7 @@ pub struct EditFields {
     pub featured: RwSignal<bool>,
     pub category: RwSignal<String>,
     pub base_price: RwSignal<String>,
-    pub base_discount: RwSignal<String>,
+    pub base_compare_price: RwSignal<String>,
     pub base_images: RwSignal<Vec<String>>,
     pub options: RwSignal<SlotMap<DefaultKey, OptionEntry>>,
     pub slug: RwSignal<String>,
@@ -167,11 +170,11 @@ impl EditState {
             product: Default::default(),
             fields: Default::default(),
         };
-        state.fetch_product();
+        state.fetch();
         state
     }
 
-    pub fn fetch_product(self) {
+    pub fn fetch(self) {
         if let Some(id) = self.id {
             spawn_local(async move {
                 let res = ApiRoutes::get_one_product(ProductFetch { id }).await;
@@ -190,26 +193,25 @@ impl EditState {
         }
     }
 
-    pub fn update_product(self) {
+    pub fn update(self) {
         let res: Result<ProductUpdate> = self.try_update();
         log::debug!("Into product: {:?}", res);
         match res {
             Ok(product) => {
-                self.status.set(LoadingStatus::Loading);
                 spawn_local(async move {
                     let res = ApiRoutes::update_product(product).await;
                     log::debug!("Update product: {:?}", res);
                     match res {
                         Ok(product) => {
+                            success("Product updated");
                             self.update_fields(product.clone());
                             self.product.set(Some(product));
-                            self.status.set(LoadingStatus::Ok);
                         },
-                        Err(e) => log::error!("Failed to update product: {}", e),
+                        Err(e) => error(e),
                     }
                 }
             )},
-            Err(e) => log::error!("Failed to update product: {:?}", e),
+            Err(e) => error(e),
         }
     }
 
@@ -220,16 +222,17 @@ impl EditState {
                 log::debug!("Deleted product: {:?}", res);
                 match res {
                     Ok(_) => {
+                        success("Product deleted");
                         navigate(
                             AppRoutes::PRODUCTS.path(),
                             Default::default()
                         );
                     },
-                    Err(e) => log::error!("Failed to delete product: {}", e),
+                    Err(e) => error(e),
                 }
             });
         } else {
-            // TODO: Show error
+            error("Can't delete product. unknown id");
         }
     }
 
@@ -252,7 +255,7 @@ impl EditState {
             self.fields.options.get_untracked().get(key).unwrap().name.get_untracked().is_empty() ||
             self.fields.options.get_untracked().get(key).unwrap().values.get_untracked().is_empty()
         {
-            // TODO: Show error
+            error("Option name and values can't be empty");
             return;
         }
         self.fields.options.update(|v| {
@@ -267,7 +270,7 @@ impl EditState {
         self.fields.featured.set(product.featured);
         self.fields.category.set(product.category);
         self.fields.base_price.set(product.base_price.to_string());
-        self.fields.base_discount.set(product.base_discount.to_string());
+        self.fields.base_compare_price.set(product.base_compare_price.to_string());
         self.fields.base_images.set(product.base_images);
         self.fields.slug.set(product.slug);
         self.fields.options.update(|v| {
@@ -287,13 +290,18 @@ impl EditState {
     fn try_update(&self) -> Result<ProductUpdate> {
         let base_price = self.fields.base_price.get_untracked().parse()
             .map_err(|_| "failed to parse base price".to_string())?;
-        let base_discount = self.fields.base_discount.get_untracked().parse()
+        let base_compare_price = self.fields.base_compare_price.get_untracked().parse()
             .map_err(|_| "failed to parse base discount".to_string())?;
         let options = self.try_get_options()?;
+
+        let name = self.fields.name.get_untracked();
+        if name.is_empty() {
+            return Err("Product name can't be empty".to_string());
+        }
         
         if let Some(product) = self.product.get_untracked() {
             let body = ProductUpdateBody {
-                name: Some(self.fields.name.get_untracked())
+                name: Some(name)
                     .filter(|v| *v != product.name),
                 description: Some(self.fields.description.get_untracked())
                     .filter(|v| *v != product.description),
@@ -303,8 +311,8 @@ impl EditState {
                     .filter(|v| *v != product.category),
                 base_price: Some(base_price)
                     .filter(|v| *v != product.base_price),
-                base_discount: Some(base_discount)
-                    .filter(|v| *v != product.base_discount),
+                base_compare_price: Some(base_compare_price)
+                    .filter(|v| *v != product.base_compare_price),
                 base_images: Some(self.fields.base_images.get_untracked())
                     .filter(|v| *v != product.base_images),
                 options: Some(options)

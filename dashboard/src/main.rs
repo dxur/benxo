@@ -4,6 +4,7 @@ mod pages;
 mod routes;
 mod utils;
 mod layout;
+mod notifications;
 
 use leptos::prelude::*;
 use layout::App;
