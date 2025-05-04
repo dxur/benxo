@@ -1,0 +1,211 @@
+use leptos::prelude::*;
+
+use crate::components::*;
+use crate::pages::Page;
+use super::state::EditState as State;
+
+#[allow(non_upper_case_globals)]
+pub const OrderEdit : Page = Page {
+    title: "Order",
+    view: View,
+};
+
+#[component]
+fn View() -> AnyView {
+    let state = State::new();
+    view! {
+        <LazyShow
+            when=move || state.status.get()
+        >
+            <form on:submit=move |ev| {
+                ev.prevent_default();
+                // state.update();
+            }>
+                <Editor header=move || view! {
+                    <header>
+                            <div>
+                                <Row>
+                                    <h2> { move || state.fields.full_name.get() } </h2>
+                                    <Badge> { move || state.fields.status.get().to_string() } </Badge>
+                                </Row>
+                                <h3> { state.id.unwrap().to_string() } </h3>
+                            </div>
+                            <Row>
+                                <button type="reset"
+                                    on:click=move |_| state.delete()
+                                > Delete </button>
+                                <button type="submit"> Save </button>
+                            </Row>
+                    </header>
+                }>
+                    <Content>
+                        <Body state=state />
+                    </Content>
+                    <Panel>
+                        <Inspector state=state />
+                    </Panel>
+                </Editor>
+            </form>
+        </LazyShow>
+    }.into_any()
+}
+
+#[component]
+fn Body(state: State) -> impl IntoView {
+    let edit_basic = RwSignal::new(false);
+    let edit_shipping = RwSignal::new(false);
+    let edit_cart = RwSignal::new(false);
+    view! {
+        <Card>
+            <Row>
+                <h3> Basic </h3>
+                <button
+                    on:click=move |_| edit_basic.update(|v| *v = !*v)
+                > { move || if edit_basic.get() { "Done" } else { "Edit" } } </button>
+            </Row>
+            <fieldset>
+                <label> Full Name
+                    <input readonly=move || !edit_basic.get() type="text" bind:value=state.fields.full_name required />
+                </label>
+            </fieldset>
+            <fieldset>
+                <label> Phone
+                    <input readonly=move || !edit_basic.get() type="tel" bind:value=state.fields.phone required />
+                </label>
+            </fieldset>
+            <fieldset>
+                <label> Email
+                    <input readonly=move || !edit_basic.get() type="text" bind:value=state.fields.email required />
+                </label>
+            </fieldset>
+        </Card>
+        <Card>
+            <Row>
+                <h3> Shipping </h3>
+                <button
+                    on:click=move |_| edit_shipping.update(|v| *v = !*v)
+                > { move || if edit_shipping.get() { "Done" } else { "Edit" } } </button>
+            </Row>
+            <fieldset>
+                <label> Province
+                    <input readonly=move || !edit_shipping.get() type="text" bind:value=state.fields.province required />
+                </label>
+            </fieldset>
+            <fieldset>
+                <label> Address
+                    <input readonly=move || !edit_shipping.get() type="text" bind:value=state.fields.address required />
+                </label>
+            </fieldset>
+            <fieldset>
+                <label> Note
+                    <textarea readonly=move || !edit_shipping.get() rows="10" bind:value=state.fields.note required />
+                </label>
+            </fieldset>
+        </Card>
+        <Card>
+            <Row>
+                <h3> Cart </h3>
+                <button
+                    on:click=move |_| edit_cart.update(|v| *v = !*v)
+                > { move || if edit_cart.get() { "Done" } else { "Edit" } } </button>
+            </Row>
+            <Show
+                when=move || !state.fields.items.get().is_empty()
+            >
+                <Table head=view! {
+                    <tr>
+                        <th> SKU </th>
+                        <th> Quantity </th>
+                        <th> Price </th>
+                        <th> Options </th>
+                    </tr>
+                }>
+                    <For
+                        each=move || state.fields.items.get()
+                        key=|item| item.product_sku.clone()
+                        let(item)
+                    >
+                        <tr>
+                            <td>{item.product_sku.clone()}</td>
+                            <td>
+                                <input
+                                    type="number"
+                                    readonly=move || !edit_cart.get()
+                                    min="1"
+                                    step="1" bind:value=item.quantity
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    type="number"
+                                    readonly=move || !edit_cart.get()
+                                    min="0"
+                                    step="0.01" bind:value=item.price
+                                />
+                            </td>
+                            <td>
+                                <button type="reset"
+                                    disabled=move || !edit_cart.get()
+                                    on:click=move |_| {
+                                        state.remove_item(item.product_sku.as_str());
+                                }> Remove </button>
+                            </td>
+                        </tr>
+                    </For>
+                </Table>
+            </Show>
+            <Show
+                when=move || edit_cart.get()
+            >
+                <a
+                    // on:click=move |_| state.add_new_item()
+                >
+                    Add another item
+                </a>
+            </Show>
+        </Card>
+    }
+}
+
+#[component]
+fn Inspector(state: State) -> impl IntoView {
+    view! {
+        <Card>
+            <h3> Progress </h3>
+            <Timeline>
+                <li>
+                    <strong> Created </strong>
+                    <time> May 1, 2024 - 10:00 AM </time>
+                </li>
+                <li>
+                    <strong> Updated </strong>
+                    <time> May 2, 2024 - 10:00 AM </time>
+                </li>
+                <li>
+                    <strong> Deleted </strong>
+                    <time> May 3, 2024 - 10:00 AM </time>
+                </li>
+            </Timeline>
+            <Show
+                when=move || state.fields.progress.get().is_some()
+            >
+                <button type="submit"
+                    on:click=move |ev| {
+                        ev.prevent_default();
+                        state.progress();
+                    }
+                > "Mark as " { state.fields.progress.get().unwrap().to_string() } </button>
+            </Show>
+            <Show
+                when=move || state.fields.regress.get().is_some()
+            >
+                <button type="reset"
+                    on:click=move |ev| {
+                        ev.prevent_default();
+                        state.regress();
+                    }
+                > "Mark as " { state.fields.regress.get().unwrap().to_string() } </button>
+            </Show>
+        </Card>
+    }
+}

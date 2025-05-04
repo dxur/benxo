@@ -1,19 +1,12 @@
 use leptos::prelude::*;
 
 #[component]
-pub fn Table<F, IV>(
-    head: F,
-    children: Children,
-) -> impl IntoView
-where
-    F: Fn() -> IV,
-    IV: IntoView,
-{
+pub fn Table(head: impl IntoView, children: Children) -> impl IntoView {
     view! {
         <div data-table>
             <table>
                 <thead>
-                    {head()}
+                    {head}
                 </thead>
                 <tbody>
                     {children()}

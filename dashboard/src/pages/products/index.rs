@@ -31,18 +31,16 @@ fn View() -> AnyView {
 #[component]
 fn ProductsTable(state: State) -> impl IntoView {
     view! {
-        <Table head=move || {
-            view! {
-                <tr>
-                    <th>Slug</th>
-                    <th>Name</th>
-                    <th>Category</th>
-                    <th>Featured</th>
-                    <th>Base Price</th>
-                    <th>Base Discount</th>
-                    <th>Options</th>
-                </tr>
-            }
+        <Table head=view! {
+            <tr>
+                <th>Slug</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Featured</th>
+                <th>Base Price</th>
+                <th>Base Discount</th>
+                <th>Options</th>
+            </tr>
         }>
             <For
                 each=move || state.products.get().data

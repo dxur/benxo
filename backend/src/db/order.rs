@@ -1,6 +1,7 @@
 use crate::models::order::*;
 use crate::models::product::ProductVar;
 use field::*;
+use indexmap::IndexMap;
 use mongodb::bson::{doc, oid::ObjectId, to_document, Document};
 use mongodb::options::TransactionOptions;
 use serde::{Deserialize, Serialize};
@@ -21,11 +22,8 @@ pub struct OrderInDb {
     pub address: String,
     pub delivery: DeliveryType,
     pub note: String,
-    pub items: Vec<CartItem>,
+    pub items: IndexMap<String, CartItem>,
 }
-
-#[derive(Debug, Serialize)]
-pub struct OrderUpdateInDb(pub OrderUpdate);
 
 impl Into<OrderPublic> for OrderInDb {
     fn into(self) -> OrderPublic {
@@ -44,15 +42,9 @@ impl Into<OrderPublic> for OrderInDb {
     }
 }
 
-impl From<OrderUpdate> for OrderUpdateInDb {
-    fn from(value: OrderUpdate) -> Self {
-        OrderUpdateInDb(value)
-    }
-}
-
-impl Into<Result<Document>> for &OrderUpdateInDb {
+impl Into<Result<Document>> for &OrderUpdate {
     fn into(self) -> Result<Document> {
-        to_document(&self.0).map_err(|e| Error { msg: e.to_string() })
+        to_document(&self.body).map_err(|e| Error { msg: e.to_string() })
     }
 }
 
@@ -68,9 +60,9 @@ impl Into<FindInDb> for &OrderDelete {
     }
 }
 
-impl Into<FindInDb> for &OrderUpdateInDb {
+impl Into<FindInDb> for &OrderUpdate {
     fn into(self) -> FindInDb {
-        FindInDb { _id: self.0.id }
+        FindInDb { _id: self.id }
     }
 }
 
@@ -130,9 +122,9 @@ impl CreatableInDb for Order {
 
         let mut products_qnt = HashMap::<String, u32>::new();
 
-        for item in &body.items {
+        for (sku,item) in &body.items {
             products_qnt
-                .entry(item.product_sku.clone())
+                .entry(sku.clone())
                 .and_modify(|q| *q += item.quantity)
                 .or_insert(item.quantity);
         }
@@ -157,8 +149,8 @@ impl CreatableInDb for Order {
             }
         }
 
-        for item in &body.items {
-            let filter = doc! { field!(sku @ ProductVarInDb): &item.product_sku };
+        for (sku, item) in &body.items {
+            let filter = doc! { field!(sku @ ProductVarInDb): &sku };
             let update =
                 doc! { "$inc": { field!(stocks @ ProductVarInDb): -(item.quantity as i32) } };
 
@@ -183,7 +175,7 @@ impl CreatableInDb for Order {
 }
 
 impl UpdatableInDb for Order {
-    type UpdateInDb = OrderUpdateInDb;
+    type UpdateInDb = OrderUpdate;
 
     // async fn update(_: &Db, _: Self::Update) -> Result<Option<(Self::UpdateInDb, Self::InDb)>> {
     //     todo!("Not implemented")

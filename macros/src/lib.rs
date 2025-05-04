@@ -332,7 +332,7 @@ pub fn routes_builder(args: TokenStream, input: TokenStream) -> TokenStream {
             use leptos_router::*;
             use leptos_router::components::*;
 
-            #use_ident.with(|cell| cell.set(Box::new(use_navigate())));
+            let _ = #use_ident.with(|cell| cell.set(Box::new(use_navigate())));
             view! {
                 #(#route_views)*
             }

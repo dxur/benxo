@@ -1,21 +1,24 @@
 use bson::oid::ObjectId;
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use strum::{EnumString, VariantNames, Display};
 
 use super::*;
 
-#[derive(Debug, Serialize, Deserialize, EnumString, Display, VariantNames, PartialEq, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, EnumString, Display, VariantNames, PartialEq, Clone, Copy, Default)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum DeliveryType {
+    #[default]
     StopDesk,
     Domicil,
     Other,
 }
 
-#[derive(Debug, Serialize, Deserialize, EnumString, Display, VariantNames, PartialEq, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, EnumString, Display, VariantNames, PartialEq, Clone, Copy, Default)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum OrderStatus {
+    #[default]
     Pending,
     Confirmed,
     Rejected,
@@ -26,8 +29,8 @@ pub enum OrderStatus {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct CartItem {
-    pub product_sku: String,
     pub quantity: u32,
+    pub price: f32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -44,7 +47,7 @@ pub struct OrderCreate {
     pub address: String,
     pub delivery: DeliveryType,
     pub note: String,
-    pub items: Vec<CartItem>,
+    pub items: IndexMap<String, CartItem>,
 }
 
 #[skip_serializing_none]
@@ -58,7 +61,7 @@ pub struct OrderUpdateBody {
     pub address: Option<String>,
     pub delivery: Option<DeliveryType>,
     pub note: Option<String>,
-    pub items: Option<Vec<CartItem>>,
+    pub items: Option<IndexMap<String, CartItem>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -97,7 +100,7 @@ pub struct OrderPublic {
     pub address: String,
     pub delivery: DeliveryType,
     pub note: String,
-    pub items: Vec<CartItem>,
+    pub items: IndexMap<String, CartItem>,
 }
 
 pub struct Order;

@@ -34,9 +34,10 @@ pub struct AppRoutes;
 #[routes_builder(as = RoutesBuilder, use = NAVIGATOR)]
 impl AppRoutes {
     pub const HOME: Route = ("/", HomeIndex);
+    pub const ORDERS: Route = ("/orders", OrdersIndex);
+    pub const ORDER: Route = ("/orders/:id", OrderEdit);
     pub const PRODUCTS: Route = ("/products", ProductsIndex);
-    pub const PRODUCT_EDIT: Route = ("/products/:id", ProductEdit);
-    // pub const ORDERS: Route = ("/orders", Orders);
+    pub const PRODUCT: Route = ("/products/:id", ProductEdit);
     // pub const DELIVERY: Route = ("/delivery", Delivery);
     // pub const CHANNELS: Route = ("/channels", Channels);
     pub const USERS: Route = ("/users", UsersIndex);

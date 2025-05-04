@@ -74,3 +74,12 @@ pub fn Badge(children: Children) -> impl IntoView {
         </li>
     }
 }
+
+#[component]
+pub fn Timeline(children: Children) -> impl IntoView {
+    view! {
+        <ul data-timeline>
+            {children()}
+        </ul>
+    }
+}

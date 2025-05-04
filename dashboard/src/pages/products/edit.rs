@@ -55,7 +55,7 @@ fn View() -> AnyView {
 fn Body(state: State) -> impl IntoView {
     view! {
         <Card>
-            <header><h3> Basic </h3></header>
+            <h3> Basic </h3>
             <fieldset>
                 <label> Name <input type="text" bind:value=state.fields.name required /></label>
             </fieldset>
@@ -65,7 +65,7 @@ fn Body(state: State) -> impl IntoView {
         </Card>
 
         <Card>
-            <header><h3> Pricing </h3></header>
+            <h3> Pricing </h3>
             <fieldset>
                 <Row>
                     <label> price <input type="number" bind:value=state.fields.base_price step=".01" /></label>
@@ -75,7 +75,7 @@ fn Body(state: State) -> impl IntoView {
         </Card>
 
         <Card>
-            <header><h3> Options </h3></header>
+            <h3> Options </h3>
             <Show
                 when=move || !state.fields.options.get().is_empty()
             >

@@ -107,7 +107,7 @@ impl IndexState {
 
     pub fn edit(id: ObjectId) {
         navigate(
-            AppRoutes::PRODUCT_EDIT.path().replace(":id", &id.to_hex()).as_str(),
+            AppRoutes::PRODUCT.path().replace(":id", &id.to_hex()).as_str(),
             Default::default()
         );
     }
@@ -130,7 +130,7 @@ pub struct OptionEntry {
 }
 
 #[derive(Clone, Copy, Default)]
-pub struct EditFields {
+pub struct Fields {
     pub name: RwSignal<String>,
     pub description: RwSignal<String>,
     pub featured: RwSignal<bool>,
@@ -147,7 +147,7 @@ pub struct EditState {
     pub id: Option<ObjectId>,
     pub status: RwSignal<LoadingStatus>,
     pub product: RwSignal<Option<ProductPublic>>,
-    pub fields: EditFields,
+    pub fields: Fields,
 }
 
 impl EditState {
