@@ -1,11 +1,11 @@
 use leptos::prelude::*;
 
+use super::state::EditState as State;
 use crate::components::*;
 use crate::pages::Page;
-use super::state::EditState as State;
 
 #[allow(non_upper_case_globals)]
-pub const OrderEdit : Page = Page {
+pub const OrderEdit: Page = Page {
     title: "Order",
     view: View,
 };
@@ -173,18 +173,16 @@ fn Inspector(state: State) -> impl IntoView {
         <Card>
             <h3> Progress </h3>
             <Timeline>
-                <li>
-                    <strong> Created </strong>
-                    <time> May 1, 2024 - 10:00 AM </time>
-                </li>
-                <li>
-                    <strong> Updated </strong>
-                    <time> May 2, 2024 - 10:00 AM </time>
-                </li>
-                <li>
-                    <strong> Deleted </strong>
-                    <time> May 3, 2024 - 10:00 AM </time>
-                </li>
+                <For
+                    each=move || state.fields.history.get().into_iter().enumerate()
+                    key=|(idx, _)| *idx
+                    let((_, entry))
+                >
+                    <li>
+                        <strong> {entry.status.to_string()} </strong>
+                        <time> May 1, 2024 - 10:00 AM </time>
+                    </li>
+                </For>
             </Timeline>
             <Show
                 when=move || state.fields.progress.get().is_some()

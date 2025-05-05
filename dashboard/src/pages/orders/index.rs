@@ -1,11 +1,11 @@
 use leptos::prelude::*;
 
+use super::state::IndexState as State;
 use crate::components::*;
 use crate::pages::Page;
-use super::state::IndexState as State;
 
 #[allow(non_upper_case_globals)]
-pub const OrdersIndex : Page = Page {
+pub const OrdersIndex: Page = Page {
     title: "Orders",
     view: View,
 };
@@ -24,9 +24,9 @@ fn View() -> AnyView {
         >
             <OrdersTable state=state />
         </LazyShow>
-    }.into_any()
+    }
+    .into_any()
 }
-
 
 #[component]
 fn OrdersTable(state: State) -> impl IntoView {

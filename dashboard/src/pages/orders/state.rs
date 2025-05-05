@@ -1,11 +1,10 @@
-use std::str::FromStr;
 use backend::api::{ApiRoutes, Routes};
 use backend::models::order::*;
 use backend::models::{ObjectId, Page, Pagination};
-use indexmap::{IndexMap, IndexSet};
-use leptos::{prelude::*, html::*, task::spawn_local};
+use leptos::{html::*, prelude::*, task::spawn_local};
 use leptos_router::hooks::use_params_map;
 use slotmap::{DefaultKey, SlotMap};
+use std::str::FromStr;
 
 use crate::notifications::{error, success};
 use crate::routes::*;
@@ -43,30 +42,33 @@ impl IndexState {
     pub fn fetch(self) {
         self.status.set(LoadingStatus::Loading);
         spawn_local(async move {
-            let res = ApiRoutes::get_all_orders(
-                Pagination {
-                    page: Some(self.page.get_untracked()),
-                    per_page: None,
-                }
-            ).await.map_err(|e| e.to_string());
+            let res = ApiRoutes::get_all_orders(Pagination {
+                page: Some(self.page.get_untracked()),
+                per_page: None,
+            })
+            .await
+            .map_err(|e| e.to_string());
             log::debug!("Fetched orders: {:?}", res);
             match res {
                 Ok(data) => {
                     self.total.set(data.total_pages());
                     self.orders.set(data);
                     self.status.set(LoadingStatus::Ok);
-                },
+                }
                 Err(e) => {
                     self.status.set(LoadingStatus::Err(e));
-                },
+                }
             }
         });
     }
 
     pub fn view(id: ObjectId) {
         navigate(
-            AppRoutes::ORDER.path().replace(":id", &id.to_hex()).as_str(),
-            Default::default()
+            AppRoutes::ORDER
+                .path()
+                .replace(":id", &id.to_hex())
+                .as_str(),
+            Default::default(),
         );
     }
 }
@@ -91,6 +93,7 @@ pub struct Fields {
     pub progress: RwSignal<Option<OrderStatus>>,
     pub regress: RwSignal<Option<OrderStatus>>,
     pub items: RwSignal<Vec<CartItemFields>>,
+    pub history: RwSignal<Vec<OrderHistoryEntry>>,
 }
 
 #[derive(Clone, Copy)]
@@ -135,10 +138,10 @@ impl EditState {
                         self.update_fields(order.clone());
                         self.order.set(Some(order));
                         self.status.set(LoadingStatus::Ok);
-                    },
+                    }
                     Err(e) => {
                         self.status.set(LoadingStatus::Err(e.to_string()));
-                    },
+                    }
                 }
             });
         }
@@ -147,16 +150,13 @@ impl EditState {
     pub fn delete(self) {
         if let Some(id) = self.id {
             spawn_local(async move {
-                let res = ApiRoutes::delete_order(OrderDelete { id: id }).await;
+                let res = ApiRoutes::delete_order(OrderDelete { id }).await;
                 log::debug!("Deleted order: {:?}", res);
                 match res {
                     Ok(_) => {
                         success("Order deleted");
-                        navigate(
-                            AppRoutes::ORDERS.path(),
-                            Default::default()
-                        );
-                    },
+                        navigate(AppRoutes::ORDERS.path(), Default::default());
+                    }
                     Err(e) => error(e),
                 }
             });
@@ -181,19 +181,20 @@ impl EditState {
                 };
                 spawn_local(async move {
                     let res = ApiRoutes::update_order(OrderUpdate {
-                        id: id,
+                        id,
                         body: update,
-                    }).await;
+                    })
+                    .await;
                     log::debug!("Updated order: {:?}", res);
                     match res {
                         Ok(order) => {
                             success("Order updated");
                             self.update_fields(order);
-                        },
+                        }
                         Err(e) => error(e),
                     }
                 });
-            },
+            }
             _ => {
                 error("Can't delete order. unknown id");
             }
@@ -216,19 +217,20 @@ impl EditState {
                 };
                 spawn_local(async move {
                     let res = ApiRoutes::update_order(OrderUpdate {
-                        id: id,
+                        id,
                         body: update,
-                    }).await;
+                    })
+                    .await;
                     log::debug!("Updated order: {:?}", res);
                     match res {
                         Ok(order) => {
                             success("Order updated");
                             self.update_fields(order);
-                        },
+                        }
                         Err(e) => error(e),
                     }
                 });
-            },
+            }
             _ => {
                 error("Can't delete order. unknown id");
             }
@@ -250,7 +252,7 @@ impl EditState {
             OrderStatus::Rejected => Some(OrderStatus::Pending),
             OrderStatus::Returned => Some(OrderStatus::Delivered),
         });
-        
+
         self.fields.regress.set(match order.status {
             OrderStatus::Pending => Some(OrderStatus::Rejected),
             OrderStatus::Confirmed => Some(OrderStatus::Rejected),
@@ -268,11 +270,17 @@ impl EditState {
         self.fields.note.set(order.note);
         self.fields.delivery.set(order.delivery);
         self.fields.status.set(order.status);
-        self.fields.items.set(order.items.into_iter().map(|(sku, item)| CartItemFields {
-            product_sku: sku,
-            quantity: RwSignal::new(item.quantity.to_string()),
-            price: RwSignal::new(item.price.to_string()),
-        }).collect());
-
+        self.fields.history.set(order.history);
+        self.fields.items.set(
+            order
+                .items
+                .into_iter()
+                .map(|(sku, item)| CartItemFields {
+                    product_sku: sku,
+                    quantity: RwSignal::new(item.quantity.to_string()),
+                    price: RwSignal::new(item.price.to_string()),
+                })
+                .collect(),
+        );
     }
 }

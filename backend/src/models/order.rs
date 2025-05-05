@@ -2,11 +2,22 @@ use bson::oid::ObjectId;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
-use strum::{EnumString, VariantNames, Display};
+use strum::{Display, EnumString, VariantNames};
 
 use super::*;
 
-#[derive(Debug, Serialize, Deserialize, EnumString, Display, VariantNames, PartialEq, Clone, Copy, Default)]
+#[derive(
+    Debug,
+    Serialize,
+    Deserialize,
+    EnumString,
+    Display,
+    VariantNames,
+    PartialEq,
+    Clone,
+    Copy,
+    Default,
+)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum DeliveryType {
     #[default]
@@ -15,7 +26,18 @@ pub enum DeliveryType {
     Other,
 }
 
-#[derive(Debug, Serialize, Deserialize, EnumString, Display, VariantNames, PartialEq, Clone, Copy, Default)]
+#[derive(
+    Debug,
+    Serialize,
+    Deserialize,
+    EnumString,
+    Display,
+    VariantNames,
+    PartialEq,
+    Clone,
+    Copy,
+    Default,
+)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum OrderStatus {
     #[default]
@@ -25,6 +47,11 @@ pub enum OrderStatus {
     Delivered,
     Done,
     Returned,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct OrderHistoryEntry {
+    pub status: OrderStatus,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -101,6 +128,7 @@ pub struct OrderPublic {
     pub delivery: DeliveryType,
     pub note: String,
     pub items: IndexMap<String, CartItem>,
+    pub history: Vec<OrderHistoryEntry>,
 }
 
 pub struct Order;
