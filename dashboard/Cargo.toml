@@ -19,3 +19,5 @@ strum = { version = "0.27.1", features = ["derive"] }
 url = "2.5.4"
 indexmap = { version = "2.9.0", features = ["serde"] }
 slotmap = "1.0.7"
+monaco = "0.5.0"
+reactive_stores = "0.2.1"

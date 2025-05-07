@@ -43,7 +43,7 @@ pub enum OrderStatus {
     #[default]
     Pending,
     Confirmed,
-    Rejected,
+    Canceled,
     Delivered,
     Done,
     Returned,
@@ -54,7 +54,7 @@ pub struct OrderHistoryEntry {
     pub status: OrderStatus,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct CartItem {
     pub quantity: u32,
     pub price: f32,

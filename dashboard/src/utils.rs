@@ -33,3 +33,40 @@ pub fn is_subpath(base: &str, current: &str) -> bool {
 
     false
 }
+
+use std::fmt::Debug;
+
+pub struct DropLogger<T: Debug> {
+    name: &'static str,
+    value: T,
+}
+
+impl<T: Debug> DropLogger<T> {
+    pub fn new(name: &'static str, value: T) -> Self {
+        Self { name, value }
+    }
+
+    pub fn inner(&self) -> &T {
+        &self.value
+    }
+}
+
+impl<T: Debug> AsRef<T> for DropLogger<T> {
+    fn as_ref(&self) -> &T {
+        self.inner()
+    }
+}
+
+impl<T: Debug> std::ops::Deref for DropLogger<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        self.inner()
+    }
+}
+
+impl<T: Debug> Drop for DropLogger<T> {
+    fn drop(&mut self) {
+        log::debug!("Dropping `{}` with value: {:?}", self.name, self.value);
+    }
+}

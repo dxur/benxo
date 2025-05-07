@@ -18,7 +18,7 @@ pub struct ProductCreate {
 }
 
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ProductUpdateBody {
     pub name: Option<String>,
     pub description: Option<String>,
@@ -31,7 +31,7 @@ pub struct ProductUpdateBody {
     pub slug: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ProductUpdate {
     pub id: ObjectId,
     pub body: ProductUpdateBody,

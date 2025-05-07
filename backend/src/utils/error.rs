@@ -12,6 +12,14 @@ impl From<()> for Error {
     }
 }
 
+impl From<String> for Error {
+    fn from(value: String) -> Self {
+        Error {
+            msg: value,
+        }
+    }
+}
+
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         todo!()

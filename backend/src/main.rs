@@ -10,6 +10,7 @@ mod events;
 mod middlewares;
 mod models;
 mod routes;
+mod store;
 mod utils;
 mod validators;
 

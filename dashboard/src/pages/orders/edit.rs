@@ -19,7 +19,7 @@ fn View() -> AnyView {
         >
             <form on:submit=move |ev| {
                 ev.prevent_default();
-                // state.update();
+                state.update();
             }>
                 <Editor header=move || view! {
                     <header>
@@ -47,6 +47,7 @@ fn View() -> AnyView {
                 </Editor>
             </form>
         </LazyShow>
+        <ProductSelect state=state />
     }.into_any()
 }
 
@@ -59,7 +60,7 @@ fn Body(state: State) -> impl IntoView {
         <Card>
             <Row>
                 <h3> Basic </h3>
-                <button
+                <button type="button"
                     on:click=move |_| edit_basic.update(|v| *v = !*v)
                 > { move || if edit_basic.get() { "Done" } else { "Edit" } } </button>
             </Row>
@@ -82,7 +83,7 @@ fn Body(state: State) -> impl IntoView {
         <Card>
             <Row>
                 <h3> Shipping </h3>
-                <button
+                <button type="button"
                     on:click=move |_| edit_shipping.update(|v| *v = !*v)
                 > { move || if edit_shipping.get() { "Done" } else { "Edit" } } </button>
             </Row>
@@ -105,7 +106,7 @@ fn Body(state: State) -> impl IntoView {
         <Card>
             <Row>
                 <h3> Cart </h3>
-                <button
+                <button type="button"
                     on:click=move |_| edit_cart.update(|v| *v = !*v)
                 > { move || if edit_cart.get() { "Done" } else { "Edit" } } </button>
             </Row>
@@ -158,7 +159,7 @@ fn Body(state: State) -> impl IntoView {
                 when=move || edit_cart.get()
             >
                 <a
-                    // on:click=move |_| state.add_new_item()
+                    on:click=move |_| state.add_new_item()
                 >
                     Add another item
                 </a>
@@ -205,5 +206,43 @@ fn Inspector(state: State) -> impl IntoView {
                 > "Mark as " { state.fields.regress.get().unwrap().to_string() } </button>
             </Show>
         </Card>
+    }
+}
+
+#[component]
+fn ProductSelect(state: State) -> impl IntoView {
+    view! {
+        <Dialog
+            node_ref=state.dialog
+            on_cancel=move || {
+                state.dialog.get().map(|d| d.close());
+            }
+        >
+
+            <header>
+                <h2>Select Product</h2>
+            </header>
+            <form on:submit=move |ev| {
+                ev.prevent_default();
+                state.add_item();
+            }>
+                <fieldset>
+                    <input
+                        type="text"
+                        placeholder="Search"
+                        bind:value=state.search
+                    />
+                </fieldset>
+                <fieldset>
+                    <label> Quantity
+                        <input type="number" bind:value=state.fields.item_quantity required />
+                    </label>
+                </fieldset>
+                <button type="button"
+                    on:click=move |_| { state.dialog.get().map(|d| d.close()); }
+                >Close</button>
+                <button type="submit">Submit</button>
+            </form>
+        </Dialog>
     }
 }

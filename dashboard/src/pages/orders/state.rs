@@ -1,9 +1,9 @@
 use backend::api::{ApiRoutes, Routes};
 use backend::models::order::*;
 use backend::models::{ObjectId, Page, Pagination};
+use indexmap::IndexMap;
 use leptos::{html::*, prelude::*, task::spawn_local};
 use leptos_router::hooks::use_params_map;
-use slotmap::{DefaultKey, SlotMap};
 use std::str::FromStr;
 
 use crate::notifications::{error, success};
@@ -94,6 +94,7 @@ pub struct Fields {
     pub regress: RwSignal<Option<OrderStatus>>,
     pub items: RwSignal<Vec<CartItemFields>>,
     pub history: RwSignal<Vec<OrderHistoryEntry>>,
+    pub item_quantity: RwSignal<String>,
 }
 
 #[derive(Clone, Copy)]
@@ -102,6 +103,8 @@ pub struct EditState {
     pub status: RwSignal<LoadingStatus>,
     pub order: RwSignal<Option<OrderPublic>>,
     pub fields: Fields,
+    pub dialog: NodeRef<Dialog>,
+    pub search: RwSignal<String>,
 }
 
 impl EditState {
@@ -123,6 +126,8 @@ impl EditState {
             status: RwSignal::new(status),
             order: Default::default(),
             fields: Default::default(),
+            dialog: Default::default(),
+            search: Default::default(),
         };
         state.fetch();
         state
@@ -180,11 +185,7 @@ impl EditState {
                     items: None,
                 };
                 spawn_local(async move {
-                    let res = ApiRoutes::update_order(OrderUpdate {
-                        id,
-                        body: update,
-                    })
-                    .await;
+                    let res = ApiRoutes::update_order(OrderUpdate { id, body: update }).await;
                     log::debug!("Updated order: {:?}", res);
                     match res {
                         Ok(order) => {
@@ -216,11 +217,7 @@ impl EditState {
                     items: None,
                 };
                 spawn_local(async move {
-                    let res = ApiRoutes::update_order(OrderUpdate {
-                        id,
-                        body: update,
-                    })
-                    .await;
+                    let res = ApiRoutes::update_order(OrderUpdate { id, body: update }).await;
                     log::debug!("Updated order: {:?}", res);
                     match res {
                         Ok(order) => {
@@ -237,10 +234,38 @@ impl EditState {
         }
     }
 
+    pub fn update(self) {
+        let res = self.try_update();
+        log::debug!("Into product: {:?}", res);
+        match res {
+            Ok(order) => spawn_local(async move {
+                let res = ApiRoutes::update_order(order).await;
+                log::debug!("Update product: {:?}", res);
+                match res {
+                    Ok(ord) => {
+                        success("Product updated");
+                        self.update_fields(ord.clone());
+                        self.order.set(Some(ord));
+                    }
+                    Err(e) => error(e),
+                }
+            }),
+            Err(e) => error(e),
+        }
+    }
+
     pub fn remove_item(self, product_sku: &str) {
         self.fields.items.update(|items| {
             items.retain(|item| item.product_sku != product_sku);
         });
+    }
+
+    pub fn add_new_item(self) {
+        self.dialog.get().map(|d| d.show_modal());
+    }
+
+    pub fn add_item(self) {
+        todo!()
     }
 
     fn update_fields(&self, order: OrderPublic) {
@@ -249,17 +274,17 @@ impl EditState {
             OrderStatus::Confirmed => Some(OrderStatus::Delivered),
             OrderStatus::Delivered => Some(OrderStatus::Done),
             OrderStatus::Done => None,
-            OrderStatus::Rejected => Some(OrderStatus::Pending),
+            OrderStatus::Canceled => Some(OrderStatus::Pending),
             OrderStatus::Returned => Some(OrderStatus::Delivered),
         });
 
         self.fields.regress.set(match order.status {
-            OrderStatus::Pending => Some(OrderStatus::Rejected),
-            OrderStatus::Confirmed => Some(OrderStatus::Rejected),
+            OrderStatus::Pending => Some(OrderStatus::Canceled),
+            OrderStatus::Confirmed => Some(OrderStatus::Canceled),
             OrderStatus::Delivered => Some(OrderStatus::Returned),
-            OrderStatus::Done => Some(OrderStatus::Returned),
-            OrderStatus::Rejected => None,
-            OrderStatus::Returned => None,
+            OrderStatus::Done => Some(OrderStatus::Canceled),
+            OrderStatus::Canceled => None,
+            OrderStatus::Returned => Some(OrderStatus::Canceled),
         });
 
         self.fields.full_name.set(order.full_name);
@@ -282,5 +307,51 @@ impl EditState {
                 })
                 .collect(),
         );
+    }
+
+    fn try_update(&self) -> Result<OrderUpdate> {
+        if let Some(order) = self.order.get_untracked() {
+            let items = self
+                .fields
+                .items
+                .get_untracked()
+                .into_iter()
+                .map(|v| {
+                    let quantity = v
+                        .price
+                        .get_untracked()
+                        .parse()
+                        .map_err(|_| "failed to parse base price".to_string())?;
+                    let price = v
+                        .price
+                        .get_untracked()
+                        .parse()
+                        .map_err(|_| "failed to parse base price".to_string())?;
+                    Ok((v.product_sku, CartItem { quantity, price }))
+                })
+                .collect::<Result<_>>()?;
+
+            let body = OrderUpdateBody {
+                status: None,
+                full_name: Some(self.fields.full_name.get_untracked())
+                    .filter(|v| *v != order.full_name),
+                phone: Some(self.fields.phone.get_untracked()).filter(|v| *v != order.phone),
+                email: Some(self.fields.email.get_untracked()).filter(|v| *v != order.email),
+                province: Some(self.fields.province.get_untracked())
+                    .filter(|v| *v != order.province),
+                address: Some(self.fields.address.get_untracked()).filter(|v| *v != order.address),
+                delivery: Some(self.fields.delivery.get_untracked())
+                    .filter(|v| *v != order.delivery),
+                note: Some(self.fields.note.get_untracked()).filter(|v| *v != order.note),
+                items: Some(items).filter(|v| *v != order.items),
+            };
+            if body.is_none() {
+                Err("Nothing Have been Updated".to_string())
+            } else {
+                Ok(OrderUpdate { id: order.id, body })
+            }
+        } else {
+            Err("Can't read the order".to_string())
+        }
     }
 }

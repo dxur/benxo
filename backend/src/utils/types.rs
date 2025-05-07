@@ -14,3 +14,9 @@ where
         self.into()
     }
 }
+
+pub enum AtLeast<F, S> {
+    First(F),
+    Second(S),
+    All(F, S)
+}

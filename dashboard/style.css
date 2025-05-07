@@ -296,6 +296,10 @@ section[data-page] {
     padding: var(--spacing-xl);
 }
 
+section[data-page]:has([data-editor]) {
+    height: 100%;
+}
+
 [data-page] header {
     display: flex;
     justify-content: space-between;
@@ -1076,7 +1080,7 @@ input:checked+.slider:before {
     }
 }
 
-[data-editor] {
+[data-edit] {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1086,7 +1090,7 @@ input:checked+.slider:before {
     box-sizing: border-box;
 }
 
-[data-editor]>header {
+[data-edit]>header {
     width: 100%;
     max-width: calc(var(--max-content-width) + 18rem + var(--spacing-lg));
     box-sizing: border-box;
@@ -1267,4 +1271,9 @@ input:checked+.slider:before {
     font-size: var(--font-size-sm);
     color: var(--text-muted);
     font-style: normal;
+}
+
+[data-editor] {
+    height: 100%;
+    width: 100%;
 }

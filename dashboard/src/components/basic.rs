@@ -39,7 +39,7 @@ pub fn Panel(children: Children) -> impl IntoView {
 #[component]
 pub fn Editor(header: impl IntoView, children: Children) -> impl IntoView {
     view! {
-        <div data-editor>
+        <div data-edit>
             {header}
             <div data-content>
                 {children()}

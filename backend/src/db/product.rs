@@ -134,10 +134,10 @@ impl CreatableInDb for Product {
 impl UpdatableInDb for Product {
     type UpdateInDb = ProductUpdate;
 
-    async fn on_update(state: &AppState, _: &Self::UpdateInDb, value: &Self::InDb) {
+    async fn on_update(state: &AppState, update: &Self::UpdateInDb, value: &Self::InDb) {
         state
             .event_bus
-            .emit(Event::ProductUpdated(value.clone()))
+            .emit(Event::ProductUpdated(update.clone(), value.clone()))
             .await;
     }
 }
