@@ -1,12 +1,12 @@
 use leptos::prelude::*;
 use slotmap::DefaultKey;
 
+use super::state::{EditState as State, OptionEntry, VariantEntry};
 use crate::components::*;
 use crate::pages::Page;
-use super::state::{EditState as State, OptionEntry};
 
 #[allow(non_upper_case_globals)]
-pub const ProductEdit : Page = Page {
+pub const ProductEdit: Page = Page {
     title: "Product Edit",
     view: View,
 };
@@ -48,7 +48,8 @@ fn View() -> AnyView {
                 </Editor>
             </form>
         </LazyShow>
-    }.into_any()
+    }
+    .into_any()
 }
 
 #[component]
@@ -95,13 +96,40 @@ fn Body(state: State) -> impl IntoView {
                 Add another option
             </a>
         </Card>
+
+        <Card>
+            <h3> Variants </h3>
+            <Show
+                when=move || !state.fields.variants.get().is_empty()
+            >
+                <Divider>
+                    <For
+                        each=move || state.fields.variants.get()
+                        key=|(key, _)| *key
+                        let(opt)
+                    >
+                        <VariantBlock state=state opt=opt />
+                    </For>
+                </Divider>
+            </Show>
+            <a
+                on:click=move |_| state.add_new_variant()
+            >
+                Add another variant
+            </a>
+        </Card>
     }
 }
 
 #[component]
 fn OptionBlock(state: State, opt: (DefaultKey, OptionEntry)) -> impl IntoView {
     let (key, option) = opt;
-    let OptionEntry { name, values, editing, new_value } = option;
+    let OptionEntry {
+        name,
+        values,
+        editing,
+        new_value,
+    } = option;
 
     let add_value = move || {
         let val = new_value.get().trim().to_string();
@@ -119,7 +147,7 @@ fn OptionBlock(state: State, opt: (DefaultKey, OptionEntry)) -> impl IntoView {
                 view! {
                     <Row>
                         <strong> {name} </strong>
-                        <button on:click=move |_| editing.set(true)> Edit </button>
+                        <button type="button" on:click=move |_| editing.set(true)> Edit </button>
                     </Row>
                     <Badges>
                         <For each=move || values.get() key=|val| val.clone() let(value)>
@@ -160,6 +188,7 @@ fn OptionBlock(state: State, opt: (DefaultKey, OptionEntry)) -> impl IntoView {
                                 <Badge>
                                     <span> {val.clone()} </span>
                                     <button
+                                        type="button"
                                         on:click=move |_| values.update(|v| v.retain(|x| x != &val))
                                     >"×"</button>
                                 </Badge>
@@ -169,7 +198,70 @@ fn OptionBlock(state: State, opt: (DefaultKey, OptionEntry)) -> impl IntoView {
                 </label>
                 <Row>
                     <button type="reset" on:click=move |_| state.remove_option(key)> Delete </button>
-                    <button on:click=move |_| state.done_editing_option(key)> Done </button>
+                    <button type="button" on:click=move |_| state.done_editing_option(key)> Done </button>
+                </Row>
+            </Show>
+        </div>
+    }
+}
+
+#[component]
+fn VariantBlock(state: State, opt: (DefaultKey, VariantEntry)) -> impl IntoView {
+    let (key, variant) = opt;
+    let VariantEntry {
+        sku,
+        options,
+        editing,
+        price,
+        compare_price,
+        availability,
+    } = variant;
+
+    view! {
+        <div>
+            <Show when=move || editing.get() fallback=move || {
+                view! {
+                    <Row>
+                        <strong> {sku} </strong>
+                        <button type="button" on:click=move |_| editing.set(true)> Edit </button>
+                    </Row>
+                    <Badges>
+                        <For each=move || options.get() key=|val| val.clone() let((_, value))>
+                            <Badge> {value} </Badge>
+                        </For>
+                    </Badges>
+                }
+            }>
+                <label> SKU
+                    <input
+                        type="text"
+                        bind:value=sku
+                        placeholder="Variant SKU"
+                    />
+                </label>
+                <For
+                    each=move || state.fields.options.get()
+                    key=|(key, _)| key.clone()
+                    let((option, value))
+                >
+                    <label> {value.name}
+                        <select> {
+                            value.values.get().into_iter().enumerate().map(|(i, v)| view! {
+                                <option disabled=move || state.option_available(key, i)> {v} </option>
+                            }).collect_view()
+                        } </select>
+                    </label>
+                </For>
+                <Row>
+                    <label> price <input type="number" bind:value=price step=".01" /></label>
+                    <label> Compare-at price <input type="number" bind:value=compare_price step=".01" /></label>
+                </Row>
+                <label> Availability
+                    <input type="number" bind:value=availability step="1"/>
+                </label>
+                <Row>
+                    <button type="reset" on:click=move |_| state.remove_variant(key)> Delete </button>
+                    <button type="button" on:click=move |_| state.done_editing_variant(key)> Done </button>
                 </Row>
             </Show>
         </div>

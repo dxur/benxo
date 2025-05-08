@@ -1,7 +1,6 @@
 use crate::models::product::ProductUpdate;
 use crate::models::ObjectId;
 use crate::store::StoreManager;
-use crate::utils::types::AtLeast;
 use tokio::{sync::mpsc::*, task};
 use tracing::info;
 
@@ -43,27 +42,17 @@ impl EventBus {
 
     async fn handle_event(state: &AppState, event: Event) {
         match event {
-            Event::ProductCreated(value) => on_product_updated(state, value, None).await,
-            Event::ProductUpdated(update, value) => {
-                on_product_updated(state, value, Some(update)).await
-            }
-            Event::ProductDeleted(value) => on_product_deleted(state, value).await,
-            Event::ProductVarUpdated(value) => on_product_var_updated(state, value).await,
-            Event::ProductVarDeleted(value) => on_product_var_deleted(state, value).await,
-            Event::ThemeUpdated(value) => on_theme_updated(state, value).await,
+            Event::ProductCreated(_)
+            | Event::ProductUpdated(_, _)
+            | Event::ProductDeleted(_)
+            | Event::ProductVarUpdated(_)
+            | Event::ProductVarDeleted(_)
+            | Event::ThemeUpdated(_) => on_updated(state).await,
         }
     }
 }
 
-pub async fn on_theme_updated(_: &AppState, id: ObjectId) {
-    info!("Updating theme {:?}", id);
-}
-
-pub async fn on_product_updated(
-    state: &AppState,
-    product: ProductInDb,
-    update: Option<ProductUpdate>,
-) {
+pub async fn on_updated(state: &AppState) {
     let mut manager = match StoreManager::new().await {
         Ok(manager) => manager,
         Err(e) => {
@@ -72,33 +61,5 @@ pub async fn on_product_updated(
         }
     };
 
-    let body = match update {
-        Some(u) => AtLeast::All(u, product.into()),
-        None => AtLeast::Second(product.into()),
-    };
-
-    manager.product_updated(state, body).await.unwrap();
-}
-
-pub async fn on_product_deleted(state: &AppState, product: ProductInDb) {
-    let mut manager = match StoreManager::new().await {
-        Ok(manager) => manager,
-        Err(e) => {
-            tracing::error!("Error creating StoreManager: {:?}", e);
-            return;
-        }
-    };
-
-    manager
-        .product_deleted(state, product.into())
-        .await
-        .unwrap();
-}
-
-pub async fn on_product_var_updated(_: &AppState, var: (String, ObjectId)) {
-    info!("Updating product Variant {:?}", var);
-}
-
-pub async fn on_product_var_deleted(_: &AppState, var: (String, ObjectId)) {
-    info!("Deleting product Variant {:?}", var);
+    manager.full_update(state).await.unwrap();
 }

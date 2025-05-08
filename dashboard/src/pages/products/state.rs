@@ -1,11 +1,11 @@
-use std::str::FromStr;
 use backend::api::{ApiRoutes, Routes};
 use backend::models::product::*;
 use backend::models::{ObjectId, Page, Pagination};
 use indexmap::{IndexMap, IndexSet};
-use leptos::{prelude::*, html::*, task::spawn_local};
+use leptos::{html::*, prelude::*, task::spawn_local};
 use leptos_router::hooks::use_params_map;
 use slotmap::{DefaultKey, SlotMap};
+use std::str::FromStr;
 
 use crate::notifications::{error, success};
 use crate::routes::*;
@@ -52,22 +52,22 @@ impl IndexState {
     pub fn fetch(self) {
         self.status.set(LoadingStatus::Loading);
         spawn_local(async move {
-            let res = ApiRoutes::get_all_products(
-                Pagination {
-                    page: Some(self.page.get_untracked()),
-                    per_page: None,
-                }
-            ).await.map_err(|e| e.to_string());
+            let res = ApiRoutes::get_all_products(Pagination {
+                page: Some(self.page.get_untracked()),
+                per_page: None,
+            })
+            .await
+            .map_err(|e| e.to_string());
             log::debug!("Fetched products: {:?}", res);
             match res {
                 Ok(data) => {
                     self.total.set(data.total_pages());
                     self.products.set(data);
                     self.status.set(LoadingStatus::Ok);
-                },
+                }
                 Err(e) => {
                     self.status.set(LoadingStatus::Err(e));
-                },
+                }
             }
         });
     }
@@ -83,7 +83,7 @@ impl IndexState {
                     Ok(product) => {
                         success("Product created");
                         Self::edit(product.id);
-                    },
+                    }
                     Err(e) => error(e),
                 }
             }),
@@ -93,13 +93,13 @@ impl IndexState {
 
     pub fn delete(self, id: ObjectId) {
         spawn_local(async move {
-            let res = ApiRoutes::delete_product(ProductDelete { id: id }).await;
+            let res = ApiRoutes::delete_product(ProductDelete { id }).await;
             log::debug!("Deleted product: {:?}", res);
             match res {
                 Ok(_) => {
                     success("Product deleted");
                     self.fetch();
-                },
+                }
                 Err(e) => error(e),
             }
         });
@@ -107,8 +107,11 @@ impl IndexState {
 
     pub fn edit(id: ObjectId) {
         navigate(
-            AppRoutes::PRODUCT.path().replace(":id", &id.to_hex()).as_str(),
-            Default::default()
+            AppRoutes::PRODUCT
+                .path()
+                .replace(":id", &id.to_hex())
+                .as_str(),
+            Default::default(),
         );
     }
 
@@ -129,6 +132,16 @@ pub struct OptionEntry {
     pub new_value: RwSignal<String>,
 }
 
+#[derive(Clone)]
+pub struct VariantEntry {
+    pub sku: RwSignal<String>,
+    pub options: RwSignal<IndexMap<String, RwSignal<String>>>,
+    pub price: RwSignal<String>,
+    pub compare_price: RwSignal<String>,
+    pub availability: RwSignal<String>,
+    pub editing: RwSignal<bool>,
+}
+
 #[derive(Clone, Copy, Default)]
 pub struct Fields {
     pub name: RwSignal<String>,
@@ -139,6 +152,7 @@ pub struct Fields {
     pub base_compare_price: RwSignal<String>,
     pub base_images: RwSignal<Vec<String>>,
     pub options: RwSignal<SlotMap<DefaultKey, OptionEntry>>,
+    pub variants: RwSignal<SlotMap<DefaultKey, VariantEntry>>,
     pub slug: RwSignal<String>,
 }
 
@@ -184,10 +198,10 @@ impl EditState {
                         self.update_fields(product.clone());
                         self.product.set(Some(product));
                         self.status.set(LoadingStatus::Ok);
-                    },
+                    }
                     Err(e) => {
                         self.status.set(LoadingStatus::Err(e.to_string()));
-                    },
+                    }
                 }
             });
         }
@@ -197,20 +211,18 @@ impl EditState {
         let res: Result<ProductUpdate> = self.try_update();
         log::debug!("Into product: {:?}", res);
         match res {
-            Ok(product) => {
-                spawn_local(async move {
-                    let res = ApiRoutes::update_product(product).await;
-                    log::debug!("Update product: {:?}", res);
-                    match res {
-                        Ok(product) => {
-                            success("Product updated");
-                            self.update_fields(product.clone());
-                            self.product.set(Some(product));
-                        },
-                        Err(e) => error(e),
+            Ok(product) => spawn_local(async move {
+                let res = ApiRoutes::update_product(product).await;
+                log::debug!("Update product: {:?}", res);
+                match res {
+                    Ok(product) => {
+                        success("Product updated");
+                        self.update_fields(product.clone());
+                        self.product.set(Some(product));
                     }
+                    Err(e) => error(e),
                 }
-            )},
+            }),
             Err(e) => error(e),
         }
     }
@@ -218,16 +230,13 @@ impl EditState {
     pub fn delete(self) {
         if let Some(id) = self.id {
             spawn_local(async move {
-                let res = ApiRoutes::delete_product(ProductDelete { id: id }).await;
+                let res = ApiRoutes::delete_product(ProductDelete { id }).await;
                 log::debug!("Deleted product: {:?}", res);
                 match res {
                     Ok(_) => {
                         success("Product deleted");
-                        navigate(
-                            AppRoutes::PRODUCTS.path(),
-                            Default::default()
-                        );
-                    },
+                        navigate(AppRoutes::PRODUCTS.path(), Default::default());
+                    }
                     Err(e) => error(e),
                 }
             });
@@ -243,22 +252,71 @@ impl EditState {
             editing: RwSignal::new(true),
             new_value: Default::default(),
         };
-        self.fields.options.update(|v| {v.insert(option);});
+        self.fields.options.update(|v| {
+            v.insert(option);
+        });
     }
 
     pub fn remove_option(self, key: DefaultKey) {
-        self.fields.options.update(|v| {v.remove(key);});
+        self.fields.options.update(|v| {
+            v.remove(key);
+        });
     }
 
     pub fn done_editing_option(self, key: DefaultKey) {
-        if
-            self.fields.options.get_untracked().get(key).unwrap().name.get_untracked().is_empty() ||
-            self.fields.options.get_untracked().get(key).unwrap().values.get_untracked().is_empty()
+        if self
+            .fields
+            .options
+            .get_untracked()
+            .get(key)
+            .unwrap()
+            .name
+            .get_untracked()
+            .is_empty()
+            || self
+                .fields
+                .options
+                .get_untracked()
+                .get(key)
+                .unwrap()
+                .values
+                .get_untracked()
+                .is_empty()
         {
             error("Option name and values can't be empty");
             return;
         }
         self.fields.options.update(|v| {
+            let entry = v.get_mut(key).unwrap();
+            entry.editing.set(false);
+        });
+    }
+
+    pub fn option_available(self, key: DefaultKey, i: usize) -> bool {
+        // just check if any variant have used this option
+        true
+    }
+
+    pub fn add_new_variant(self) {
+        // TODO: check if there is room for another variant
+        let entry = VariantEntry {
+            sku: Default::default(),
+            options: Default::default(),
+            price: Default::default(),
+            compare_price: Default::default(),
+            editing: RwSignal::new(true),
+            availability: Default::default(),
+        };
+        self.fields.variants.update(|v| {
+            v.insert(entry);
+        });
+    }
+
+    pub fn remove_variant(self, key: DefaultKey) {}
+
+    pub fn done_editing_variant(self, key: DefaultKey) {
+        // TODO: validate the variant
+        self.fields.variants.update(|v| {
             let entry = v.get_mut(key).unwrap();
             entry.editing.set(false);
         });
@@ -270,9 +328,54 @@ impl EditState {
         self.fields.featured.set(product.featured);
         self.fields.category.set(product.category);
         self.fields.base_price.set(product.base_price.to_string());
-        self.fields.base_compare_price.set(product.base_compare_price.to_string());
+        self.fields
+            .base_compare_price
+            .set(product.base_compare_price.to_string());
         self.fields.base_images.set(product.base_images);
         self.fields.slug.set(product.slug);
+        self.fields.variants.update(|v| {
+            v.clear();
+            for ProductVariant {
+                sku,
+                options,
+                price,
+                compare_price,
+                stocks,
+                images,
+            } in product.variants
+            {
+                let opts = options
+                    .into_iter()
+                    .enumerate()
+                    .map(|(i, v)| {
+                        if let Some((opt_name, opt_vals)) = product.options.get_index(i) {
+                            (
+                                opt_name.clone(),
+                                RwSignal::new(
+                                    opt_vals
+                                        .get_index(v)
+                                        .cloned()
+                                        .unwrap_or_else(|| "unknown".to_string()),
+                                ),
+                            )
+                        } else {
+                            ("unknown".to_string(), RwSignal::new("unknown".to_string()))
+                        }
+                    })
+                    .collect();
+                let entry = VariantEntry {
+                    sku: RwSignal::new(sku),
+                    options: RwSignal::new(opts),
+                    editing: RwSignal::new(false),
+                    price: RwSignal::new(price.map_or(Default::default(), |v| v.to_string())),
+                    compare_price: RwSignal::new(
+                        compare_price.map_or(Default::default(), |v| v.to_string()),
+                    ),
+                    availability: RwSignal::new(stocks.to_string()),
+                };
+                v.insert(entry);
+            }
+        });
         self.fields.options.update(|v| {
             v.clear();
             for (name, opts) in product.options {
@@ -288,9 +391,17 @@ impl EditState {
     }
 
     fn try_update(&self) -> Result<ProductUpdate> {
-        let base_price = self.fields.base_price.get_untracked().parse()
+        let base_price = self
+            .fields
+            .base_price
+            .get_untracked()
+            .parse()
             .map_err(|_| "failed to parse base price".to_string())?;
-        let base_compare_price = self.fields.base_compare_price.get_untracked().parse()
+        let base_compare_price = self
+            .fields
+            .base_compare_price
+            .get_untracked()
+            .parse()
             .map_err(|_| "failed to parse base discount".to_string())?;
         let options = self.try_get_options()?;
 
@@ -298,32 +409,32 @@ impl EditState {
         if name.is_empty() {
             return Err("Product name can't be empty".to_string());
         }
-        
+
         if let Some(product) = self.product.get_untracked() {
             let body = ProductUpdateBody {
-                name: Some(name)
-                    .filter(|v| *v != product.name),
+                name: Some(name).filter(|v| *v != product.name),
                 description: Some(self.fields.description.get_untracked())
                     .filter(|v| *v != product.description),
                 featured: Some(self.fields.featured.get_untracked())
                     .filter(|v| *v != product.featured),
                 category: Some(self.fields.category.get_untracked())
                     .filter(|v| *v != product.category),
-                base_price: Some(base_price)
-                    .filter(|v| *v != product.base_price),
+                base_price: Some(base_price).filter(|v| *v != product.base_price),
                 base_compare_price: Some(base_compare_price)
                     .filter(|v| *v != product.base_compare_price),
                 base_images: Some(self.fields.base_images.get_untracked())
                     .filter(|v| *v != product.base_images),
-                options: Some(options)
-                    .filter(|v| *v != product.options),
-                slug: Some(self.fields.slug.get_untracked())
-                    .filter(|v| *v != product.slug),
+                options: Some(options).filter(|v| *v != product.options),
+                variants: None,
+                slug: Some(self.fields.slug.get_untracked()).filter(|v| *v != product.slug),
             };
             if body.is_none() {
                 Err("Nothing Have been Updated".to_string())
             } else {
-                Ok(ProductUpdate { id: product.id, body: body })
+                Ok(ProductUpdate {
+                    id: product.id,
+                    body,
+                })
             }
         } else {
             Err("Can't read the product".to_string())

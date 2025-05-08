@@ -26,25 +26,6 @@ pub trait Routes {
     #[route(method=delete, path = "/products/")]
     async fn delete_product(#[body] body: ProductDelete) -> ProductPublic;
 
-    // ---- Product Variants ----
-    #[route(method=get, path = "/products/variants")]
-    async fn get_some_variants(
-        #[query] pagination: Pagination,
-        #[body] body: ProductVarFilter,
-    ) -> Page<ProductVarPublic>;
-
-    #[route(method=post, path = "/products/variants/")]
-    async fn get_one_variant(#[body] body: ProductVarFetch) -> ProductVarPublic;
-
-    #[route(method=post, path = "/products/variants")]
-    async fn create_variant(#[body] body: ProductVarCreate) -> ProductVarPublic;
-
-    #[route(method=patch, path = "/products/variants/")]
-    async fn update_variant(#[body] body: ProductVarUpdate) -> ProductVarPublic;
-
-    #[route(method=delete, path = "/products/variants/")]
-    async fn delete_variant(#[body] body: ProductVarDelete) -> ProductVarPublic;
-
     // ---- Orders ----
     #[route(method=get, path = "/orders")]
     async fn get_all_orders(#[query] pagination: Pagination) -> Page<OrderPublic>;

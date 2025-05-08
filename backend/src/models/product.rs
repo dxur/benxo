@@ -1,5 +1,5 @@
-use indexmap::{IndexMap, IndexSet};
 use bson::oid::ObjectId;
+use indexmap::{IndexMap, IndexSet};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
@@ -28,6 +28,7 @@ pub struct ProductUpdateBody {
     pub base_compare_price: Option<f32>,
     pub base_images: Option<Vec<String>>,
     pub options: Option<IndexMap<String, IndexSet<String>>>,
+    pub variants: Option<Vec<ProductVariant>>,
     pub slug: Option<String>,
 }
 
@@ -57,6 +58,16 @@ pub struct ProductDelete {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ProductVariant {
+    pub sku: String,
+    pub price: Option<f32>,
+    pub compare_price: Option<f32>,
+    pub stocks: usize,
+    pub images: Vec<String>,
+    pub options: Vec<usize>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ProductPublic {
     pub id: ObjectId,
     pub name: String,
@@ -67,6 +78,7 @@ pub struct ProductPublic {
     pub base_compare_price: f32,
     pub base_images: Vec<String>,
     pub options: IndexMap<String, IndexSet<String>>,
+    pub variants: Vec<ProductVariant>,
     pub slug: String,
 }
 
@@ -85,84 +97,4 @@ impl Updatable for Product {
 }
 impl Deletable for Product {
     type Delete = ProductDelete;
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ProductVarFetch {
-    pub sku: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ProductVarCreate {
-    pub sku: String,
-    pub product_id: ObjectId,
-    pub name: String,
-    pub description: String,
-    pub price: Option<f32>,
-    pub discount: Option<f32>,
-    pub stocks: usize,
-    pub images: Vec<String>,
-    pub attrs: IndexMap<String, String>,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ProductVarUpdateBody {
-    pub name: Option<String>,
-    pub description: Option<String>,
-    pub price: Option<f32>,
-    pub discount: Option<f32>,
-    pub stocks: Option<usize>,
-    pub images: Option<Vec<String>>,
-    pub attrs: Option<IndexMap<String, String>>,
-}
-
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ProductVarUpdate {
-    pub sku: String,
-    pub body: ProductVarUpdateBody,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct ProductVarPublic {
-    pub sku: String,
-    pub product_id: ObjectId,
-    pub name: String,
-    pub description: String,
-    pub price: Option<f32>,
-    pub discount: Option<f32>,
-    pub stocks: usize,
-    pub images: Vec<String>,
-    pub attrs: IndexMap<String, String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ProductVarDelete {
-    pub sku: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ProductVarFilter {
-    pub product_id: ObjectId,
-}
-
-pub struct ProductVar;
-impl Model for ProductVar {
-    type Public = ProductVarPublic;
-}
-impl Fetchable for ProductVar {
-    type Fetch = ProductVarFetch;
-}
-impl Creatable for ProductVar {
-    type Create = ProductVarCreate;
-}
-impl Updatable for ProductVar {
-    type Update = ProductVarUpdate;
-}
-impl Deletable for ProductVar {
-    type Delete = ProductVarDelete;
-}
-impl Filterable for ProductVar {
-    type Filter = ProductVarFilter;
 }
