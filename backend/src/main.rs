@@ -42,7 +42,7 @@ fn init_tracing() {
 #[tokio::main]
 async fn main() {
     init_tracing();
-
+    
     let db = db::Db::new(dotenv!("DB_URI"), dotenv!("DB_NAME")).await;
     Product::init_coll(&db).await.unwrap();
 

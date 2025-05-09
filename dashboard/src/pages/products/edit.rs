@@ -242,12 +242,15 @@ fn VariantBlock(state: State, opt: (DefaultKey, VariantEntry)) -> impl IntoView 
                 <For
                     each=move || state.fields.options.get()
                     key=|(key, _)| key.clone()
-                    let((option, value))
+                    let((_, value))
                 >
                     <label> {value.name}
-                        <select> {
+                        <select bind:value=state.bind_option(key, value.name.get())> {
                             value.values.get().into_iter().enumerate().map(|(i, v)| view! {
-                                <option disabled=move || state.option_available(key, i)> {v} </option>
+                                <option 
+                                    // selected=move || state.bind_option(key, value.name.get()).get() == v
+                                    disabled=move || !state.option_available(key, value.name.get(), v.clone())
+                                > {v.clone()} </option>
                             }).collect_view()
                         } </select>
                     </label>

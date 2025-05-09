@@ -15,7 +15,7 @@ fn View() -> AnyView {
     let state = State::new();
     view! {
         <Header title=OrdersIndex.title>
-            <button>
+            <button on:click=move |_| { state.dialog.get().map(|d| d.show()); }>
                 New
             </button>
         </Header>
@@ -24,6 +24,8 @@ fn View() -> AnyView {
         >
             <OrdersTable state=state />
         </LazyShow>
+        <OrderCreate state=state />
+
     }
     .into_any()
 }
@@ -56,12 +58,67 @@ fn OrdersTable(state: State) -> impl IntoView {
                     <td>{user.status.to_string()}</td>
                     <td>
                         <button on:click=move |_| {
-                            State::view(user.id);
+                            State::edit(user.id);
                         }> Details </button>
                     </td>
                 </tr>
             </For>
         </Table>
         <TablePagination page=state.page total=state.total.read_only() />
+    }
+}
+
+#[component]
+fn OrderCreate(state: State) -> impl IntoView {
+    view! {
+        <Dialog
+            node_ref=state.dialog
+            on_cancel=move || {
+                state.dialog.get().map(|d| d.close());
+            }
+        >
+            <header>
+                <h2>Create Product</h2>
+            </header>
+            <form on:submit=move |ev| {
+                ev.prevent_default();
+                state.create();
+            }>
+                <fieldset>
+                    <label> Full Name
+                        <input type="text" bind:value=state.fields.full_name required />
+                    </label>
+                </fieldset>
+                <fieldset>
+                    <label> Phone
+                        <input type="tel" bind:value=state.fields.phone required />
+                    </label>
+                </fieldset>
+                <fieldset>
+                    <label> Email
+                        <input type="email" bind:value=state.fields.email required />
+                    </label>
+                </fieldset>
+                <fieldset>
+                    <label> Province
+                        <input type="text" bind:value=state.fields.province required />
+                    </label>
+                </fieldset>
+                <fieldset>
+                    <label> Address
+                        <input type="text" bind:value=state.fields.address required />
+                    </label>
+                </fieldset>
+                <fieldset>
+                    <label> Note
+                        <input type="text" bind:value=state.fields.note required />
+                    </label>
+                </fieldset>
+                <button type="button" 
+                    on:click=move |_| { state.dialog.get().map(|d| d.close()); }
+                >Close</button>
+                <button type="submit">Submit</button>
+            </form>
+        </Dialog>
     }
 }

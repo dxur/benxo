@@ -106,77 +106,74 @@ impl FetchableInDb for Order {
 impl CreatableInDb for Order {
     type CreateInDb = OrderCreate;
 
-    async fn create(db: &Db, body: Self::Create) -> Result<Self::InDb> {
-        //     if body.items.len() == 0 {
-        //         return Err(Error {
-        //             msg: "Order must have at least one item".to_string(),
-        //         });
-        //     }
+    // async fn create(db: &Db, body: Self::Create) -> Result<Self::InDb> {
+    //     if body.items.len() == 0 {
+    //         return CreatableInDb::create(db, body);
+    //     }
 
-        //     let mut session = db.client().start_session().await.map_err(|_| ())?;
-        //     let txn_options = TransactionOptions::builder().build();
-        //     session
-        //         .start_transaction()
-        //         .with_options(txn_options)
-        //         .await
-        //         .map_err(|_| ())?;
+    //     let mut session = db.client().start_session().await.map_err(|_| ())?;
+    //     let txn_options = TransactionOptions::builder().build();
+    //     session
+    //         .start_transaction()
+    //         .with_options(txn_options)
+    //         .await
+    //         .map_err(|_| ())?;
 
-        //     let products = db.collection::<<Product as ModelInDb>::InDb>(Product::COLLECTION_NAME);
-        //     let orders = db.collection::<Self::InDb>(Self::COLLECTION_NAME);
+    //     let products = db.collection::<<Product as ModelInDb>::InDb>(Product::COLLECTION_NAME);
+    //     let orders = db.collection::<Self::InDb>(Self::COLLECTION_NAME);
 
-        //     let mut products_qnt = HashMap::<String, u32>::new();
+    //     let mut products_qnt = HashMap::<String, u32>::new();
 
-        //     for (sku, item) in &body.items {
-        //         products_qnt
-        //             .entry(sku.clone())
-        //             .and_modify(|q| *q += item.quantity)
-        //             .or_insert(item.quantity);
-        //     }
+    //     for (sku, item) in &body.items {
+    //         products_qnt
+    //             .entry(sku.clone())
+    //             .and_modify(|q| *q += item.quantity)
+    //             .or_insert(item.quantity);
+    //     }
 
-        //     for (sku, qnt) in &products_qnt {
-        //         let filter = doc! {
-        //             field!(sku @ ProductVariant): sku,
-        //             field!(stocks @ ProductVarInDb): { "$gte": qnt }
-        //         };
+    //     for (sku, qnt) in &products_qnt {
+    //         let filter = doc! {
+    //             field!(sku @ ProductVariant): sku,
+    //             field!(stocks @ ProductVarInDb): { "$gte": qnt }
+    //         };
 
-        //         let product = products
-        //             .find_one(filter)
-        //             .session(&mut session)
-        //             .await
-        //             .map_err(|_| ())?;
+    //         let product = products
+    //             .find_one(filter)
+    //             .session(&mut session)
+    //             .await
+    //             .map_err(|_| ())?;
 
-        //         if product.is_none() {
-        //             session.abort_transaction().await.map_err(|_| ())?;
-        //             return Err(Error {
-        //                 msg: "Not enough stocks".to_string(),
-        //             });
-        //         }
-        //     }
+    //         if product.is_none() {
+    //             session.abort_transaction().await.map_err(|_| ())?;
+    //             return Err(Error {
+    //                 msg: "Not enough stocks".to_string(),
+    //             });
+    //         }
+    //     }
 
-        //     for (sku, item) in &body.items {
-        //         let filter = doc! { field!(sku @ ProductVarInDb): &sku };
-        //         let update =
-        //             doc! { "$inc": { field!(stocks @ ProductVarInDb): -(item.quantity as i32) } };
+    //     for (sku, item) in &body.items {
+    //         let filter = doc! { field!(sku @ ProductVarInDb): &sku };
+    //         let update =
+    //             doc! { "$inc": { field!(stocks @ ProductVarInDb): -(item.quantity as i32) } };
 
-        //         products
-        //             .update_one(filter, update)
-        //             .session(&mut session)
-        //             .await
-        //             .map_err(|_| ())?;
-        //     }
+    //         products
+    //             .update_one(filter, update)
+    //             .session(&mut session)
+    //             .await
+    //             .map_err(|_| ())?;
+    //     }
 
-        //     let order: Self::InDb = body.into();
-        //     orders
-        //         .insert_one(&order)
-        //         .session(&mut session)
-        //         .await
-        //         .map_err(|_| ())?;
+    //     let order: Self::InDb = body.into();
+    //     orders
+    //         .insert_one(&order)
+    //         .session(&mut session)
+    //         .await
+    //         .map_err(|_| ())?;
 
-        //     session.commit_transaction().await.map_err(|_| ())?;
+    //     session.commit_transaction().await.map_err(|_| ())?;
 
-        //     Ok(order)
-        todo!()
-    }
+    //     Ok(order)
+    // }
 }
 
 impl UpdatableInDb for Order {

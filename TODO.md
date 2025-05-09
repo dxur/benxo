@@ -8,6 +8,7 @@
 [x] Add Orders page to the frontend.
 [ ] Add Other page to the frontend.
 [ ] Site theme based generation. !important
+[ ] Fix the add new variant.
 
 ## Low priority
 

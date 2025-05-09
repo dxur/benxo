@@ -10,6 +10,17 @@ use crate::notifications::{error, success};
 use crate::routes::*;
 use crate::utils::*;
 
+#[derive(Clone, Copy, Default)]
+pub struct CreateFields {
+    pub full_name: RwSignal<String>,
+    pub phone: RwSignal<String>,
+    pub email: RwSignal<String>,
+    pub province: RwSignal<String>,
+    pub address: RwSignal<String>,
+    pub note: RwSignal<String>,
+    pub delivery: RwSignal<DeliveryType>,
+}
+
 #[derive(Clone, Copy)]
 pub struct IndexState {
     pub orders: RwSignal<Page<OrderPublic>>,
@@ -17,6 +28,7 @@ pub struct IndexState {
     pub page: RwSignal<usize>,
     pub total: RwSignal<usize>,
     pub dialog: NodeRef<Dialog>,
+    pub fields: CreateFields,
 }
 
 impl IndexState {
@@ -27,6 +39,7 @@ impl IndexState {
             page: RwSignal::new(1),
             total: Default::default(),
             dialog: Default::default(),
+            fields: Default::default(),
         };
 
         Effect::watch(
@@ -62,7 +75,26 @@ impl IndexState {
         });
     }
 
-    pub fn view(id: ObjectId) {
+    pub fn create(self) {
+        let res = self.try_create();
+        log::debug!("Into order: {:?}", res);
+        match res {
+            Ok(order) => spawn_local(async move {
+                let res = ApiRoutes::create_order(order).await;
+                log::debug!("Created order: {:?}", res);
+                match res {
+                    Ok(order) => {
+                        success("Product created");
+                        Self::edit(order.id);
+                    }
+                    Err(e) => error(e),
+                }
+            }),
+            Err(e) => error(e),
+        }
+    }
+
+    pub fn edit(id: ObjectId) {
         navigate(
             AppRoutes::ORDER
                 .path()
@@ -70,6 +102,19 @@ impl IndexState {
                 .as_str(),
             Default::default(),
         );
+    }
+
+    fn try_create(&self) -> Result<OrderCreate> {
+        Ok(OrderCreate {
+            full_name: self.fields.full_name.get_untracked(),
+            phone: self.fields.phone.get_untracked(),
+            email: self.fields.email.get_untracked(),
+            province: self.fields.province.get_untracked(),
+            address: self.fields.address.get_untracked(),
+            delivery: self.fields.delivery.get_untracked(),
+            note: self.fields.note.get_untracked(),
+            items: Default::default(),
+        })
     }
 }
 

@@ -73,7 +73,7 @@ impl IndexState {
     }
 
     pub fn create(self) {
-        let res: Result<ProductCreate> = self.try_create();
+        let res = self.try_create();
         log::debug!("Into product: {:?}", res);
         match res {
             Ok(product) => spawn_local(async move {
@@ -292,13 +292,39 @@ impl EditState {
         });
     }
 
-    pub fn option_available(self, key: DefaultKey, i: usize) -> bool {
-        // just check if any variant have used this option
+    pub fn option_available(self, variant: DefaultKey, option: String, value: String) -> bool {
+        for (key, entry) in self.fields.variants.get_untracked() {
+            if key == variant {
+                continue;
+            }
+            if let Some(opt) = entry.options.get_untracked().get(&option) {
+                if opt.get() == value {
+                    return false;
+                }
+            }
+        }
         true
+    }
+
+    pub fn bind_option(self, variant: DefaultKey, option: String) -> RwSignal<String> {
+        let variants = self.fields.variants.get_untracked();
+        let entry = variants.get(variant).unwrap();
+        if let Some(opt) = entry.options.get_untracked().get(&option) {
+            opt.clone()
+        }else {
+            let signal = RwSignal::new(Default::default());
+            entry.options.update(|v| {
+                v.insert(option, signal);
+            });
+            signal
+        }
     }
 
     pub fn add_new_variant(self) {
         // TODO: check if there is room for another variant
+        if false {
+            error("Can't add another variant");
+        }
         let entry = VariantEntry {
             sku: Default::default(),
             options: Default::default(),
@@ -312,7 +338,11 @@ impl EditState {
         });
     }
 
-    pub fn remove_variant(self, key: DefaultKey) {}
+    pub fn remove_variant(self, key: DefaultKey) {
+        self.fields.variants.update(|v| {
+            v.remove(key);
+        });
+    }
 
     pub fn done_editing_variant(self, key: DefaultKey) {
         // TODO: validate the variant
