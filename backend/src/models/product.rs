@@ -48,6 +48,7 @@ impl ProductUpdateBody {
             && self.base_compare_price.is_none()
             && self.base_images.is_none()
             && self.options.is_none()
+            && self.variants.is_none()
             && self.slug.is_none()
     }
 }
@@ -57,7 +58,7 @@ pub struct ProductDelete {
     pub id: ObjectId,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct ProductVariant {
     pub sku: String,
     pub price: Option<f32>,

@@ -4,10 +4,11 @@ use backend::models::{ObjectId, Page, Pagination};
 use indexmap::{IndexMap, IndexSet};
 use leptos::{html::*, prelude::*, task::spawn_local};
 use leptos_router::hooks::use_params_map;
+use reactive_stores::Len;
 use slotmap::{DefaultKey, SlotMap};
 use std::str::FromStr;
 
-use crate::notifications::{error, success};
+use crate::notifications::{error, success, warn};
 use crate::routes::*;
 use crate::utils::*;
 
@@ -185,13 +186,15 @@ impl EditState {
             product: Default::default(),
             fields: Default::default(),
         };
-        
+
         Effect::watch(
             move || state.fields.options.get(),
             move |_, _, _| {
                 // TODO: sanitise variants and fix them
                 log::info!("Sanitise the variants")
-        }, false);
+            },
+            false,
+        );
 
         state.fetch();
 
@@ -375,6 +378,7 @@ impl EditState {
             .parse()
             .map_err(|_| "failed to parse base discount".to_string())?;
         let options = self.try_get_options()?;
+        let variants = self.try_get_variants()?;
 
         let name = self.fields.name.get_untracked();
         if name.is_empty() {
@@ -396,9 +400,10 @@ impl EditState {
                 base_images: Some(self.fields.base_images.get_untracked())
                     .filter(|v| *v != product.base_images),
                 options: Some(options).filter(|v| *v != product.options),
-                variants: None,
+                variants: Some(variants).filter(|v| *v != product.variants),
                 slug: Some(self.fields.slug.get_untracked()).filter(|v| *v != product.slug),
             };
+            log::debug!("update model: {:?}", body);
             if body.is_none() {
                 Err("Nothing Have been Updated".to_string())
             } else {
@@ -414,7 +419,7 @@ impl EditState {
 
     fn try_get_options(&self) -> Result<IndexMap<String, IndexSet<String>>> {
         let mut options = IndexMap::new();
-        for (_, entry) in self.fields.options.get_untracked().iter() {
+        for (_, entry) in self.fields.options.get_untracked() {
             if entry.editing.get_untracked() {
                 Err("Can't update options while editing".to_string())?;
             }
@@ -426,5 +431,54 @@ impl EditState {
             options.insert(name, values.into_iter().collect());
         }
         Ok(options)
+    }
+
+    fn try_get_variants(&self) -> Result<Vec<ProductVariant>> {
+        let mut variants = Vec::new();
+        for (_, entry) in self.fields.variants.get_untracked() {
+            if entry.editing.get_untracked() {
+                Err("Can't update variants while editing".to_string())?;
+            }
+            if !entry.enabled.get_untracked() {
+                continue;
+            }
+            let sku = entry.sku.get_untracked();
+            let price_string = entry.price.get_untracked();
+            let price_str = price_string.trim();
+            let price = (!price_str.is_empty())
+                .then_some(
+                    price_str
+                        .parse()
+                        .map_err(|_| "failed to parse price".to_string()),
+                )
+                .transpose()?;
+            let compare_price_string = entry.compare_price.get_untracked();
+            let compare_price_str = compare_price_string.trim();
+            let compare_price = (!compare_price_str.is_empty())
+                .then_some(
+                    compare_price_str
+                        .parse()
+                        .map_err(|_| "failed to parse compare-at price".to_string()),
+                )
+                .transpose()?;
+            let stocks = entry
+                .availability
+                .get_untracked()
+                .parse()
+                .map_err(|_| "failed to parse availability".to_string())?;
+            let options = entry.options.get_untracked();
+            if sku.is_empty() {
+                Err("Variant sku can't be empty".to_string())?;
+            }
+            variants.push(ProductVariant {
+                sku,
+                price,
+                compare_price,
+                stocks,
+                options,
+                images: Default::default(),
+            });
+        }
+        Ok(variants)
     }
 }
