@@ -826,6 +826,11 @@ textarea {
     transition: var(--transition-base);
 }
 
+input[type="text"],
+input[type="number"] {
+    min-width: 160px;
+}
+
 input[readonly],
 select[readonly],
 textarea[readonly] {

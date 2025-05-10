@@ -102,15 +102,26 @@ fn Body(state: State) -> impl IntoView {
             <Show
                 when=move || !state.fields.variants.get().is_empty()
             >
-                <Divider>
+                <Table head=view! {
+                    <tr>
+                        <th>Combination</th>
+                        <th>Included</th>
+                        <th>SKU</th>
+                        <th>Price</th>
+                        <th>Compare-at Price</th>
+                        <th>Availability</th>
+                    </tr>
+                }>
                     <For
                         each=move || state.fields.variants.get()
                         key=|(key, _)| *key
                         let(opt)
                     >
-                        <VariantBlock state=state opt=opt />
+                        <tr>
+                            <VariantBlock state=state opt=opt />
+                        </tr>
                     </For>
-                </Divider>
+                </Table>
             </Show>
         </Card>
     }
@@ -206,52 +217,46 @@ fn VariantBlock(state: State, opt: (DefaultKey, VariantEntry)) -> impl IntoView 
     let VariantEntry {
         sku,
         options,
-        editing,
         price,
         compare_price,
         availability,
-        enabled,
+        included,
     } = variant;
 
     view! {
-        <div>
-            <Row>
-                <label> Enabled
-                    <input
-                        type="checkbox"
-                        bind:checked=enabled
-                    />
-                </label>
-                <Badges>
-                    {move || options.get().into_iter().map(|(_, v)| view! {
-                        <Badge> {v} </Badge>
-                    }).collect_view()}
-                </Badges>
-            </Row>
-            <Show when=move || editing.get() fallback=move || {
-                view! {
-                        <button type="button" on:click=move |_| editing.set(true)> Edit </button>
-                }
-            }>
-                <Show when=move || enabled.get()>
-                    <label> SKU
-                        <input
-                            type="text"
-                            bind:value=sku
-                            placeholder="Variant SKU"
-                        />
-                    </label>
-                    <Row>
-                        <label> price <input type="number" bind:value=price step=".01" /></label>
-                        <label> Compare-at price <input type="number" bind:value=compare_price step=".01" /></label>
-                    </Row>
-                    <label> Availability
-                        <input type="number" bind:value=availability step="1"/>
-                    </label>
-                </Show>
-                <button type="button" on:click=move |_| state.done_editing_variant(key)> Done </button>
-            </Show>
-        </div>
+
+        <td>
+            {move || options.get().into_iter().map(|(_, v)| view! {
+                <strong> {v} /</strong>
+            }).collect_view()}
+        </td>
+
+        <td>
+            <input
+                type="checkbox"
+                bind:checked=included
+            />
+        </td>
+
+        <td>
+            <input
+                type="text"
+                bind:value=sku
+                placeholder="SKU"
+            />
+        </td>
+
+        <td>
+            <input type="number" placeholder="Price" bind:value=price step="0.01"/>
+        </td>
+
+        <td>
+            <input type="number" placeholder="Compare-at price" bind:value=compare_price step="0.01"/>
+        </td>
+
+        <td>
+            <input type="number" placeholder="Availability" bind:value=availability step="1"/>
+        </td>
     }
 }
 

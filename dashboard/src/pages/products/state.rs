@@ -4,11 +4,10 @@ use backend::models::{ObjectId, Page, Pagination};
 use indexmap::{IndexMap, IndexSet};
 use leptos::{html::*, prelude::*, task::spawn_local};
 use leptos_router::hooks::use_params_map;
-use reactive_stores::Len;
 use slotmap::{DefaultKey, SlotMap};
 use std::str::FromStr;
 
-use crate::notifications::{error, success, warn};
+use crate::notifications::*;
 use crate::routes::*;
 use crate::utils::*;
 
@@ -140,8 +139,7 @@ pub struct VariantEntry {
     pub price: RwSignal<String>,
     pub compare_price: RwSignal<String>,
     pub availability: RwSignal<String>,
-    pub enabled: RwSignal<bool>,
-    pub editing: RwSignal<bool>,
+    pub included: RwSignal<bool>,
 }
 
 #[derive(Clone, Copy, Default)]
@@ -189,13 +187,65 @@ impl EditState {
 
         Effect::watch(
             move || state.fields.options.get(),
-            move |_, _, _| {
-                // TODO: sanitise variants and fix them
-                log::info!("Sanitise the variants")
+            move |options, _, _| {
+                let options = options.iter().collect::<Vec<_>>();
+
+                state.fields.variants.update(|variants| {
+                    variants.retain(|_, variant| {
+                        let variant_options = variant.options.get();
+                        if variant_options.len() != options.len() {
+                            return false;
+                        }
+
+                        for (_, option_entry) in &options {
+                            match variant_options.get(&option_entry.name.get()) {
+                                Some(value) => {
+                                    if !option_entry.values.get().contains(value) {
+                                        return false;
+                                    }
+                                }
+                                None => return false,
+                            }
+                        }
+                        true
+                    });
+
+                    let mut combinations = vec![IndexMap::new()];
+                    for (_, option_entry) in &options {
+                        let values = option_entry.values.get();
+                        let mut new_combinations = Vec::new();
+
+                        for existing_combo in combinations {
+                            for value in values.iter() {
+                                let mut new_combo = existing_combo.clone();
+                                new_combo.insert(option_entry.name.get(), value.clone());
+                                new_combinations.push(new_combo);
+                            }
+                        }
+
+                        combinations = new_combinations;
+                    }
+
+                    let existing_combinations: Vec<IndexMap<String, String>> =
+                        variants.iter().map(|(_, v)| v.options.get()).collect();
+
+                    for combination in combinations {
+                        if !existing_combinations.contains(&combination) {
+                            let new_variant = VariantEntry {
+                                sku: RwSignal::new(String::new()),
+                                options: RwSignal::new(combination),
+                                price: Default::default(),
+                                compare_price: Default::default(),
+                                availability: RwSignal::new(String::new()),
+                                included: RwSignal::new(false),
+                            };
+                            variants.insert(new_variant);
+                        }
+                    }
+                });
             },
             false,
         );
-
         state.fetch();
 
         state
@@ -310,7 +360,6 @@ impl EditState {
         // TODO: validate the variant
         self.fields.variants.update(|v| {
             let entry = v.get_mut(key).unwrap();
-            entry.editing.set(false);
         });
     }
 
@@ -337,31 +386,29 @@ impl EditState {
                 v.insert(entry);
             }
         });
-        self.fields.variants.update(|v| {
-            v.clear();
-            for ProductVariant {
-                sku,
-                options,
-                price,
-                compare_price,
-                stocks,
-                images,
-            } in product.variants
-            {
-                let entry = VariantEntry {
-                    sku: RwSignal::new(sku),
-                    options: RwSignal::new(options),
-                    editing: RwSignal::new(false),
-                    enabled: RwSignal::new(true),
-                    price: RwSignal::new(price.map_or(Default::default(), |v| v.to_string())),
-                    compare_price: RwSignal::new(
-                        compare_price.map_or(Default::default(), |v| v.to_string()),
-                    ),
-                    availability: RwSignal::new(stocks.to_string()),
-                };
-                v.insert(entry);
-            }
-        });
+        let mut variants: SlotMap<DefaultKey, VariantEntry> = Default::default();
+        for ProductVariant {
+            sku,
+            options,
+            price,
+            compare_price,
+            stocks,
+            ..
+        } in product.variants
+        {
+            let entry = VariantEntry {
+                sku: RwSignal::new(sku),
+                options: RwSignal::new(options),
+                included: RwSignal::new(true),
+                price: RwSignal::new(price.map_or(Default::default(), |v| v.to_string())),
+                compare_price: RwSignal::new(
+                    compare_price.map_or(Default::default(), |v| v.to_string()),
+                ),
+                availability: RwSignal::new(stocks.to_string()),
+            };
+            variants.insert(entry);
+        }
+        self.fields.variants.set(variants);
     }
 
     fn try_update(&self) -> Result<ProductUpdate> {
@@ -436,10 +483,7 @@ impl EditState {
     fn try_get_variants(&self) -> Result<Vec<ProductVariant>> {
         let mut variants = Vec::new();
         for (_, entry) in self.fields.variants.get_untracked() {
-            if entry.editing.get_untracked() {
-                Err("Can't update variants while editing".to_string())?;
-            }
-            if !entry.enabled.get_untracked() {
+            if !entry.included.get_untracked() {
                 continue;
             }
             let sku = entry.sku.get_untracked();
