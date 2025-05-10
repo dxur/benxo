@@ -135,10 +135,11 @@ pub struct OptionEntry {
 #[derive(Clone)]
 pub struct VariantEntry {
     pub sku: RwSignal<String>,
-    pub options: RwSignal<IndexMap<String, RwSignal<String>>>,
+    pub options: RwSignal<IndexMap<String, String>>,
     pub price: RwSignal<String>,
     pub compare_price: RwSignal<String>,
     pub availability: RwSignal<String>,
+    pub enabled: RwSignal<bool>,
     pub editing: RwSignal<bool>,
 }
 
@@ -184,7 +185,16 @@ impl EditState {
             product: Default::default(),
             fields: Default::default(),
         };
+        
+        Effect::watch(
+            move || state.fields.options.get(),
+            move |_, _, _| {
+                // TODO: sanitise variants and fix them
+                log::info!("Sanitise the variants")
+        }, false);
+
         state.fetch();
+
         state
     }
 
@@ -261,6 +271,7 @@ impl EditState {
         self.fields.options.update(|v| {
             v.remove(key);
         });
+        // self.update_variants();
     }
 
     pub fn done_editing_option(self, key: DefaultKey) {
@@ -292,58 +303,6 @@ impl EditState {
         });
     }
 
-    pub fn option_available(self, variant: DefaultKey, option: String, value: String) -> bool {
-        for (key, entry) in self.fields.variants.get_untracked() {
-            if key == variant {
-                continue;
-            }
-            if let Some(opt) = entry.options.get_untracked().get(&option) {
-                if opt.get() == value {
-                    return false;
-                }
-            }
-        }
-        true
-    }
-
-    pub fn bind_option(self, variant: DefaultKey, option: String) -> RwSignal<String> {
-        let variants = self.fields.variants.get_untracked();
-        let entry = variants.get(variant).unwrap();
-        if let Some(opt) = entry.options.get_untracked().get(&option) {
-            opt.clone()
-        }else {
-            let signal = RwSignal::new(Default::default());
-            entry.options.update(|v| {
-                v.insert(option, signal);
-            });
-            signal
-        }
-    }
-
-    pub fn add_new_variant(self) {
-        // TODO: check if there is room for another variant
-        if false {
-            error("Can't add another variant");
-        }
-        let entry = VariantEntry {
-            sku: Default::default(),
-            options: Default::default(),
-            price: Default::default(),
-            compare_price: Default::default(),
-            editing: RwSignal::new(true),
-            availability: Default::default(),
-        };
-        self.fields.variants.update(|v| {
-            v.insert(entry);
-        });
-    }
-
-    pub fn remove_variant(self, key: DefaultKey) {
-        self.fields.variants.update(|v| {
-            v.remove(key);
-        });
-    }
-
     pub fn done_editing_variant(self, key: DefaultKey) {
         // TODO: validate the variant
         self.fields.variants.update(|v| {
@@ -363,6 +322,18 @@ impl EditState {
             .set(product.base_compare_price.to_string());
         self.fields.base_images.set(product.base_images);
         self.fields.slug.set(product.slug);
+        self.fields.options.update(|v| {
+            v.clear();
+            for (name, opts) in product.options {
+                let entry = OptionEntry {
+                    name: RwSignal::new(name),
+                    values: RwSignal::new(opts),
+                    editing: RwSignal::new(false),
+                    new_value: Default::default(),
+                };
+                v.insert(entry);
+            }
+        });
         self.fields.variants.update(|v| {
             v.clear();
             for ProductVariant {
@@ -374,46 +345,16 @@ impl EditState {
                 images,
             } in product.variants
             {
-                let opts = options
-                    .into_iter()
-                    .enumerate()
-                    .map(|(i, v)| {
-                        if let Some((opt_name, opt_vals)) = product.options.get_index(i) {
-                            (
-                                opt_name.clone(),
-                                RwSignal::new(
-                                    opt_vals
-                                        .get_index(v)
-                                        .cloned()
-                                        .unwrap_or_else(|| "unknown".to_string()),
-                                ),
-                            )
-                        } else {
-                            ("unknown".to_string(), RwSignal::new("unknown".to_string()))
-                        }
-                    })
-                    .collect();
                 let entry = VariantEntry {
                     sku: RwSignal::new(sku),
-                    options: RwSignal::new(opts),
+                    options: RwSignal::new(options),
                     editing: RwSignal::new(false),
+                    enabled: RwSignal::new(true),
                     price: RwSignal::new(price.map_or(Default::default(), |v| v.to_string())),
                     compare_price: RwSignal::new(
                         compare_price.map_or(Default::default(), |v| v.to_string()),
                     ),
                     availability: RwSignal::new(stocks.to_string()),
-                };
-                v.insert(entry);
-            }
-        });
-        self.fields.options.update(|v| {
-            v.clear();
-            for (name, opts) in product.options {
-                let entry = OptionEntry {
-                    name: RwSignal::new(name),
-                    values: RwSignal::new(opts),
-                    editing: RwSignal::new(false),
-                    new_value: Default::default(),
                 };
                 v.insert(entry);
             }

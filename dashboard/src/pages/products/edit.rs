@@ -112,11 +112,6 @@ fn Body(state: State) -> impl IntoView {
                     </For>
                 </Divider>
             </Show>
-            <a
-                on:click=move |_| state.add_new_variant()
-            >
-                Add another variant
-            </a>
         </Card>
     }
 }
@@ -215,57 +210,46 @@ fn VariantBlock(state: State, opt: (DefaultKey, VariantEntry)) -> impl IntoView 
         price,
         compare_price,
         availability,
+        enabled,
     } = variant;
 
     view! {
         <div>
-            <Show when=move || editing.get() fallback=move || {
-                view! {
-                    <Row>
-                        <strong> {sku} </strong>
-                        <button type="button" on:click=move |_| editing.set(true)> Edit </button>
-                    </Row>
-                    <Badges>
-                        <For each=move || options.get() key=|val| val.clone() let((_, value))>
-                            <Badge> {value} </Badge>
-                        </For>
-                    </Badges>
-                }
-            }>
-                <label> SKU
+            <Row>
+                <label> Enabled
                     <input
-                        type="text"
-                        bind:value=sku
-                        placeholder="Variant SKU"
+                        type="checkbox"
+                        bind:checked=enabled
                     />
                 </label>
-                <For
-                    each=move || state.fields.options.get()
-                    key=|(key, _)| key.clone()
-                    let((_, value))
-                >
-                    <label> {value.name}
-                        <select bind:value=state.bind_option(key, value.name.get())> {
-                            value.values.get().into_iter().enumerate().map(|(i, v)| view! {
-                                <option 
-                                    // selected=move || state.bind_option(key, value.name.get()).get() == v
-                                    disabled=move || !state.option_available(key, value.name.get(), v.clone())
-                                > {v.clone()} </option>
-                            }).collect_view()
-                        } </select>
+                <Badges>
+                    {move || options.get().into_iter().map(|(_, v)| view! {
+                        <Badge> {v} </Badge>
+                    }).collect_view()}
+                </Badges>
+            </Row>
+            <Show when=move || editing.get() fallback=move || {
+                view! {
+                        <button type="button" on:click=move |_| editing.set(true)> Edit </button>
+                }
+            }>
+                <Show when=move || enabled.get()>
+                    <label> SKU
+                        <input
+                            type="text"
+                            bind:value=sku
+                            placeholder="Variant SKU"
+                        />
                     </label>
-                </For>
-                <Row>
-                    <label> price <input type="number" bind:value=price step=".01" /></label>
-                    <label> Compare-at price <input type="number" bind:value=compare_price step=".01" /></label>
-                </Row>
-                <label> Availability
-                    <input type="number" bind:value=availability step="1"/>
-                </label>
-                <Row>
-                    <button type="reset" on:click=move |_| state.remove_variant(key)> Delete </button>
-                    <button type="button" on:click=move |_| state.done_editing_variant(key)> Done </button>
-                </Row>
+                    <Row>
+                        <label> price <input type="number" bind:value=price step=".01" /></label>
+                        <label> Compare-at price <input type="number" bind:value=compare_price step=".01" /></label>
+                    </Row>
+                    <label> Availability
+                        <input type="number" bind:value=availability step="1"/>
+                    </label>
+                </Show>
+                <button type="button" on:click=move |_| state.done_editing_variant(key)> Done </button>
             </Show>
         </div>
     }

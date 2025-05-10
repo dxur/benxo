@@ -64,7 +64,7 @@ pub struct ProductVariant {
     pub compare_price: Option<f32>,
     pub stocks: usize,
     pub images: Vec<String>,
-    pub options: Vec<usize>,
+    pub options: IndexMap<String, String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
