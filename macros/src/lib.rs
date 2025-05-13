@@ -66,6 +66,7 @@ pub fn route(args: TokenStream, input: TokenStream) -> TokenStream {
                     let wrapper = match attr_name.as_str() {
                         "query" => quote! { #pat: axum::extract::Query<#ty> },
                         "body" => quote! { #pat: axum::extract::Json<#ty> },
+                        "ignore" => quote! { #pat: #ty },
                         other => quote! {
                             compile_error!(concat!("Unsupported attribute #[", #other, "]"));
                         },
@@ -100,6 +101,9 @@ pub fn route(args: TokenStream, input: TokenStream) -> TokenStream {
             if let FnArg::Typed(PatType { attrs, pat, ty, .. }) = input {
                 for attr in attrs {
                     let attr_name = attr.path().to_token_stream().to_string();
+                    if attr_name == "ignore" {
+                        continue;
+                    }
                     match attr_name.as_str() {
                         "query" => {
                             if query_args.len() > 0 {
@@ -277,11 +281,11 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
 #[cfg(feature = "wasm")]
 #[proc_macro_attribute]
 pub fn routes_builder(args: TokenStream, input: TokenStream) -> TokenStream {
-    use syn::{ImplItem, ItemImpl, Type, Expr, ExprTuple};
+    use syn::{Expr, ExprTuple, ImplItem, ItemImpl, Type};
 
     let mut as_ident_opt: Option<Ident> = None;
     let mut use_ident_opt: Option<Ident> = None;
-    
+
     let parser = meta::parser(|meta| {
         if meta.path.is_ident("as") {
             as_ident_opt = Some(meta.value()?.parse()?);
@@ -293,28 +297,30 @@ pub fn routes_builder(args: TokenStream, input: TokenStream) -> TokenStream {
             Err(meta.error("unsupported attribute key, expected: as, use"))
         }
     });
-    
+
     parse_macro_input!(args with parser);
     let as_ident = as_ident_opt.expect("expected #[routes(as = ...)]");
     let use_ident = use_ident_opt.expect("expected #[routes(use = ...)]");
-    
+
     let input_impl = parse_macro_input!(input as ItemImpl);
-    
+
     let mut route_views = Vec::new();
-    
+
     for item in &input_impl.items {
         if let ImplItem::Const(const_item) = item {
             if let Type::Path(type_path) = &const_item.ty {
-                if type_path.path.segments.last().map(|s| s.ident.to_string()) == Some("Route".to_string()) {
+                if type_path.path.segments.last().map(|s| s.ident.to_string())
+                    == Some("Route".to_string())
+                {
                     if let Expr::Tuple(ExprTuple { elems, .. }) = &const_item.expr {
                         if elems.len() == 2 {
                             let path = &elems[0];
                             let component = &elems[1];
-                            
+
                             let route_view = quote! {
                                 <leptos_router::components::Route path=path!(#path) view=*#component/>
                             };
-                            
+
                             route_views.push(route_view);
                         }
                     }
@@ -322,10 +328,10 @@ pub fn routes_builder(args: TokenStream, input: TokenStream) -> TokenStream {
             }
         }
     }
-    
+
     let expanded = quote! {
         #input_impl
-        
+
         #[component(transparent)]
         pub fn #as_ident() -> impl leptos_router::MatchNestedRoutes + Clone {
             use leptos::prelude::*;
@@ -338,8 +344,9 @@ pub fn routes_builder(args: TokenStream, input: TokenStream) -> TokenStream {
             }
             .into_inner()
         }
-    }.into();
-    
+    }
+    .into();
+
     println!("expanded: {}", expanded);
     expanded
 }

@@ -7,6 +7,7 @@ compile_error!("Should be compiled with the `server` feature enabled.");
 mod api;
 mod db;
 mod events;
+mod extractors;
 mod middlewares;
 mod models;
 mod routes;
@@ -18,9 +19,10 @@ mod validators;
 extern crate dotenv_codegen;
 
 use crate::api::*;
-use axum::Router;
+use axum::{routing::get, Router};
 use db::{product::Product, ModelInDb};
 use events::EventBus;
+use extractors::StoreId;
 use std::sync::Arc;
 use tokio::net::TcpListener;
 use tower_http::trace::TraceLayer;
@@ -42,7 +44,7 @@ fn init_tracing() {
 #[tokio::main]
 async fn main() {
     init_tracing();
-    
+
     let db = db::Db::new(dotenv!("DB_URI"), dotenv!("DB_NAME")).await;
     Product::init_coll(&db).await.unwrap();
 
@@ -75,9 +77,14 @@ async fn main() {
             ApiRoutes::delete_user,
         ))
         .layer(TraceLayer::new_for_http())
+        .route("/api/health", get(health))
         .with_state(state);
 
     let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
     info!("listening on {}", listener.local_addr().unwrap());
     axum::serve(listener, app).await.unwrap();
+}
+
+async fn health(StoreId(store_id): StoreId) -> String {
+    format!("StoreId({})", store_id)
 }

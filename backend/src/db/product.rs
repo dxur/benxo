@@ -13,6 +13,7 @@ use crate::AppState;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ProductInDb {
     pub _id: ObjectId,
+    pub store_id: String,
     pub name: String,
     pub description: String,
     pub featured: bool,
@@ -43,13 +44,15 @@ impl Into<ProductPublic> for ProductInDb {
     }
 }
 
-impl Into<ProductInDb> for ProductCreate {
+impl Into<ProductInDb> for ByStoreId<ProductCreate> {
     fn into(self) -> ProductInDb {
+        let ByStoreId { store_id, body } = self;
         ProductInDb {
             _id: ObjectId::new(),
-            name: self.name,
-            category: self.category,
-            slug: self.slug,
+            store_id,
+            name: body.name,
+            category: body.category,
+            slug: body.slug,
             description: Default::default(),
             featured: Default::default(),
             base_price: Default::default(),
@@ -61,6 +64,12 @@ impl Into<ProductInDb> for ProductCreate {
     }
 }
 
+impl Into<FindInDb> for &ProductFetch {
+    fn into(self) -> FindInDb {
+        FindInDb { _id: self.id }
+    }
+}
+
 impl Into<FindInDb> for &ProductUpdate {
     fn into(self) -> FindInDb {
         FindInDb { _id: self.id }
@@ -68,12 +77,6 @@ impl Into<FindInDb> for &ProductUpdate {
 }
 
 impl Into<FindInDb> for &ProductDelete {
-    fn into(self) -> FindInDb {
-        FindInDb { _id: self.id }
-    }
-}
-
-impl Into<FindInDb> for &ProductFetch {
     fn into(self) -> FindInDb {
         FindInDb { _id: self.id }
     }
@@ -92,6 +95,7 @@ impl ModelInDb for Product {
 
     async fn init_coll(db: &Db) -> Result<()> {
         let keys_doc = doc! {
+            field!(store_id @ ProductInDb): 1,
             field!(slug @ ProductInDb): 1,
         };
 
@@ -99,33 +103,47 @@ impl ModelInDb for Product {
             field!(slug @ ProductInDb): { "$gt": "" }
         };
 
-        db.collection::<Self::InDb>(Self::COLLECTION_NAME)
-            .create_index(
-                IndexModel::builder()
-                    .keys(keys_doc)
-                    .options(
-                        IndexOptions::builder()
-                            .unique(true)
-                            .partial_filter_expression(partial_filter_expression)
-                            .build(),
-                    )
-                    .build(),
-            )
-            .await
-            .map_or_else(|e| Err(Error { msg: e.to_string() }), |_| Ok(()))
+        let coll = db.collection::<Self::InDb>(Self::COLLECTION_NAME);
+        coll.create_index(
+            IndexModel::builder()
+                .keys(doc! {
+                   field!(store_id @ ProductInDb): 1,
+                })
+                .build(),
+        )
+        .await
+        .map_or_else(|e| Err(Error { msg: e.to_string() }), |_| Ok(()))?;
+
+        coll.create_index(
+            IndexModel::builder()
+                .keys(keys_doc)
+                .options(
+                    IndexOptions::builder()
+                        .unique(true)
+                        .partial_filter_expression(partial_filter_expression)
+                        .build(),
+                )
+                .build(),
+        )
+        .await
+        .map_or_else(|e| Err(Error { msg: e.to_string() }), |_| Ok(()))
     }
 }
 
 impl FindableInDb for Product {
-    type FindInDb = FindInDb;
+    type FindInDb = ByStoreId<FindInDb>;
 }
 
 impl FetchableInDb for Product {
-    type FetchInDb = ProductFetch;
+    type FetchInDb = ByStoreId<ProductFetch>;
+}
+
+impl ListableInDb for Product {
+    type ListInDb = ByStoreId<()>;
 }
 
 impl CreatableInDb for Product {
-    type CreateInDb = ProductCreate;
+    type CreateInDb = ByStoreId<ProductCreate>;
     async fn on_create(state: &AppState, body: &Self::InDb) {
         state
             .event_bus
@@ -135,18 +153,18 @@ impl CreatableInDb for Product {
 }
 
 impl UpdatableInDb for Product {
-    type UpdateInDb = ProductUpdate;
+    type UpdateInDb = ByStoreId<ProductUpdate>;
 
     async fn on_update(state: &AppState, update: &Self::UpdateInDb, value: &Self::InDb) {
         state
             .event_bus
-            .emit(Event::ProductUpdated(update.clone(), value.clone()))
+            .emit(Event::ProductUpdated(update.body.clone(), value.clone()))
             .await;
     }
 }
 
 impl DeletableInDb for Product {
-    type DeleteInDb = ProductDelete;
+    type DeleteInDb = ByStoreId<ProductDelete>;
 
     async fn on_delete(state: &AppState, _: &Self::DeleteInDb, value: &Self::InDb) {
         state

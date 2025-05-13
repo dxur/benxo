@@ -1,15 +1,17 @@
 mod home;
 mod not_found;
+mod orders;
 mod products;
 mod settings;
+mod store;
 mod users;
-mod orders;
 
 pub use home::*;
-pub use orders::*;
 pub use not_found::*;
+pub use orders::*;
 pub use products::*;
 pub use settings::*;
+pub use store::*;
 pub use users::*;
 
 use leptos::prelude::*;
@@ -22,7 +24,7 @@ pub struct Page {
 
 impl Deref for Page {
     type Target = fn() -> AnyView;
-    
+
     fn deref(&self) -> &Self::Target {
         &self.view
     }

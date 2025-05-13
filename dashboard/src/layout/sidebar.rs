@@ -21,10 +21,10 @@ pub fn Sidebar() -> impl IntoView {
                 <Item path=AppRoutes::HOME.path() name=AppRoutes::HOME.page().title />
                 <Item path=AppRoutes::ORDERS.path() name=AppRoutes::ORDERS.page().title />
                 <Item path=AppRoutes::PRODUCTS.path() name=AppRoutes::PRODUCTS.page().title />
+                <Item path=AppRoutes::STORE.path() name=AppRoutes::STORE.page().title />
                 // <Item path=AppRoutes::DELIVERY.path() name=AppRoutes::DELIVERY.page().title />
                 // <Item path=AppRoutes::CHANNELS.path() name=AppRoutes::CHANNELS.page().title />
-                <Item path=AppRoutes::USERS.path() name="Online Store" />
-                <Item path=AppRoutes::USERS.path() name=AppRoutes::USERS.page().title />
+                // <Item path=AppRoutes::USERS.path() name=AppRoutes::USERS.page().title />
                 <Item path=AppRoutes::SETTINGS.path() name=AppRoutes::SETTINGS.page().title />
             </nav>
         </aside>

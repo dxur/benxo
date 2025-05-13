@@ -2,14 +2,11 @@ use bson::to_bson;
 use field::*;
 use indexmap::IndexMap;
 use mongodb::bson::{doc, oid::ObjectId, to_document, Document};
-use mongodb::options::TransactionOptions;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 use super::*;
 use super::{Error, FetchableInDb, FindableInDb, ModelInDb};
 use crate::models::order::*;
-use crate::models::product::{Product, ProductVariant};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct OrderInDb {
@@ -179,15 +176,17 @@ impl CreatableInDb for Order {
 impl UpdatableInDb for Order {
     type UpdateInDb = OrderUpdate;
 
-    async fn update(db: &Db, body: Self::Update) -> Result<Option<(Self::UpdateInDb, Self::InDb)>> {
+    async fn update(
+        db: &Db,
+        body: Self::UpdateInDb,
+    ) -> Result<Option<(Self::UpdateInDb, Self::InDb)>> {
         let options = FindOneAndUpdateOptions::builder()
             .return_document(ReturnDocument::After)
             .build();
 
-        let update = Self::UpdateInDb::from(body);
-        let filter: Self::FindInDb = (&update).ref_into();
+        let filter: Self::FindInDb = body.ref_into();
 
-        let history = if let Some(status) = update.body.status {
+        let history = if let Some(status) = body.body.status {
             doc! {
                 field! { history @ OrderInDb }: to_bson(&OrderHistoryEntry { status }).map_err(|e| Error { msg: format!("Failed to map status into document {}: {}", Self::COLLECTION_NAME, e) })?
             }
@@ -198,12 +197,12 @@ impl UpdatableInDb for Order {
         let res = db
             .collection::<Self::InDb>(Self::COLLECTION_NAME)
             .find_one_and_update(
-                Into::<Result<Document>>::into(&filter).map_err(|e| {
+                filter.into_filter().map_err(|e| {
                     tracing::debug!("Failed to map into document: {}", Self::COLLECTION_NAME);
                     e
                 })?,
                 doc! {
-                    "$set": RefInto::<Result<Document>>::ref_into(&update).map_err(|e| {
+                    "$set": RefInto::<Result<Document>>::ref_into(&body).map_err(|e| {
                         tracing::debug!("Failed to map into document {}: {}", Self::COLLECTION_NAME, e);
                         e
                     })?,
@@ -217,7 +216,7 @@ impl UpdatableInDb for Order {
                 Error { msg: e.to_string() }
             })?;
         Ok(match res {
-            Some(v) => Some((update, v)),
+            Some(v) => Some((body, v)),
             None => None,
         })
     }

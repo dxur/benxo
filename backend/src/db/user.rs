@@ -1,5 +1,4 @@
 use crate::models::user::*;
-use field::*;
 use mongodb::bson::{doc, oid::ObjectId, to_document, Document};
 use serde::{Deserialize, Serialize};
 
@@ -14,12 +13,6 @@ pub struct UserInDb {
     pub permissions: UserPermissions,
 }
 
-#[derive(Debug, Serialize)]
-pub struct UserFindInDb(pub UserFetch);
-
-#[derive(Debug, Serialize)]
-pub struct UserUpdateInDb(pub UserUpdate);
-
 impl Into<UserPublic> for UserInDb {
     fn into(self) -> UserPublic {
         UserPublic {
@@ -33,29 +26,14 @@ impl Into<UserPublic> for UserInDb {
 
 impl ModelInDb for User {
     const COLLECTION_NAME: &'static str = "users";
-    const UNIQUE_INDICES: &'static [&'static str] = &[];
 
     type InDb = UserInDb;
 }
 
-impl Into<Result<Document>> for &UserFindInDb {
-    fn into(self) -> Result<Document> {
-        to_document(self).map_err(|e| Error { msg: e.to_string() })
+impl Into<FindInDb> for &UserFetch {
+    fn into(self) -> FindInDb {
+        FindInDb { _id: self.id }
     }
-}
-
-impl FindableInDb for User {
-    type FindInDb = UserFindInDb;
-}
-
-impl Into<UserFindInDb> for &UserFetch {
-    fn into(self) -> UserFindInDb {
-        UserFindInDb(UserFetch { id: self.id })
-    }
-}
-
-impl FetchableInDb for User {
-    type FetchInDb = UserFetch;
 }
 
 impl Into<UserInDb> for UserCreate {
@@ -70,36 +48,38 @@ impl Into<UserInDb> for UserCreate {
     }
 }
 
+impl Into<FindInDb> for &UserUpdate {
+    fn into(self) -> FindInDb {
+        FindInDb { _id: self.id }
+    }
+}
+
+impl Into<Result<Document>> for &UserUpdate {
+    fn into(self) -> Result<Document> {
+        to_document(&self.body).map_err(|e| Error { msg: e.to_string() })
+    }
+}
+
+impl Into<FindInDb> for &UserDelete {
+    fn into(self) -> FindInDb {
+        FindInDb { _id: self.id }
+    }
+}
+
+impl FindableInDb for User {
+    type FindInDb = FindInDb;
+}
+
+impl FetchableInDb for User {
+    type FetchInDb = UserFetch;
+}
+
 impl CreatableInDb for User {
     type CreateInDb = UserCreate;
 }
 
-impl From<UserUpdate> for UserUpdateInDb {
-    fn from(value: UserUpdate) -> Self {
-        UserUpdateInDb(value)
-    }
-}
-
-impl Into<UserFindInDb> for &UserUpdateInDb {
-    fn into(self) -> UserFindInDb {
-        UserFindInDb(UserFetch { id: self.0.id })
-    }
-}
-
-impl Into<Result<Document>> for &UserUpdateInDb {
-    fn into(self) -> Result<Document> {
-        to_document(&self.0).map_err(|e| Error { msg: e.to_string() })
-    }
-}
-
 impl UpdatableInDb for User {
-    type UpdateInDb = UserUpdateInDb;
-}
-
-impl Into<UserFindInDb> for &UserDelete {
-    fn into(self) -> UserFindInDb {
-        UserFindInDb(UserFetch { id: self.id })
-    }
+    type UpdateInDb = UserUpdate;
 }
 
 impl DeletableInDb for User {

@@ -12,49 +12,94 @@ pub struct ApiRoutes;
 pub trait Routes {
     // ---- Products ----
     #[route(method=get, path = "/products")]
-    async fn get_all_products(#[query] pagination: Pagination) -> Page<ProductPublic>;
+    async fn get_all_products(
+        #[ignore] store: crate::extractors::StoreId,
+        #[query] pagination: Pagination,
+    ) -> Page<ProductPublic>;
 
     #[route(method=post, path = "/products/")]
-    async fn get_one_product(#[body] body: ProductFetch) -> ProductPublic;
+    async fn get_one_product(
+        #[ignore] store: crate::extractors::StoreId,
+        #[body] body: ProductFetch,
+    ) -> ProductPublic;
 
     #[route(method=post, path = "/products")]
-    async fn create_product(#[body] body: ProductCreate) -> ProductPublic;
+    async fn create_product(
+        #[ignore] store: crate::extractors::StoreId,
+        #[body] body: ProductCreate,
+    ) -> ProductPublic;
 
     #[route(method=patch, path = "/products/")]
-    async fn update_product(#[body] body: ProductUpdate) -> ProductPublic;
+    async fn update_product(
+        #[ignore] store: crate::extractors::StoreId,
+        #[body] body: ProductUpdate,
+    ) -> ProductPublic;
 
     #[route(method=delete, path = "/products/")]
-    async fn delete_product(#[body] body: ProductDelete) -> ProductPublic;
+    async fn delete_product(
+        #[ignore] store: crate::extractors::StoreId,
+        #[body] body: ProductDelete,
+    ) -> ProductPublic;
 
     // ---- Orders ----
     #[route(method=get, path = "/orders")]
-    async fn get_all_orders(#[query] pagination: Pagination) -> Page<OrderPublic>;
+    async fn get_all_orders(
+        #[ignore] store: crate::extractors::StoreId,
+        #[query] pagination: Pagination,
+    ) -> Page<OrderPublic>;
 
     #[route(method=post, path = "/orders/")]
-    async fn get_one_order(#[body] body: OrderFetch) -> OrderPublic;
+    async fn get_one_order(
+        #[ignore] store: crate::extractors::StoreId,
+        #[body] body: OrderFetch,
+    ) -> OrderPublic;
 
     #[route(method=post, path = "/orders")]
-    async fn create_order(#[body] body: OrderCreate) -> OrderPublic;
+    async fn create_order(
+        #[ignore] store: crate::extractors::StoreId,
+        #[body] body: OrderCreate,
+    ) -> OrderPublic;
 
     #[route(method=patch, path = "/orders/")]
-    async fn update_order(#[body] body: OrderUpdate) -> OrderPublic;
+    async fn update_order(
+        #[ignore] store: crate::extractors::StoreId,
+        #[body] body: OrderUpdate,
+    ) -> OrderPublic;
 
     #[route(method=delete, path = "/orders/")]
-    async fn delete_order(#[body] body: OrderDelete) -> OrderPublic;
+    async fn delete_order(
+        #[ignore] store: crate::extractors::StoreId,
+        #[body] body: OrderDelete,
+    ) -> OrderPublic;
 
     // ---- Users ----
     #[route(method=get, path = "/users")]
-    async fn get_all_users(#[query] pagination: Pagination) -> Page<UserPublic>;
+    async fn get_all_users(
+        #[ignore] store: crate::extractors::StoreId,
+        #[query] pagination: Pagination,
+    ) -> Page<UserPublic>;
 
     #[route(method=post, path = "/users/")]
-    async fn get_one_user(#[body] body: UserFetch) -> UserPublic;
+    async fn get_one_user(
+        #[ignore] store: crate::extractors::StoreId,
+        #[body] body: UserFetch,
+    ) -> UserPublic;
 
     #[route(method=post, path = "/users")]
-    async fn create_user(#[body] body: UserCreate) -> UserPublic;
+    async fn create_user(
+        #[ignore] store: crate::extractors::StoreId,
+        #[body] body: UserCreate,
+    ) -> UserPublic;
 
     #[route(method=patch, path = "/users/")]
-    async fn update_user(#[body] body: UserUpdate) -> UserPublic;
+    async fn update_user(
+        #[ignore] store: crate::extractors::StoreId,
+        #[body] body: UserUpdate,
+    ) -> UserPublic;
 
     #[route(method=delete, path = "/users/")]
-    async fn delete_user(#[body] body: UserDelete) -> UserPublic;
+    async fn delete_user(
+        #[ignore] store: crate::extractors::StoreId,
+        #[body] body: UserDelete,
+    ) -> UserPublic;
 }

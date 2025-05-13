@@ -18,5 +18,40 @@ where
 pub enum AtLeast<F, S> {
     First(F),
     Second(S),
-    All(F, S)
+    All(F, S),
+}
+
+#[derive(Debug)]
+pub struct HaveContext<T, C>(pub T, pub C);
+
+pub trait WithContext<U, C = ()> {
+    fn with_context(self, ctx: C) -> HaveContext<U, C>;
+}
+
+pub trait IntoContext
+where
+    Self: Sized,
+{
+    fn into_context(self) -> HaveContext<(), Self>;
+}
+
+impl<T, U, C> WithContext<U, C> for T
+where
+    T: Into<U>,
+{
+    fn with_context(self, ctx: C) -> HaveContext<U, C> {
+        HaveContext(self.into(), ctx)
+    }
+}
+
+impl<T> IntoContext for T {
+    fn into_context(self) -> HaveContext<(), Self> {
+        self.into()
+    }
+}
+
+impl<C> From<C> for HaveContext<(), C> {
+    fn from(value: C) -> Self {
+        Self((), value)
+    }
 }

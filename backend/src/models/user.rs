@@ -38,12 +38,17 @@ pub struct UserCreate {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct UserUpdate {
-    pub id: ObjectId,
+pub struct UserUpdateBody {
     pub name: Option<String>,
     pub email: Option<String>,
     pub password: Option<String>,
     pub permissions: Option<UserPermissions>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UserUpdate {
+    pub id: ObjectId,
+    pub body: UserUpdateBody,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

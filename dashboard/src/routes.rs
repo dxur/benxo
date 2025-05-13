@@ -1,7 +1,7 @@
-use std::cell::OnceCell;
 use leptos::prelude::*;
-use leptos_router::{hooks::use_navigate, path, NavigateOptions};
+use leptos_router::{NavigateOptions, hooks::use_navigate, path};
 use macros::routes_builder;
+use std::cell::OnceCell;
 
 use crate::pages::*;
 
@@ -38,6 +38,7 @@ impl AppRoutes {
     pub const ORDER: Route = ("/orders/:id", OrderEdit);
     pub const PRODUCTS: Route = ("/products", ProductsIndex);
     pub const PRODUCT: Route = ("/products/:id", ProductEdit);
+    pub const STORE: Route = ("/store", StoreIndex);
     // pub const DELIVERY: Route = ("/delivery", Delivery);
     // pub const CHANNELS: Route = ("/channels", Channels);
     pub const USERS: Route = ("/users", UsersIndex);
