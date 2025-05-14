@@ -1,6 +1,21 @@
+use crate::models::Void;
+
 use super::error::Error;
 
 pub type Result<T> = std::result::Result<T, Error>;
+
+pub trait IntoInner<T> {
+    fn into_inner(self) -> T;
+}
+
+impl<T, U> IntoInner<U> for T
+where
+    T: Into<U>,
+{
+    fn into_inner(self) -> U {
+        self.into()
+    }
+}
 
 pub trait RefInto<T> {
     fn ref_into(&self) -> T;
@@ -8,10 +23,10 @@ pub trait RefInto<T> {
 
 impl<T, U> RefInto<U> for T
 where
-    for<'a> &'a T: Into<U>,
+    for<'a> &'a T: IntoInner<U>,
 {
     fn ref_into(&self) -> U {
-        self.into()
+        self.into_inner()
     }
 }
 
@@ -32,7 +47,7 @@ pub trait IntoContext
 where
     Self: Sized,
 {
-    fn into_context(self) -> HaveContext<(), Self>;
+    fn into_context(self) -> HaveContext<Void, Self>;
 }
 
 impl<T, U, C> WithContext<U, C> for T
@@ -45,13 +60,13 @@ where
 }
 
 impl<T> IntoContext for T {
-    fn into_context(self) -> HaveContext<(), Self> {
+    fn into_context(self) -> HaveContext<Void, Self> {
         self.into()
     }
 }
 
-impl<C> From<C> for HaveContext<(), C> {
+impl<C> From<C> for HaveContext<Void, C> {
     fn from(value: C) -> Self {
-        Self((), value)
+        Self(Void, value)
     }
 }

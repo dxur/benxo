@@ -70,11 +70,7 @@ async fn main() {
             ApiRoutes::create_order,
             ApiRoutes::update_order,
             ApiRoutes::delete_order,
-            ApiRoutes::get_all_users,
-            ApiRoutes::get_one_user,
-            ApiRoutes::create_user,
-            ApiRoutes::update_user,
-            ApiRoutes::delete_user,
+            ApiRoutes::get_settings,
         ))
         .layer(TraceLayer::new_for_http())
         .route("/api/health", get(health))

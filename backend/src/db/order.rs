@@ -11,6 +11,7 @@ use crate::models::order::*;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct OrderInDb {
     pub _id: ObjectId,
+    pub store_id: String,
     pub status: OrderStatus,
     pub full_name: String,
     pub phone: String,
@@ -65,19 +66,21 @@ impl Into<FindInDb> for &OrderUpdate {
     }
 }
 
-impl From<OrderCreate> for OrderInDb {
-    fn from(value: OrderCreate) -> Self {
+impl From<ByStoreId<OrderCreate>> for OrderInDb {
+    fn from(value: ByStoreId<OrderCreate>) -> Self {
+        let ByStoreId { store_id, body } = value;
         OrderInDb {
             _id: ObjectId::new(),
+            store_id,
             status: OrderStatus::Pending,
-            full_name: value.full_name,
-            phone: value.phone,
-            email: value.email,
-            province: value.province,
-            address: value.address,
-            delivery: value.delivery,
-            note: value.note,
-            items: value.items,
+            full_name: body.full_name,
+            phone: body.phone,
+            email: body.email,
+            province: body.province,
+            address: body.address,
+            delivery: body.delivery,
+            note: body.note,
+            items: body.items,
             history: vec![OrderHistoryEntry {
                 status: OrderStatus::Pending,
             }],
@@ -93,15 +96,19 @@ impl ModelInDb for Order {
 }
 
 impl FindableInDb for Order {
-    type FindInDb = FindInDb;
+    type FindInDb = ByStoreId<FindInDb>;
 }
 
 impl FetchableInDb for Order {
-    type FetchInDb = OrderFetch;
+    type FetchInDb = ByStoreId<OrderFetch>;
+}
+
+impl ListableInDb for Order {
+    type ListInDb = ByStoreId<Void>;
 }
 
 impl CreatableInDb for Order {
-    type CreateInDb = OrderCreate;
+    type CreateInDb = ByStoreId<OrderCreate>;
 
     // async fn create(db: &Db, body: Self::Create) -> Result<Self::InDb> {
     //     if body.items.len() == 0 {
@@ -174,7 +181,7 @@ impl CreatableInDb for Order {
 }
 
 impl UpdatableInDb for Order {
-    type UpdateInDb = OrderUpdate;
+    type UpdateInDb = ByStoreId<OrderUpdate>;
 
     async fn update(
         db: &Db,
@@ -186,7 +193,7 @@ impl UpdatableInDb for Order {
 
         let filter: Self::FindInDb = body.ref_into();
 
-        let history = if let Some(status) = body.body.status {
+        let history = if let Some(status) = body.body.body.status {
             doc! {
                 field! { history @ OrderInDb }: to_bson(&OrderHistoryEntry { status }).map_err(|e| Error { msg: format!("Failed to map status into document {}: {}", Self::COLLECTION_NAME, e) })?
             }
@@ -223,7 +230,7 @@ impl UpdatableInDb for Order {
 }
 
 impl DeletableInDb for Order {
-    type DeleteInDb = OrderDelete;
+    type DeleteInDb = ByStoreId<OrderDelete>;
 
     // async fn delete(_: &Db, _: Self::Delete) -> Result<Option<(Self::DeleteInDb, Self::InDb)>> {
     //     todo!("Not implemented")

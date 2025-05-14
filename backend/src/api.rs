@@ -2,6 +2,7 @@ use macros::{route, routes};
 
 use crate::models::order::*;
 use crate::models::product::*;
+use crate::models::settings::SettingsPublic;
 use crate::models::user::*;
 use crate::models::{Page, Pagination};
 
@@ -72,34 +73,38 @@ pub trait Routes {
         #[body] body: OrderDelete,
     ) -> OrderPublic;
 
-    // ---- Users ----
-    #[route(method=get, path = "/users")]
-    async fn get_all_users(
-        #[ignore] store: crate::extractors::StoreId,
-        #[query] pagination: Pagination,
-    ) -> Page<UserPublic>;
+    // settings
+    #[route(method=get, path = "/settings")]
+    async fn get_settings(#[ignore] store: crate::extractors::StoreId) -> SettingsPublic;
 
-    #[route(method=post, path = "/users/")]
-    async fn get_one_user(
-        #[ignore] store: crate::extractors::StoreId,
-        #[body] body: UserFetch,
-    ) -> UserPublic;
+    // // ---- Users ----
+    // #[route(method=get, path = "/users")]
+    // async fn get_all_users(
+    //     #[ignore] store: crate::extractors::StoreId,
+    //     #[query] pagination: Pagination,
+    // ) -> Page<UserPublic>;
 
-    #[route(method=post, path = "/users")]
-    async fn create_user(
-        #[ignore] store: crate::extractors::StoreId,
-        #[body] body: UserCreate,
-    ) -> UserPublic;
+    // #[route(method=post, path = "/users/")]
+    // async fn get_one_user(
+    //     #[ignore] store: crate::extractors::StoreId,
+    //     #[body] body: UserFetch,
+    // ) -> UserPublic;
 
-    #[route(method=patch, path = "/users/")]
-    async fn update_user(
-        #[ignore] store: crate::extractors::StoreId,
-        #[body] body: UserUpdate,
-    ) -> UserPublic;
+    // #[route(method=post, path = "/users")]
+    // async fn create_user(
+    //     #[ignore] store: crate::extractors::StoreId,
+    //     #[body] body: UserCreate,
+    // ) -> UserPublic;
 
-    #[route(method=delete, path = "/users/")]
-    async fn delete_user(
-        #[ignore] store: crate::extractors::StoreId,
-        #[body] body: UserDelete,
-    ) -> UserPublic;
+    // #[route(method=patch, path = "/users/")]
+    // async fn update_user(
+    //     #[ignore] store: crate::extractors::StoreId,
+    //     #[body] body: UserUpdate,
+    // ) -> UserPublic;
+
+    // #[route(method=delete, path = "/users/")]
+    // async fn delete_user(
+    //     #[ignore] store: crate::extractors::StoreId,
+    //     #[body] body: UserDelete,
+    // ) -> UserPublic;
 }

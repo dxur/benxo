@@ -1,11 +1,11 @@
 use backend::api::{ApiRoutes, Routes};
 use backend::models::order::*;
 use backend::models::{ObjectId, Page, Pagination};
-use indexmap::IndexMap;
 use leptos::{html::*, prelude::*, task::spawn_local};
 use leptos_router::hooks::use_params_map;
 use std::str::FromStr;
 
+use crate::components::Error;
 use crate::notifications::{error, success};
 use crate::routes::*;
 use crate::utils::*;
@@ -127,6 +127,9 @@ pub struct CartItemFields {
 
 #[derive(Clone, Copy, Default)]
 pub struct Fields {
+    pub edit_basic: RwSignal<bool>,
+    pub edit_shipping: RwSignal<bool>,
+    pub edit_cart: RwSignal<bool>,
     pub full_name: RwSignal<String>,
     pub phone: RwSignal<String>,
     pub email: RwSignal<String>,
@@ -354,7 +357,17 @@ impl EditState {
         );
     }
 
+    fn is_editing(&self) -> bool {
+        self.fields.edit_basic.get_untracked()
+            || self.fields.edit_shipping.get_untracked()
+            || self.fields.edit_cart.get_untracked()
+    }
+
     fn try_update(&self) -> Result<OrderUpdate> {
+        if self.is_editing() {
+            return Err("Can't update while editing".to_string());
+        }
+
         if let Some(order) = self.order.get_untracked() {
             let items = self
                 .fields

@@ -5,21 +5,29 @@ use super::*;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SettingsUpdate {
-    store_name: Option<String>,
-    store_domain: Option<String>,
-    active_theme: Option<ObjectId>,
+    pub name: Option<String>,
+    pub domain: Option<String>,
+    pub active_theme: Option<ObjectId>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SettingsPublic {
-    store_name: String,
-    store_domain: String,
+    pub name: String,
+    pub description: String,
+    pub phone: String,
+    pub email: String,
+    pub domain: String,
 }
 
 pub struct Settings;
 impl Model for Settings {
     type Public = SettingsPublic;
 }
+
+impl Fetchable for Settings {
+    type Fetch = Void;
+}
+
 impl Updatable for Settings {
     type Update = SettingsUpdate;
 }

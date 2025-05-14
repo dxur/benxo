@@ -23,13 +23,11 @@ pub fn SettingsView() -> AnyView {
             }>
                 <Editor header=move || view! {
                     <header>
-                        <h2> Settings </h2>
-                        <Row>
-                            <button type="reset"
-                                // on:click=move |_| state.delete()
-                            > Delete </button>
-                            <button type="submit"> Save </button>
-                        </Row>
+                        <div>
+                            <h2> Settings </h2>
+                            <h3> store123 </h3>
+                        </div>
+                        <button type="submit"> Save </button>
                     </header>
                 }>
                     <Content>
@@ -47,10 +45,50 @@ pub fn SettingsView() -> AnyView {
 
 #[component]
 fn Body(state: State) -> impl IntoView {
-    view! {}
+    let edit_basic = RwSignal::new(false);
+    view! {
+        <Card>
+            <Row>
+                <h3> Basic </h3>
+                <button type="button"
+                    on:click=move |_| edit_basic.update(|v| *v = !*v)
+                > { move || if edit_basic.get() { "Done" } else { "Edit" } } </button>
+            </Row>
+            <fieldset>
+                <label> Store Name
+                    <input readonly=move || !edit_basic.get() type="text" required />
+                </label>
+            </fieldset>
+            <fieldset>
+                <label> Phone
+                    <input readonly=move || !edit_basic.get() type="tel" required />
+                </label>
+            </fieldset>
+            <fieldset>
+                <label> Email
+                    <input readonly=move || !edit_basic.get() type="text" required />
+                </label>
+            </fieldset>
+            <fieldset>
+                <label> Domain name
+                    <input
+                        readonly=move || !edit_basic.get()
+                        type="text"
+                        pattern=r"^[\p{L}\p{N}]+(?:-[\p{L}\p{N}]+)*$"
+                        required
+                    />
+                </label>
+            </fieldset>
+        </Card>
+    }
 }
 
 #[component]
 fn Inspector(state: State) -> impl IntoView {
-    view! {}
+    view! {
+        <Card>
+            <h3> Plan </h3>
+            Free Plan
+        </Card>
+    }
 }

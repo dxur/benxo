@@ -2,11 +2,14 @@ use bson::oid::ObjectId;
 use indexmap::{IndexMap, IndexSet};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
+use ts_rs::TS;
 
 use super::*;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct ProductFetch {
+    #[ts(as = "String")]
     pub id: ObjectId,
 }
 

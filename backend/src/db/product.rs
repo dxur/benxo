@@ -139,7 +139,7 @@ impl FetchableInDb for Product {
 }
 
 impl ListableInDb for Product {
-    type ListInDb = ByStoreId<()>;
+    type ListInDb = ByStoreId<Void>;
 }
 
 impl CreatableInDb for Product {

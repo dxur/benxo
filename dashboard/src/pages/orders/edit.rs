@@ -22,13 +22,15 @@ fn View() -> AnyView {
                 state.update();
             }>
                 <Editor header=move || view! {
-                    <header>
+                    <header> {
+                        let ord = state.order.get().unwrap();
+                        view! {
                             <div>
                                 <Row>
-                                    <h2> { move || state.fields.full_name.get() } </h2>
-                                    <Badge> { move || state.fields.status.get().to_string() } </Badge>
+                                    <h2> { ord.full_name } </h2>
+                                    <Badge> { ord.status.to_string() } </Badge>
                                 </Row>
-                                <h3> { state.id.unwrap().to_string() } </h3>
+                                <h3> { ord.id.to_string() } </h3>
                             </div>
                             <Row>
                                 <button type="reset"
@@ -36,7 +38,7 @@ fn View() -> AnyView {
                                 > Delete </button>
                                 <button type="submit"> Save </button>
                             </Row>
-                    </header>
+                    }} </header>
                 }>
                     <Content>
                         <Body state=state />
@@ -48,14 +50,15 @@ fn View() -> AnyView {
             </form>
         </LazyShow>
         <ProductSelect state=state />
-    }.into_any()
+    }
+    .into_any()
 }
 
 #[component]
 fn Body(state: State) -> impl IntoView {
-    let edit_basic = RwSignal::new(false);
-    let edit_shipping = RwSignal::new(false);
-    let edit_cart = RwSignal::new(false);
+    let edit_basic = state.fields.edit_basic;
+    let edit_shipping = state.fields.edit_shipping;
+    let edit_cart = state.fields.edit_cart;
     view! {
         <Card>
             <Row>

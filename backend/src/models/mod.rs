@@ -10,6 +10,15 @@ use std::fmt::Debug;
 pub use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, Default, PartialEq, Eq)]
+pub struct Void;
+
+impl<T> From<&T> for Void {
+    fn from(_: &T) -> Self {
+        Void
+    }
+}
+
 pub trait Model {
     type Public: Debug + Send + Sync + Serialize + for<'a> Deserialize<'a>;
 }

@@ -1,6 +1,6 @@
 pub mod order;
 pub mod product;
-// pub mod settings;
+pub mod settings;
 // pub mod theme;
 pub mod user;
 
@@ -15,9 +15,9 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use std::ops::Deref;
 
-use crate::models::{Creatable, Deletable, Fetchable, Filterable, Model, Updatable};
+use crate::models::*;
 use crate::utils::error::*;
-use crate::utils::types::{HaveContext, RefInto, Result};
+use crate::utils::types::{HaveContext, IntoInner, RefInto, Result};
 use crate::AppState;
 
 pub const DEFAULT_UUID: ObjectId = ObjectId::from_bytes([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
@@ -92,7 +92,7 @@ impl IntoFilter for ByStoreId<FindInDb> {
     }
 }
 
-impl IntoFilter for ByStoreId<()> {
+impl IntoFilter for ByStoreId<Void> {
     fn into_filter(&self) -> Result<Document> {
         to_document(self).map_err(|e| Error { msg: e.to_string() })
     }
@@ -137,12 +137,12 @@ pub trait FindableInDb: ModelInDb {
 }
 
 pub trait CreatableInDb: ModelInDb + Creatable {
-    type CreateInDb: Debug + Send + Sync + Serialize + Into<Self::InDb>;
+    type CreateInDb: Debug + Send + Sync + Serialize + IntoInner<Self::InDb>;
 
     async fn on_create(_: &AppState, _: &Self::InDb) {}
 
     async fn create(db: &Db, body: Self::CreateInDb) -> Result<Self::InDb> {
-        let model: Self::InDb = body.into();
+        let model: Self::InDb = body.into_inner();
         match db
             .collection::<Self::InDb>(Self::COLLECTION_NAME)
             .insert_one(&model)
