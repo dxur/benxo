@@ -1,5 +1,0 @@
-[serve]
-addresses = ["0.0.0.0"]
-
-[[proxy]]
-backend = "http://some.localhost:3000/api/"

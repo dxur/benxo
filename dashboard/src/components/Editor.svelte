@@ -1,0 +1,1 @@
+<script lang="ts">\n    export let header: any;\n    export let children: any;\n</script>\n\n<div data-edit>\n    {header}\n    <div data-content>\n        {#if children}\n            {children}\n        {/if}\n    </div>\n</div>

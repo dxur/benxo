@@ -9,19 +9,19 @@ use super::*;
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct ProductFetch {
-    #[ts(as = "String")]
     pub id: ObjectId,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct ProductCreate {
     pub name: String,
     pub category: String,
     pub slug: String,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, TS)]
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ProductUpdateBody {
     pub name: Option<String>,
     pub description: Option<String>,
@@ -35,7 +35,8 @@ pub struct ProductUpdateBody {
     pub slug: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, TS)]
+#[ts(export)]
 pub struct ProductUpdate {
     pub id: ObjectId,
     pub body: ProductUpdateBody,
@@ -56,12 +57,13 @@ impl ProductUpdateBody {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct ProductDelete {
     pub id: ObjectId,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, TS)]
 pub struct ProductVariant {
     pub sku: String,
     pub price: Option<f32>,
@@ -71,7 +73,8 @@ pub struct ProductVariant {
     pub options: IndexMap<String, String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, TS)]
+#[ts(export)]
 pub struct ProductPublic {
     pub id: ObjectId,
     pub name: String,

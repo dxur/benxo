@@ -17,7 +17,9 @@ use super::*;
     Clone,
     Copy,
     Default,
+    TS,
 )]
+#[ts(export)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum DeliveryType {
     #[default]
@@ -37,7 +39,9 @@ pub enum DeliveryType {
     Clone,
     Copy,
     Default,
+    TS,
 )]
+#[ts(export)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum OrderStatus {
     #[default]
@@ -49,23 +53,27 @@ pub enum OrderStatus {
     Returned,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, TS)]
+#[ts(export)]
 pub struct OrderHistoryEntry {
     pub status: OrderStatus,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, TS)]
+#[ts(export)]
 pub struct CartItem {
     pub quantity: u32,
     pub price: f32,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct OrderFetch {
     pub id: ObjectId,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct OrderCreate {
     pub full_name: String,
     pub phone: String,
@@ -78,7 +86,8 @@ pub struct OrderCreate {
 }
 
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct OrderUpdateBody {
     pub status: Option<OrderStatus>,
     pub full_name: Option<String>,
@@ -91,7 +100,8 @@ pub struct OrderUpdateBody {
     pub items: Option<IndexMap<String, CartItem>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct OrderUpdate {
     pub id: ObjectId,
     pub body: OrderUpdateBody,
@@ -111,12 +121,14 @@ impl OrderUpdateBody {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct OrderDelete {
     pub id: ObjectId,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, TS)]
+#[ts(export)]
 pub struct OrderPublic {
     pub id: ObjectId,
     pub status: OrderStatus,

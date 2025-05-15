@@ -3,4 +3,5 @@
 /bench
 /.cargo
 /.trash
+/.vscode
 .env

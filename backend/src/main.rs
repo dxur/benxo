@@ -1,10 +1,3 @@
-#[cfg(target_arch = "wasm32")]
-compile_error!("The binary should not be compiled for `wasm32`.");
-
-#[cfg(not(feature = "server"))]
-compile_error!("Should be compiled with the `server` feature enabled.");
-
-mod api;
 mod db;
 mod events;
 mod extractors;
@@ -18,11 +11,11 @@ mod validators;
 #[macro_use]
 extern crate dotenv_codegen;
 
-use crate::api::*;
 use axum::{routing::get, Router};
 use db::{product::Product, ModelInDb};
 use events::EventBus;
 use extractors::StoreId;
+use routes::ApiRoutes;
 use std::sync::Arc;
 use tokio::net::TcpListener;
 use tower_http::trace::TraceLayer;
@@ -59,19 +52,7 @@ async fn main() {
     EventBus::bind(state.clone(), rx);
 
     let app = Router::new()
-        .nest_packed(ApiRoutes::make_router(
-            ApiRoutes::get_all_products,
-            ApiRoutes::get_one_product,
-            ApiRoutes::create_product,
-            ApiRoutes::update_product,
-            ApiRoutes::delete_product,
-            ApiRoutes::get_all_orders,
-            ApiRoutes::get_one_order,
-            ApiRoutes::create_order,
-            ApiRoutes::update_order,
-            ApiRoutes::delete_order,
-            ApiRoutes::get_settings,
-        ))
+        .nest_packed(ApiRoutes::make_router())
         .layer(TraceLayer::new_for_http())
         .route("/api/health", get(health))
         .with_state(state);

@@ -34,7 +34,6 @@ where
             tracing::info!("Host: {}", host);
             let base_domain = dotenv!("APP_HOST");
             tracing::debug!("Using base domain: {}", base_domain);
-
             if let Some(subdomain) = host.strip_suffix(base_domain) {
                 tracing::debug!("Matched subdomain: {}", subdomain);
                 let sub = subdomain.trim_end_matches('.');

@@ -1,13 +1,12 @@
 extern crate proc_macro;
 
-use core::panic;
+use std::collections::HashSet;
 
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::{ToTokens, quote};
-use syn::{
-    FnArg, Ident, ItemTrait, LitStr, PatType, TraitItem, TraitItemFn, meta, parse_macro_input,
-};
+use regex::Regex;
+use syn::{FnArg, Ident, ImplItem, ImplItemFn, ItemImpl, LitStr, PatType, meta, parse_macro_input};
 
 #[proc_macro_attribute]
 pub fn route(args: TokenStream, input: TokenStream) -> TokenStream {
@@ -38,315 +37,337 @@ pub fn route(args: TokenStream, input: TokenStream) -> TokenStream {
 
     parse_macro_input!(args with parser);
 
-    let method = method.expect("expected #[route(method = ..., path = ...)]");
-    let path = path.expect("expected #[route(method = ..., path = ...)]");
-    let path_str = path.value();
+    let _method = method.expect("expected #[route(method = ..., path = ...)]");
+    let _path = path.expect("expected #[route(method = ..., path = ...)]");
 
-    let input_fn = parse_macro_input!(input as TraitItemFn);
-    if input_fn.default.is_some() {
-        panic!("Expected a function without a default implementation");
-    }
+    let input_fn = parse_macro_input!(input as ImplItemFn);
 
     let sig = &input_fn.sig;
+    let body = input_fn.block;
     let asyncness = &sig.asyncness;
     let original_fn_name = &sig.ident;
     let generics = &sig.generics;
     let where_clause = &sig.generics.where_clause;
 
-    #[cfg(not(feature = "wasm"))]
-    {
-        let mut wrapper_args = vec![];
-        let mut handler_call_args = vec![];
-        let mut arg_types = vec![];
+    let mut wrapper_args = vec![];
+    let mut handler_call_args = vec![];
+    let mut arg_types = vec![];
 
-        for input in &sig.inputs {
-            if let FnArg::Typed(PatType { attrs, pat, ty, .. }) = input {
-                for attr in attrs {
-                    let attr_name = attr.path().to_token_stream().to_string();
-                    let wrapper = match attr_name.as_str() {
-                        "query" => quote! { #pat: axum::extract::Query<#ty> },
-                        "body" => quote! { #pat: axum::extract::Json<#ty> },
-                        "ignore" => quote! { #pat: #ty },
-                        other => quote! {
-                            compile_error!(concat!("Unsupported attribute #[", #other, "]"));
-                        },
-                    };
-
-                    wrapper_args.push(wrapper);
-                    handler_call_args.push(quote! { #pat });
-                    arg_types.push(ty.clone());
+    for input in &sig.inputs {
+        if let FnArg::Typed(PatType { attrs, pat, ty, .. }) = input {
+            let wrapper = match attrs.len() {
+                0 => {
+                    quote! { #pat: #ty }
                 }
-            }
-        }
-
-        let return_type = match &sig.output {
-            syn::ReturnType::Default => quote! { () },
-            syn::ReturnType::Type(_, ty) => quote! { #ty },
-        };
-
-        let expanded = quote! {
-            #asyncness fn #original_fn_name #generics (state: axum::extract::State<S>, #(#wrapper_args),*) -> std::result::Result<axum::Json<#return_type>, axum::http::StatusCode> #where_clause;
-        };
-
-        expanded.into()
-    }
-
-    #[cfg(feature = "wasm")]
-    {
-        let mut query_args = vec![];
-        let mut body_args = vec![];
-        let mut args = vec![];
-
-        for input in &sig.inputs {
-            if let FnArg::Typed(PatType { attrs, pat, ty, .. }) = input {
-                for attr in attrs {
-                    let attr_name = attr.path().to_token_stream().to_string();
-                    if attr_name == "ignore" {
-                        continue;
-                    }
+                1 => {
+                    let attr_name = attrs[0].path().to_token_stream().to_string();
                     match attr_name.as_str() {
-                        "query" => {
-                            if query_args.len() > 0 {
-                                panic!("Only one query parameter is allowed");
-                            }
-                            query_args.push((pat.clone(), ty.clone()))
+                        "query" => quote! { axum::extract::Query(#pat): axum::extract::Query<#ty> },
+                        "json" => quote! { axum::extract::Json(#pat): axum::extract::Json<#ty> },
+                        other => {
+                            panic!("Unsupported attribute #[{}]", other);
                         }
-                        "body" => {
-                            if body_args.len() > 0 {
-                                panic!("Only one body parameter is allowed");
-                            }
-                            body_args.push((pat.clone(), ty.clone()))
-                        }
-                        other => panic!("Unsupported attribute #[{}]", other),
-                    };
-                    args.push(quote! { #pat: #ty });
+                    }
                 }
-            }
+                _ => {
+                    quote! {
+                        compile_error!("Only one attribute is allowed per argument");
+                    }
+                }
+            };
+
+            wrapper_args.push(wrapper);
+            handler_call_args.push(quote! { #pat });
+            arg_types.push(ty.clone());
         }
-
-        let return_type = match &sig.output {
-            syn::ReturnType::Default => quote! { () },
-            syn::ReturnType::Type(_, ty) => quote! { #ty },
-        };
-
-        let json_body = {
-            if body_args.len() > 0 {
-                let name = &body_args[0].0;
-                quote! { .json(&#name)? }
-            } else {
-                quote! {}
-            }
-        };
-
-        let req_head = {
-            if query_args.len() > 0 {
-                let name = &query_args[0].0;
-                quote! {
-                    gloo_net::http::Request::#method(format!("{}{}?{}", Self::PREFIX.to_owned(), #path_str, serde_urlencoded::to_string(#name).map_err(|e| gloo_net::Error::GlooError(format!("{}", e)))?).as_str())
-                }
-            } else {
-                quote! {
-                    gloo_net::http::Request::#method(format!("{}{}", Self::PREFIX.to_owned(), #path_str).as_str())
-                }
-            }
-        };
-
-        let expanded = quote! {
-            #asyncness fn #original_fn_name #generics (#(#args),*) -> std::result::Result<#return_type, gloo_net::Error> #where_clause {
-                #req_head
-                #json_body
-                .send().await?.json().await
-            }
-        };
-        println!("expanded: {}", expanded);
-        expanded.into()
     }
+
+    let return_type = match &sig.output {
+        syn::ReturnType::Default => quote! { () },
+        syn::ReturnType::Type(_, ty) => quote! { #ty },
+    };
+
+    let expanded = quote! {
+        #asyncness fn
+            #original_fn_name #generics (#(#wrapper_args),*)
+            -> std::result::Result<axum::Json<#return_type>, axum::http::StatusCode> #where_clause {
+                #body
+            }
+    };
+
+    println!("expanded: {}", expanded);
+    expanded.into()
 }
 
 #[proc_macro_attribute]
 pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
     let mut prefix: Option<LitStr> = None;
-    let mut for_ident_opt: Option<Ident> = None;
+    let mut state: Option<LitStr> = None;
 
     let parser = meta::parser(|meta| {
         if meta.path.is_ident("prefix") {
             prefix = Some(meta.value()?.parse()?);
             Ok(())
-        } else if meta.path.is_ident("for") {
-            for_ident_opt = Some(meta.value()?.parse()?);
+        } else if meta.path.is_ident("state") {
+            state = Some(meta.value()?.parse()?);
             Ok(())
         } else {
-            Err(meta.error("unsupported attribute key, expected: prefix, for"))
+            Err(meta.error("unsupported attribute key, expected: prefix, state"))
         }
     });
 
     parse_macro_input!(args with parser);
-    let prefix = prefix.expect("expected #[routes(prefix = ..., for = ...)]");
+    let prefix = prefix.expect("expected #[routes(prefix = ...)]");
     let prefix_str = prefix.value();
-    let for_ident = for_ident_opt.expect("expected #[routes(prefix = ..., for = ...)]");
+    let state = state.expect("expected #[routes(prefix = ...)]");
+    let state_ident = Ident::new(&state.value().as_str(), state.span());
 
-    let mut input_trait = parse_macro_input!(input as ItemTrait);
+    let mut input_impl = parse_macro_input!(input as ItemImpl);
+    let routes_name = input_impl.self_ty.to_token_stream().to_string();
+    let routes_ident = Ident::new(
+        format!("export_bindings_{}", routes_name.to_lowercase()).as_str(),
+        Span::call_site(),
+    );
 
     // TODO: check the routes for duplicate routes same method same path!!
 
-    #[cfg(not(feature = "wasm"))]
-    {
-        let mut route_entries = vec![];
-        let mut router_args = vec![];
-        let mut router_generics = vec![];
-        let mut router_generics_constraints = vec![];
-        let mut i: i32 = 0;
-        for item in &input_trait.items {
-            if let TraitItem::Fn(TraitItemFn { sig, attrs, .. }) = item {
-                for attr in attrs {
-                    if attr.path().is_ident("route") {
-                        let mut method: Option<Ident> = None;
-                        let mut path: Option<String> = None;
-                        let _ = attr.parse_nested_meta(|meta| {
-                            if meta.path.is_ident("method") {
-                                method = Some(meta.value()?.parse()?);
-                            } else if meta.path.is_ident("path") {
-                                let value: LitStr = meta.value()?.parse()?;
-                                path = Some(value.value());
-                            } else {
-                                return Err(
-                                    meta.error("expected #[route(method = ..., path = ...)]")
-                                );
-                            }
-                            Ok(())
-                        });
-                        let method = method.expect("expected method in #[route(...)]");
-                        let path = path.expect("expected path in #[route(...)]");
-                        let fn_name = &sig.ident;
-                        let method_ident =
-                            Ident::new(&method.to_string().to_lowercase(), method.span());
-                        route_entries.push(quote! {
-                            .route(#path, axum::routing::#method_ident(#fn_name))
-                        });
-                        i += 1;
-                        let generic_h_ident = Ident::new(&format!("H{}", i), Span::call_site());
-                        let generic_t_ident = Ident::new(&format!("T{}", i), Span::call_site());
-                        router_args.push(quote! {
-                            #fn_name: #generic_h_ident
-                        });
-                        router_generics.push(quote! {
-                            #generic_h_ident, #generic_t_ident
-                        });
-                        router_generics_constraints.push(quote! {
-                            #generic_h_ident: axum::handler::Handler<#generic_t_ident, S>,
-                            #generic_t_ident: 'static,
-                        });
-                    }
-                }
-            }
+    let mut route_entries = vec![];
+    let mut ts_routes = vec![];
+    let mut import_lines = HashSet::new();
+    let mut insert_import = |i: &String| {
+        let re = Regex::new(r"\b[A-Z][a-zA-Z0-9]*\b").unwrap();
+        for cap in re.find_iter(i) {
+            import_lines.insert(format!(
+                "import type {{ {} }} from './{}.ts';",
+                cap.as_str(),
+                cap.as_str()
+            ));
         }
-
-        let router_fn: TraitItem = syn::parse_quote! {
-            fn make_router<#(#router_generics),*>(#(#router_args),*) -> (&'static str, axum::Router<S>)
-            where
-                #(#router_generics_constraints)*
-            {
-                let router = axum::Router::new()
-                    #(#route_entries)*;
-                (#prefix_str, router)
-            }
-        };
-        input_trait.items.push(router_fn);
-        input_trait
-            .generics
-            .params
-            .push(syn::parse_quote! { S: 'static + Send + Sync + Clone + 'static });
-        let expanded = quote! {
-            #input_trait
-        };
-        println!("expanded: {}", expanded);
-        expanded.into()
-    }
-
-    #[cfg(feature = "wasm")]
-    {
-        let trait_name = &input_trait.ident;
-        let routes_prefix: TraitItem = syn::parse_quote! {
-            const PREFIX: &str = #prefix_str;
-        };
-        input_trait.items.push(routes_prefix);
-        quote! {
-            #input_trait
-            impl #trait_name for #for_ident {}
-        }
-        .into()
-    }
-}
-
-#[cfg(feature = "wasm")]
-#[proc_macro_attribute]
-pub fn routes_builder(args: TokenStream, input: TokenStream) -> TokenStream {
-    use syn::{Expr, ExprTuple, ImplItem, ItemImpl, Type};
-
-    let mut as_ident_opt: Option<Ident> = None;
-    let mut use_ident_opt: Option<Ident> = None;
-
-    let parser = meta::parser(|meta| {
-        if meta.path.is_ident("as") {
-            as_ident_opt = Some(meta.value()?.parse()?);
-            Ok(())
-        } else if meta.path.is_ident("use") {
-            use_ident_opt = Some(meta.value()?.parse()?);
-            Ok(())
-        } else {
-            Err(meta.error("unsupported attribute key, expected: as, use"))
-        }
-    });
-
-    parse_macro_input!(args with parser);
-    let as_ident = as_ident_opt.expect("expected #[routes(as = ...)]");
-    let use_ident = use_ident_opt.expect("expected #[routes(use = ...)]");
-
-    let input_impl = parse_macro_input!(input as ItemImpl);
-
-    let mut route_views = Vec::new();
-
+    };
     for item in &input_impl.items {
-        if let ImplItem::Const(const_item) = item {
-            if let Type::Path(type_path) = &const_item.ty {
-                if type_path.path.segments.last().map(|s| s.ident.to_string())
-                    == Some("Route".to_string())
-                {
-                    if let Expr::Tuple(ExprTuple { elems, .. }) = &const_item.expr {
-                        if elems.len() == 2 {
-                            let path = &elems[0];
-                            let component = &elems[1];
+        if let ImplItem::Fn(ImplItemFn { sig, attrs, .. }) = item {
+            for attr in attrs {
+                if attr.path().is_ident("route") {
+                    let mut method: Option<Ident> = None;
+                    let mut path: Option<String> = None;
+                    let _ = attr.parse_nested_meta(|meta| {
+                        if meta.path.is_ident("method") {
+                            method = Some(meta.value()?.parse()?);
+                        } else if meta.path.is_ident("path") {
+                            let value: LitStr = meta.value()?.parse()?;
+                            path = Some(value.value());
+                        } else {
+                            return Err(meta.error("expected #[route(method = ..., path = ...)]"));
+                        }
+                        Ok(())
+                    });
+                    let method = method.expect("expected method in #[route(...)]");
+                    let mut path = path.expect("expected path in #[route(...)]");
+                    let fn_name = &sig.ident;
+                    let method_ident =
+                        Ident::new(&method.to_string().to_lowercase(), method.span());
+                    route_entries.push(quote! {
+                        .route(#path, axum::routing::#method_ident(Self::#fn_name))
+                    });
+                    path = prefix_str.clone() + path.as_str();
+                    let mut ret_type = None;
+                    let mut json_type = None;
+                    let mut query_type = None;
 
-                            let route_view = quote! {
-                                <leptos_router::components::Route path=path!(#path) view=*#component/>
-                            };
+                    for input in sig.inputs.iter() {
+                        if let syn::FnArg::Typed(pat_type) = input {
+                            let attrs = &pat_type.attrs;
+                            let ty = &*pat_type.ty;
+                            let ty_str = ty.to_token_stream().to_string().replace(' ', "");
 
-                            route_views.push(route_view);
+                            let mut has_json = false;
+                            let mut has_query = false;
+
+                            for attr in attrs {
+                                if attr.path().is_ident("json") {
+                                    has_json = true;
+                                } else if attr.path().is_ident("query") {
+                                    has_query = true;
+                                }
+                            }
+
+                            if has_json && has_query {
+                                panic!("Only one of #[json] or #[query] allowed per parameter");
+                            } else if has_json {
+                                if json_type.is_some() {
+                                    panic!("Only one #[json] parameter allowed");
+                                }
+                                json_type = Some(ty_str);
+                            } else if has_query {
+                                if query_type.is_some() {
+                                    panic!("Only one #[query] parameter allowed");
+                                }
+                                query_type = Some(ty_str);
+                            }
                         }
                     }
+                    // Handle return type
+                    if let syn::ReturnType::Type(_, ty) = &sig.output {
+                        let ty_str = ty.to_token_stream().to_string().replace(' ', "");
+                        ret_type = Some(ty_str);
+                    }
+
+                    // Prepare type names for TS
+                    let ts_json = json_type.clone().unwrap_or_else(|| "void".to_string());
+                    let ts_query = query_type.clone();
+                    let ts_ret = ret_type.clone().unwrap_or_else(|| "void".to_string());
+
+                    if ts_json != "void" {
+                        insert_import(&ts_json);
+                    }
+                    if let Some(ref query) = ts_query {
+                        if query != &ts_json {
+                            insert_import(query);
+                        }
+                    }
+                    if ts_ret != "void"
+                        && ts_ret != ts_json
+                        && ts_ret != ts_query.clone().unwrap_or_default()
+                    {
+                        insert_import(&ts_ret);
+                    }
+
+                    let fn_args = match (&ts_json[..], &ts_query) {
+                        ("void", None) => "".to_string(),
+                        ("void", Some(query)) => format!("query: {}", query),
+                        (json, None) => format!("body: {}", json),
+                        (json, Some(query)) => format!("body: {}, query: {}", json, query),
+                    };
+
+                    let query_string = if ts_query.is_some() {
+                        " + '?' + new URLSearchParams(query as any)"
+                    } else {
+                        ""
+                    };
+
+                    let body_part = if ts_json != "void" {
+                        "body: JSON.stringify(body),"
+                    } else {
+                        ""
+                    };
+                    ts_routes.push(quote! {
+                        bindings.push(format!(
+"export async function {}({}): Promise<{}> {{
+    const res = await fetch(`{}`{}, {{
+        method: '{}',
+        headers: {{ 'Content-Type': 'application/json' }},
+        {}
+    }});
+    return await res.json();
+}}\n",
+                            stringify!(#fn_name),
+                            #fn_args,
+                            #ts_ret,
+                            #path,
+                            #query_string,
+                            stringify!(#method),
+                            #body_part
+                        ));
+                    });
                 }
             }
         }
     }
 
+    let router_fn: ImplItem = syn::parse_quote! {
+        pub fn make_router() -> (&'static str, axum::Router<#state_ident>) {
+            let router = axum::Router::new()
+                #(#route_entries)*;
+            (#prefix_str, router)
+        }
+    };
+    input_impl.items.push(router_fn);
+
+    let imports = import_lines.into_iter().collect::<Vec<String>>().join("\n");
     let expanded = quote! {
         #input_impl
+        #[test]
+        fn #routes_ident() {
+            let mut bindings = Vec::new();
+            #(#ts_routes)*
 
-        #[component(transparent)]
-        pub fn #as_ident() -> impl leptos_router::MatchNestedRoutes + Clone {
-            use leptos::prelude::*;
-            use leptos_router::*;
-            use leptos_router::components::*;
-
-            let _ = #use_ident.with(|cell| cell.set(Box::new(use_navigate())));
-            view! {
-                #(#route_views)*
-            }
-            .into_inner()
+            let output = bindings.join("\n");
+            std::fs::write(format!("bindings/{}.ts", #routes_name), format!("// this file is autogenerated DONT EDIT IT!\n\n{}\n\nexport namespace {} {{\n{}\n}}\nexport default {};\n", #imports, #routes_name, output, #routes_name)).expect("failed to write TypeScript bindings");
         }
-    }
-    .into();
-
+    };
     println!("expanded: {}", expanded);
-    expanded
+    expanded.into()
 }
+
+// #[cfg(feature = "wasm")]
+// #[proc_macro_attribute]
+// pub fn routes_builder(args: TokenStream, input: TokenStream) -> TokenStream {
+//     use syn::{Expr, ExprTuple, ImplItem, ItemImpl, Type};
+
+//     let mut as_ident_opt: Option<Ident> = None;
+//     let mut use_ident_opt: Option<Ident> = None;
+
+//     let parser = meta::parser(|meta| {
+//         if meta.path.is_ident("as") {
+//             as_ident_opt = Some(meta.value()?.parse()?);
+//             Ok(())
+//         } else if meta.path.is_ident("use") {
+//             use_ident_opt = Some(meta.value()?.parse()?);
+//             Ok(())
+//         } else {
+//             Err(meta.error("unsupported attribute key, expected: as, use"))
+//         }
+//     });
+
+//     parse_macro_input!(args with parser);
+//     let as_ident = as_ident_opt.expect("expected #[routes(as = ...)]");
+//     let use_ident = use_ident_opt.expect("expected #[routes(use = ...)]");
+
+//     let input_impl = parse_macro_input!(input as ItemImpl);
+
+//     let mut route_views = Vec::new();
+
+//     for item in &input_impl.items {
+//         if let ImplItem::Const(const_item) = item {
+//             if let Type::Path(type_path) = &const_item.ty {
+//                 if type_path.path.segments.last().map(|s| s.ident.to_string())
+//                     == Some("Route".to_string())
+//                 {
+//                     if let Expr::Tuple(ExprTuple { elems, .. }) = &const_item.expr {
+//                         if elems.len() == 2 {
+//                             let path = &elems[0];
+//                             let component = &elems[1];
+
+//                             let route_view = quote! {
+//                                 <leptos_router::components::Route path=path!(#path) view=*#component/>
+//                             };
+
+//                             route_views.push(route_view);
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//     }
+
+//     let expanded = quote! {
+//         #input_impl
+
+//         #[component(transparent)]
+//         pub fn #as_ident() -> impl leptos_router::MatchNestedRoutes + Clone {
+//             use leptos::prelude::*;
+//             use leptos_router::*;
+//             use leptos_router::components::*;
+
+//             let _ = #use_ident.with(|cell| cell.set(Box::new(use_navigate())));
+//             view! {
+//                 #(#route_views)*
+//             }
+//             .into_inner()
+//         }
+//     }
+//     .into();
+
+//     println!("expanded: {}", expanded);
+//     expanded
+// }

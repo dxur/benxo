@@ -3,28 +3,6 @@ name = "backend"
 version = "0.1.0"
 edition = "2021"
 
-[features]
-wasm = ["macros/wasm", "dep:gloo-net"]
-server = [
-    "dep:liquid",
-    "dep:axum",
-    "dep:axum-extra",
-    "dep:dotenv",
-    "dep:dotenv_codegen",
-    "dep:hyper",
-    "dep:jsonwebtoken",
-    "dep:tower",
-    "dep:tower-cookies",
-    "dep:tower-http",
-    "dep:tracing",
-    "dep:tracing-subscriber",
-    "dep:mongodb",
-    "dep:gloo-net",
-    "dep:futures",
-    "dep:tokio",
-]
-default = ["server"]
-
 [dependencies]
 macros = { path = "../macros" }
 field = "0.1.0"
@@ -34,23 +12,22 @@ serde_urlencoded = "0.7.1"
 serde_with = "3.12.0"
 strum = { version = "0.27", features = ["derive"] }
 
-axum = { version = "0.8.1", optional = true }
-axum-extra = { version = "0.10.0", features = ["cookie"], optional = true }
-dotenv = { version = "0.15.0", optional = true }
-dotenv_codegen = { version = "0.15.0", optional = true }
-hyper = { version = "1.6.0", features = ["full"], optional = true }
-jsonwebtoken = { version = "9.3.1", optional = true }
-tower = { version = "0.5.2", optional = true }
-tower-cookies = { version = "0.11.0", optional = true }
-tower-http = { version = "0.6.2", features = ["trace"], optional = true }
-tracing = { version = "0.1.41", optional = true }
+axum = { version = "0.8.1" }
+axum-extra = { version = "0.10.0", features = ["cookie"] }
+dotenv = { version = "0.15.0" }
+dotenv_codegen = { version = "0.15.0" }
+hyper = { version = "1.6.0", features = ["full"] }
+jsonwebtoken = { version = "9.3.1" }
+tower = { version = "0.5.2" }
+tower-cookies = { version = "0.11.0" }
+tower-http = { version = "0.6.2", features = ["trace"] }
+tracing = { version = "0.1.41" }
 tracing-subscriber = { version = "0.3.19", features = [
     "env-filter",
-], optional = true }
-mongodb = { version = "3.2.3", optional = true }
-gloo-net = { version = "0.6.0", optional = true }
-futures = { version = "0.3.31", optional = true }
-tokio = { version = "1.44.2", features = ["fs"], optional = true }
+] }
+mongodb = { version = "3.2.3" }
+futures = { version = "0.3.31" }
+tokio = { version = "1.44.2", features = ["fs"] }
 indexmap = { version = "2.9.0", features = ["serde"] }
-liquid = { version = "0.26.11", optional = true }
-ts-rs = "10.1.0"
+liquid = { version = "0.26.11" }
+ts-rs = { version = "10.1.0", features = ["bson", "bson-uuid-impl", "indexmap-impl"] }

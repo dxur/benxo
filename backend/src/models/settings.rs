@@ -10,7 +10,8 @@ pub struct SettingsUpdate {
     pub active_theme: Option<ObjectId>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct SettingsPublic {
     pub name: String,
     pub description: String,

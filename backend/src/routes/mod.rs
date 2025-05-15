@@ -3,109 +3,118 @@ pub mod generic;
 
 use axum::extract::Query;
 use axum::extract::State;
-use axum::http::StatusCode;
 use axum::Json;
+use macros::{route, routes};
 
-use crate::api::*;
 use crate::extractors::StoreId;
 use crate::models::order::*;
 use crate::models::product::*;
 use crate::models::settings::Settings;
 use crate::models::settings::SettingsPublic;
-use crate::models::user::*;
 use crate::models::*;
 use crate::utils::types::IntoContext;
 use crate::utils::types::WithContext;
 use crate::AppState;
 
-impl Routes<AppState> for ApiRoutes {
+pub struct ApiRoutes;
+
+#[routes(prefix = "/api", state = "AppState")]
+impl ApiRoutes {
     // ---- Products ----
+    #[route(method=get, path = "/products")]
     async fn get_all_products(
         state: State<AppState>,
         StoreId(store): StoreId,
-        pagination: Query<Pagination>,
-    ) -> Result<Json<Page<ProductPublic>>, StatusCode> {
-        generic::get_all::<Product>(state, pagination, Json(store.into_context())).await
+        #[query] pagination: Pagination,
+    ) -> Page<ProductPublic> {
+        generic::get_all::<Product>(state, Query(pagination), Json(store.into_context())).await
     }
 
+    #[route(method=post, path = "/products/")]
     async fn get_one_product(
         state: State<AppState>,
         StoreId(store): StoreId,
-        Json(body): Json<ProductFetch>,
-    ) -> Result<Json<ProductPublic>, StatusCode> {
+        #[json] body: ProductFetch,
+    ) -> ProductPublic {
         generic::get_one::<Product>(state, Json(body.with_context(store))).await
     }
 
+    #[route(method=post, path = "/products")]
     async fn create_product(
         state: State<AppState>,
         StoreId(store): StoreId,
-        Json(body): Json<ProductCreate>,
-    ) -> Result<Json<ProductPublic>, StatusCode> {
+        #[json] body: ProductCreate,
+    ) -> ProductPublic {
         generic::create::<Product>(state, Json(body.with_context(store))).await
     }
 
+    #[route(method=patch, path = "/products/")]
     async fn update_product(
         state: State<AppState>,
         StoreId(store): StoreId,
-        Json(body): Json<ProductUpdate>,
-    ) -> Result<Json<ProductPublic>, StatusCode> {
+        #[json] body: ProductUpdate,
+    ) -> ProductPublic {
         generic::update::<Product>(state, Json(body.with_context(store))).await
     }
 
+    #[route(method=delete, path = "/products/")]
     async fn delete_product(
         state: State<AppState>,
         StoreId(store): StoreId,
-        Json(body): Json<ProductDelete>,
-    ) -> Result<Json<ProductPublic>, StatusCode> {
+        #[json] body: ProductDelete,
+    ) -> ProductPublic {
         generic::delete::<Product>(state, Json(body.with_context(store))).await
     }
 
     // ---- Orders ----
+    #[route(method=get, path = "/orders")]
     async fn get_all_orders(
         state: State<AppState>,
         StoreId(store): StoreId,
-        pagination: Query<Pagination>,
-    ) -> Result<Json<Page<OrderPublic>>, StatusCode> {
-        generic::get_all::<Order>(state, pagination, Json(store.into_context())).await
+        #[query] pagination: Pagination,
+    ) -> Page<OrderPublic> {
+        generic::get_all::<Order>(state, Query(pagination), Json(store.into_context())).await
     }
 
+    #[route(method=post, path = "/orders/")]
     async fn get_one_order(
         state: State<AppState>,
         StoreId(store): StoreId,
-        Json(body): Json<OrderFetch>,
-    ) -> Result<Json<OrderPublic>, StatusCode> {
+        #[json] body: OrderFetch,
+    ) -> OrderPublic {
         generic::get_one::<Order>(state, Json(body.with_context(store))).await
     }
 
+    #[route(method=post, path = "/orders")]
     async fn create_order(
         state: State<AppState>,
         StoreId(store): StoreId,
-        Json(body): Json<OrderCreate>,
-    ) -> Result<Json<OrderPublic>, StatusCode> {
+        #[json] body: OrderCreate,
+    ) -> OrderPublic {
         generic::create::<Order>(state, Json(body.with_context(store))).await
     }
 
+    #[route(method=patch, path = "/orders/")]
     async fn update_order(
         state: State<AppState>,
         StoreId(store): StoreId,
-        Json(body): Json<OrderUpdate>,
-    ) -> Result<Json<OrderPublic>, StatusCode> {
+        #[json] body: OrderUpdate,
+    ) -> OrderPublic {
         generic::update::<Order>(state, Json(body.with_context(store))).await
     }
 
+    #[route(method=delete, path = "/orders/")]
     async fn delete_order(
         state: State<AppState>,
         StoreId(store): StoreId,
-        Json(body): Json<OrderDelete>,
-    ) -> Result<Json<OrderPublic>, StatusCode> {
+        #[json] body: OrderDelete,
+    ) -> OrderPublic {
         generic::delete::<Order>(state, Json(body.with_context(store))).await
     }
 
     // ---- Settings ----
-    async fn get_settings(
-        state: State<AppState>,
-        StoreId(store): StoreId,
-    ) -> Result<Json<SettingsPublic>, StatusCode> {
+    #[route(method=get, path = "/settings")]
+    async fn get_settings(state: State<AppState>, StoreId(store): StoreId) -> SettingsPublic {
         generic::get_one::<Settings>(state, Json(store.into_context())).await
     }
 }
