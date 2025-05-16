@@ -30,20 +30,20 @@ function createNotificationsStore() {
         update(notifs => notifs.filter(notif => notif.id !== id));
     }
 
-    function error(msg: string) {
-        addNotif(NotifType.ERROR, "Error", msg);
+    function error(msg: any) {
+        addNotif(NotifType.ERROR, "Error", `${msg}`);
     }
 
-    function success(msg: string) {
-        addNotif(NotifType.SUCCESS, "Success", msg);
+    function success(msg: any) {
+        addNotif(NotifType.SUCCESS, "Success", `${msg}`);
     }
 
-    function info(msg: string) {
-        addNotif(NotifType.INFO, "Info", msg);
+    function info(msg: any) {
+        addNotif(NotifType.INFO, "Info", `${msg}`);
     }
 
-    function warn(msg: string) {
-        addNotif(NotifType.WARN, "Warning", msg);
+    function warn(msg: any) {
+        addNotif(NotifType.WARN, "Warning", `${msg}`);
     }
 
     return {

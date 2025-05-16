@@ -20,8 +20,8 @@ pub struct ProductCreate {
     pub slug: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, TS)]
 #[skip_serializing_none]
+#[derive(Debug, Serialize, Deserialize, Clone, TS)]
 pub struct ProductUpdateBody {
     pub name: Option<String>,
     pub description: Option<String>,

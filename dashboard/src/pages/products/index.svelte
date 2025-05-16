@@ -1,37 +1,61 @@
 <script lang="ts">
   import Table from "@components/Table.svelte";
   import TablePagination from "@components/TablePagination.svelte";
+  import LoadingShow from "@/components/LoadingShow.svelte";
+  import Dialog from "@/components/Dialog.svelte";
   import ApiRoutes from "@bindings/ApiRoutes";
-  import { onMount } from "svelte";
   import { writable } from "svelte/store";
   import { useNavigate } from "@dvcol/svelte-simple-router";
   import { AppRoutes } from "@/routes";
-  import { get_oid } from "@lib/utils";
+  import { getOid } from "@lib/utils";
   import { notifCenter } from "@stores/notifications";
   import type { Page } from "@bindings/Page";
   import type { ProductPublic } from "@bindings/ProductPublic";
-  import Dialog from "@/components/Dialog.svelte";
+  import type { LoadingStatus } from "@/components/LoadingShow.svelte";
 
   const { push } = useNavigate();
 
-  let products: Page<ProductPublic> | null = null;
   let page = writable(1);
   let total = writable(1);
   let dialog: HTMLDialogElement;
+  let status: LoadingStatus = undefined;
+  let products: Page<ProductPublic>;
 
-  let slug: string;
-  let name: string;
-  let category: string;
+  let fields = default_fields();
+
+  function default_fields() {
+    return {
+      slug: "",
+      name: "",
+      category: "",
+    };
+  }
+
+  function pull(p: number) {
+    ApiRoutes.get_all_products({
+      page: p,
+      per_page: null,
+    })
+      .then((data) => {
+        products = data;
+        total.update((_) => Math.ceil(data.total / data.per_page));
+        status = null;
+      })
+      .catch((err) => {
+        notifCenter.error(err);
+        status = err;
+      });
+  }
 
   function edit(id: string) {
     push({
       path: AppRoutes.PRODUCT.path,
-      params: { oid: get_oid(id) },
+      params: { oid: getOid(id) },
     });
   }
 
   function create() {
-    ApiRoutes.create_product({ slug, name, category })
+    ApiRoutes.create_product(fields)
       .then((p) => {
         notifCenter.success("Product created successfully");
         edit(p.id);
@@ -43,37 +67,26 @@
     ApiRoutes.delete_product({ id })
       .then(() => {
         notifCenter.success("Product deleted");
-        ApiRoutes.get_all_products({
-          page: $page,
-          per_page: 10,
-        })
-          .then((data) => (products = data))
-          .catch((err) => notifCenter.error(err));
+        pull($page);
       })
       .catch((err) => notifCenter.error(err));
   }
 
-  function pull() {
-    ApiRoutes.get_all_products({
-      page: 1,
-      per_page: 10,
-    })
-      .then((data) => (products = data))
-      .catch((err) => {
-        notifCenter.error(err);
-      });
-  }
-
-  onMount(async () => {
-    pull();
-  });
+  $: pull($page);
 </script>
 
-{#if products}
+<LoadingShow {status}>
   <header>
     <title> Products </title>
     <h1>Products</h1>
-    <button on:click={() => dialog.showModal()}> New </button>
+    <button
+      on:click={() => {
+        fields = default_fields();
+        dialog.showModal();
+      }}
+    >
+      New
+    </button>
   </header>
 
   <Table>
@@ -125,7 +138,7 @@
           Slug
           <input
             type="text"
-            bind:value={slug}
+            bind:value={fields.slug}
             pattern="^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*$"
             required
           />
@@ -134,17 +147,17 @@
       <fieldset>
         <label>
           Name
-          <input type="text" bind:value={name} required />
+          <input type="text" bind:value={fields.name} required />
         </label>
       </fieldset>
       <fieldset>
         <label>
           Category
-          <input type="text" bind:value={category} required />
+          <input type="text" bind:value={fields.category} required />
         </label>
       </fieldset>
       <button type="button" on:click={() => dialog.close()}>Close</button>
       <button type="submit">Submit</button>
     </form>
   </Dialog>
-{/if}
+</LoadingShow>

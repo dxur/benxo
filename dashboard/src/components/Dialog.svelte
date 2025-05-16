@@ -1,9 +1,9 @@
 <script lang="ts">
-    export let dialog;
+  export let dialog;
 </script>
 
 <dialog bind:this={dialog}>
-    <section data-dialog>
-        <slot />
-    </section>
+  <section data-dialog>
+    <slot />
+  </section>
 </dialog>

@@ -1,5 +1,5 @@
 <div data-table>
-    <table>
-        <slot />
-    </table>
+  <table>
+    <slot />
+  </table>
 </div>

@@ -1102,7 +1102,7 @@ input:checked+.slider:before {
     margin: 0;
 }
 
-[data-content] {
+[data-edit]>section {
     display: flex;
     flex-direction: row;
     gap: var(--spacing-lg);

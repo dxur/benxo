@@ -162,6 +162,7 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
                         Ok(())
                     });
                     let method = method.expect("expected method in #[route(...)]");
+                    let method_uppercase = method.to_string().to_uppercase();
                     let mut path = path.expect("expected path in #[route(...)]");
                     let fn_name = &sig.ident;
                     let method_ident =
@@ -240,7 +241,7 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
                     };
 
                     let query_string = if ts_query.is_some() {
-                        " + '?' + new URLSearchParams(query as any)"
+                        " + '?' + new URLSearchParams(Object.entries(query).filter(([_, value]) => value != null))"
                     } else {
                         ""
                     };
@@ -265,7 +266,7 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
                             #ts_ret,
                             #path,
                             #query_string,
-                            stringify!(#method),
+                            #method_uppercase,
                             #body_part
                         ));
                     });
