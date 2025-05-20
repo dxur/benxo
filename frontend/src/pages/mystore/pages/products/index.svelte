@@ -1,17 +1,17 @@
 <script lang="ts">
-  import Table from "@/dashboard/components/Table.svelte";
-  import TablePagination from "@/dashboard/components/TablePagination.svelte";
-  import LoadingShow from "@/dashboard/components/LoadingShow.svelte";
-  import Dialog from "@/dashboard/components/Dialog.svelte";
+  import Table from "../../components/Table.svelte";
+  import TablePagination from "../../components/TablePagination.svelte";
+  import LoadingShow from "../../components/LoadingShow.svelte";
+  import Dialog from "../../components/Dialog.svelte";
   import * as ApiRoutes from "@bindings/ApiRoutes";
   import { writable } from "svelte/store";
   import { useNavigate } from "@dvcol/svelte-simple-router";
-  import { AppRoutes } from "@/dashboard/routes";
-  import { getOid } from "@/dashboard/lib/utils";
-  import { notifCenter } from "@/dashboard/stores/notifications";
+  import { AppRoutes } from "../../routes";
+  import { getOid } from "../../lib/utils";
+  import { notifCenter } from "../../stores/notifications";
   import type { Page } from "@bindings/Page";
   import type { ProductPublic } from "@bindings/ProductPublic";
-  import type { LoadingStatus } from "@/dashboard/components/LoadingShow.svelte";
+  import type { LoadingStatus } from "../../components/LoadingShow.svelte";
 
   const { push } = useNavigate();
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { notifCenter } from "@/dashboard/stores/notifications";
+  import { notifCenter } from "../stores/notifications";
 </script>
 
 <div data-notif>
