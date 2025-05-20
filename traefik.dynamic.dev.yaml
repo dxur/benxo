@@ -1,0 +1,19 @@
+http:
+  routers:
+    api:
+      rule: "PathPrefix(`/api`)"
+      service: api
+      priority: 1000
+    front:
+      rule: "PathPrefix(`/`)"
+      service: front
+    
+  services:
+    api:
+      loadBalancer:
+        servers:      
+        - url: "http://127.0.0.1:3000/"
+    front:
+      loadBalancer:
+        servers:      
+        - url: "http://127.0.0.1:4321/"

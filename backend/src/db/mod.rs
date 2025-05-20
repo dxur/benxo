@@ -20,8 +20,6 @@ use crate::utils::error::*;
 use crate::utils::types::{HaveContext, IntoInner, RefInto, Result};
 use crate::AppState;
 
-pub const DEFAULT_UUID: ObjectId = ObjectId::from_bytes([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-
 pub struct Db(Database);
 
 impl Db {
@@ -40,7 +38,7 @@ impl Deref for Db {
 
 pub trait ModelInDb: Model {
     const COLLECTION_NAME: &'static str;
-    const UNIQUE_INDICES: &'static [&'static str] = &[];
+    const UNIQUE_INDICES: &'static [(&'static [&'static str], bool)] = &[];
 
     type InDb: Debug + Send + Sync + Serialize + for<'a> Deserialize<'a> + Into<Self::Public>;
 
@@ -48,22 +46,24 @@ pub trait ModelInDb: Model {
         if Self::UNIQUE_INDICES.len() == 0 {
             return Ok(());
         }
+        for (index, unique) in Self::UNIQUE_INDICES {
+            let mut keys_doc = doc! {};
 
-        let mut keys_doc = doc! {};
+            for key in *index {
+                keys_doc.insert(key.to_string(), 1);
+            }
 
-        for key in Self::UNIQUE_INDICES {
-            keys_doc.insert(key.to_string(), 1);
+            db.collection::<Self::InDb>(Self::COLLECTION_NAME)
+                .create_index(
+                    IndexModel::builder()
+                        .keys(keys_doc)
+                        .options(IndexOptions::builder().unique(*unique).build())
+                        .build(),
+                )
+                .await
+                .map_or_else(|e| Err(Error { msg: e.to_string() }), |_| Ok(()))?;
         }
-
-        db.collection::<Self::InDb>(Self::COLLECTION_NAME)
-            .create_index(
-                IndexModel::builder()
-                    .keys(keys_doc)
-                    .options(IndexOptions::builder().unique(true).build())
-                    .build(),
-            )
-            .await
-            .map_or_else(|e| Err(Error { msg: e.to_string() }), |_| Ok(()))
+        Ok(())
     }
 }
 

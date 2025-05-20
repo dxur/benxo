@@ -1,3 +1,4 @@
+use bson::DateTime;
 use field::*;
 use indexmap::{IndexMap, IndexSet};
 use mongodb::bson::to_document;
@@ -24,6 +25,8 @@ pub struct ProductInDb {
     pub options: IndexMap<String, IndexSet<String>>,
     pub variants: Vec<ProductVariant>,
     pub slug: String,
+    pub created_at: DateTime,
+    pub updated_at: DateTime,
 }
 
 impl Into<ProductPublic> for ProductInDb {
@@ -60,6 +63,8 @@ impl Into<ProductInDb> for ByStoreId<ProductCreate> {
             base_images: Default::default(),
             options: Default::default(),
             variants: Default::default(),
+            created_at: DateTime::now(),
+            updated_at: DateTime::now(),
         }
     }
 }

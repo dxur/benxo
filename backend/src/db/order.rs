@@ -1,4 +1,4 @@
-use bson::to_bson;
+use bson::{to_bson, DateTime};
 use field::*;
 use indexmap::IndexMap;
 use mongodb::bson::{doc, oid::ObjectId, to_document, Document};
@@ -22,6 +22,8 @@ pub struct OrderInDb {
     pub note: String,
     pub items: IndexMap<String, CartItem>,
     pub history: Vec<OrderHistoryEntry>,
+    pub created_at: DateTime,
+    pub updated_at: DateTime,
 }
 
 impl Into<OrderPublic> for OrderInDb {
@@ -83,14 +85,23 @@ impl From<ByStoreId<OrderCreate>> for OrderInDb {
             items: body.items,
             history: vec![OrderHistoryEntry {
                 status: OrderStatus::Pending,
+                time: DateTime::now().timestamp_millis(),
             }],
+            created_at: DateTime::now(),
+            updated_at: DateTime::now(),
         }
     }
 }
 
 impl ModelInDb for Order {
     const COLLECTION_NAME: &'static str = "orders";
-    const UNIQUE_INDICES: &'static [&'static str] = &[];
+    const UNIQUE_INDICES: &'static [(&'static [&'static str], bool)] = &[
+        (&[field!(store_id @ OrderInDb)], false),
+        (
+            &[field!(store_id @ OrderInDb), field!(_id @ OrderInDb)],
+            false,
+        ),
+    ];
 
     type InDb = OrderInDb;
 }
@@ -194,8 +205,9 @@ impl UpdatableInDb for Order {
         let filter: Self::FindInDb = body.ref_into();
 
         let history = if let Some(status) = body.body.body.status {
+            let time = DateTime::now().timestamp_millis();
             doc! {
-                field! { history @ OrderInDb }: to_bson(&OrderHistoryEntry { status }).map_err(|e| Error { msg: format!("Failed to map status into document {}: {}", Self::COLLECTION_NAME, e) })?
+                field! { history @ OrderInDb }: to_bson(&OrderHistoryEntry { status, time }).map_err(|e| Error { msg: format!("Failed to map status into document {}: {}", Self::COLLECTION_NAME, e) })?
             }
         } else {
             doc! {}

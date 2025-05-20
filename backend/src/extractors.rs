@@ -2,59 +2,71 @@ use axum::response::{IntoResponse, Response};
 use axum::{extract::FromRequestParts, http::request::Parts};
 use core::fmt;
 use hyper::StatusCode;
+use serde::{Deserialize, Serialize};
+use tower_cookies::Cookies;
 
-pub struct StoreId(pub String);
+use crate::utils::auth::{decode_access_token, decode_refresh_token};
 
 #[derive(Debug)]
-pub struct StoreIdRejection;
+pub struct UnauthorizedRejection;
 
-impl fmt::Display for StoreIdRejection {
+impl fmt::Display for UnauthorizedRejection {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Invalid or missing store ID in subdomain")
+        write!(f, "Unautherized")
     }
 }
 
-impl IntoResponse for StoreIdRejection {
+impl IntoResponse for UnauthorizedRejection {
     fn into_response(self) -> Response {
         (StatusCode::BAD_REQUEST, self.to_string()).into_response()
     }
 }
 
-impl<S> FromRequestParts<S> for StoreId
-where
-    S: Send + Sync,
-{
-    type Rejection = StoreIdRejection;
+#[derive(Debug)]
+pub struct StoreId(pub String);
 
-    async fn from_request_parts(parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
-        let host = parts.headers.get("host").and_then(|v| v.to_str().ok());
-        tracing::debug!("Extracted host header: {:?}", host);
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UserData {
+    pub store_id: String,
+    pub email: String,
+}
 
-        if let Some(host) = host {
-            tracing::info!("Host: {}", host);
-            let base_domain = dotenv!("APP_HOST");
-            tracing::debug!("Using base domain: {}", base_domain);
-            if let Some(subdomain) = host.strip_suffix(base_domain) {
-                tracing::debug!("Matched subdomain: {}", subdomain);
-                let sub = subdomain.trim_end_matches('.');
+impl<S: Send + Sync> FromRequestParts<S> for StoreId {
+    type Rejection = UnauthorizedRejection;
 
-                if !sub.is_empty() {
-                    // Uncomment to validate
-                    // let is_valid = regex::Regex::new(r"^[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?$").unwrap();
-                    // debug!("Validation result: {}", is_valid.is_match(subdomain));
-                    // if is_valid.is_match(subdomain) {
-                    return Ok(StoreId(sub.to_string()));
-                    // }
-                } else {
-                    tracing::debug!("Subdomain is empty after stripping base domain.");
-                }
-            } else {
-                tracing::debug!("Host does not end with base domain.");
-            }
+    async fn from_request_parts(_parts: &mut Parts, _state: &S) -> Result<Self, Self::Rejection> {
+        // TODO: extract the store_id
+        return Ok(StoreId("some".to_string()));
+    }
+}
+
+impl<S: Send + Sync> FromRequestParts<S> for UserData {
+    type Rejection = UnauthorizedRejection;
+
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let cookies = Cookies::from_request_parts(parts, state)
+            .await
+            .map_err(|_| UnauthorizedRejection)?;
+
+        let access = cookies
+            .get("access_token")
+            .map(|c| c.value().to_string())
+            .ok_or(UnauthorizedRejection)?;
+
+        let access_token = decode_access_token(&access);
+        if let Some(data) = access_token {
+            return Ok(data);
         } else {
-            tracing::debug!("Host header missing or invalid.");
+            let refresh = cookies
+                .get("refresh_token")
+                .map(|c| c.value().to_string())
+                .ok_or(UnauthorizedRejection)?;
+            let refresh_token = decode_refresh_token(&refresh);
+            if let Some(_) = refresh_token {
+                todo!("implement refresh token logic")
+            }
         }
 
-        Err(StoreIdRejection)
+        Err(UnauthorizedRejection)
     }
 }

@@ -1,0 +1,19 @@
+---
+import Layout from "./Layout.astro"
+
+---
+<Layout>
+  <main>
+      <slot />
+  </main>
+</Layout>
+
+<style>
+  main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--bg);
+  }
+</style>
+

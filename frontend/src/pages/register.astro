@@ -1,0 +1,13 @@
+---
+import AuthLayout from "../layouts/AuthLayout.astro";
+import Card from "../components/Card.astro";
+import RegisterForm from "../components/RegisterForm.svelte";
+---
+
+<AuthLayout>
+  <Card>
+    <h1>Register</h1>
+    <RegisterForm client:visible />
+    <p>Already have an account? <a href="/login">Login here</a></p>
+  </Card>
+</AuthLayout>

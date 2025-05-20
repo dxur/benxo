@@ -1,4 +1,6 @@
 use crate::models::user::*;
+use bson::DateTime;
+use field::field;
 use mongodb::bson::{doc, oid::ObjectId, to_document, Document};
 use serde::{Deserialize, Serialize};
 
@@ -7,32 +9,49 @@ use super::*;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UserInDb {
     pub _id: ObjectId,
+    pub store_id: String,
     pub name: String,
     pub email: String,
     pub password: String,
-    pub permissions: UserPermissions,
+    pub created_at: DateTime,
+    pub updated_at: DateTime,
+}
+
+#[derive(Debug, Serialize)]
+pub struct UserFindInDb {
+    email: String,
+}
+
+impl IntoFilter for UserFindInDb {
+    fn into_filter(&self) -> Result<Document> {
+        to_document(self).map_err(|e| Error { msg: e.to_string() })
+    }
 }
 
 impl Into<UserPublic> for UserInDb {
     fn into(self) -> UserPublic {
         UserPublic {
             id: self._id,
+            store_id: self.store_id,
             name: self.name,
             email: self.email,
-            permissions: self.permissions,
         }
     }
 }
 
 impl ModelInDb for User {
     const COLLECTION_NAME: &'static str = "users";
+    const UNIQUE_INDICES: &'static [(&'static [&'static str], bool)] =
+        &[(&[field!(email @ UserInDb)], true)];
 
     type InDb = UserInDb;
 }
 
-impl Into<FindInDb> for &UserFetch {
-    fn into(self) -> FindInDb {
-        FindInDb { _id: self.id }
+impl Into<UserFindInDb> for &UserFetch {
+    fn into(self) -> UserFindInDb {
+        UserFindInDb {
+            email: self.email.clone(),
+        }
     }
 }
 
@@ -40,17 +59,21 @@ impl Into<UserInDb> for UserCreate {
     fn into(self) -> UserInDb {
         UserInDb {
             _id: ObjectId::new(),
+            store_id: self.store_id,
             name: self.name,
             email: self.email,
             password: self.password,
-            permissions: self.permissions,
+            created_at: DateTime::now(),
+            updated_at: DateTime::now(),
         }
     }
 }
 
-impl Into<FindInDb> for &UserUpdate {
-    fn into(self) -> FindInDb {
-        FindInDb { _id: self.id }
+impl Into<UserFindInDb> for &UserUpdate {
+    fn into(self) -> UserFindInDb {
+        UserFindInDb {
+            email: self.email.clone(),
+        }
     }
 }
 
@@ -60,14 +83,16 @@ impl Into<Result<Document>> for &UserUpdate {
     }
 }
 
-impl Into<FindInDb> for &UserDelete {
-    fn into(self) -> FindInDb {
-        FindInDb { _id: self.id }
+impl Into<UserFindInDb> for &UserDelete {
+    fn into(self) -> UserFindInDb {
+        UserFindInDb {
+            email: self.email.clone(),
+        }
     }
 }
 
 impl FindableInDb for User {
-    type FindInDb = FindInDb;
+    type FindInDb = UserFindInDb;
 }
 
 impl FetchableInDb for User {

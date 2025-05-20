@@ -1,4 +1,5 @@
 use crate::models::theme::*;
+use bson::DateTime;
 use field::*;
 use mongodb::bson::{doc, oid::ObjectId, to_document, Document};
 use serde::{Deserialize, Serialize};
@@ -10,6 +11,8 @@ pub struct ThemeInDb {
     pub _id: ObjectId,
     pub name: String,
     pub path: String,
+    pub created_at: DateTime,
+    pub updated_at: DateTime,
 }
 
 impl Into<ThemePublic> for ThemeInDb {

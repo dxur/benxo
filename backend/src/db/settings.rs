@@ -1,3 +1,4 @@
+use bson::DateTime;
 use field::*;
 use mongodb::bson::{doc, oid::ObjectId};
 use serde::{Deserialize, Serialize};
@@ -14,6 +15,8 @@ pub struct SettingsInDb {
     pub email: String,
     pub domain: String,
     pub active_theme: ObjectId,
+    pub created_at: DateTime,
+    pub updated_at: DateTime,
 }
 
 impl Into<SettingsPublic> for SettingsInDb {
@@ -36,9 +39,39 @@ impl Into<Result<Document>> for &SettingsUpdate {
 
 impl ModelInDb for Settings {
     const COLLECTION_NAME: &'static str = "settings";
-    const UNIQUE_INDICES: &'static [&'static str] = &[field!(store_id @ SettingsInDb)];
 
     type InDb = SettingsInDb;
+
+    async fn init_coll(db: &Db) -> Result<()> {
+        let coll = db.collection::<Self::InDb>(Self::COLLECTION_NAME);
+        coll.create_index(
+            IndexModel::builder()
+                .keys(doc! {
+                   field!(store_id @ SettingsInDb): 1,
+                })
+                .build(),
+        )
+        .await
+        .map_or_else(|e| Err(Error { msg: e.to_string() }), |_| Ok(()))?;
+
+        coll.create_index(
+            IndexModel::builder()
+                .keys(doc! {
+                    field!(domain @ SettingsInDb): 1,
+                })
+                .options(
+                    IndexOptions::builder()
+                        .unique(true)
+                        .partial_filter_expression(doc! {
+                            field!(domain @ SettingsInDb): { "$gt": "" }
+                        })
+                        .build(),
+                )
+                .build(),
+        )
+        .await
+        .map_or_else(|e| Err(Error { msg: e.to_string() }), |_| Ok(()))
+    }
 }
 
 impl FindableInDb for Settings {

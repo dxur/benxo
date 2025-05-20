@@ -1,0 +1,212 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+// Sample data (same as before)
+const featuredProducts = [
+  {
+    id: 1,
+    name: "Premium Wireless Headphones",
+    price: "$199.99",
+    imageUrl: "https://via.placeholder.com/450x450/E0E7FF/4338CA?text=Headphones", // Slightly different placeholder
+    description: "Experience immersive sound with our top-rated headphones.",
+    url: "/products/headphones"
+  },
+  {
+    id: 2,
+    name: "Elegant Smartwatch Series X",
+    price: "$249.50",
+    imageUrl: "https://via.placeholder.com/450x450/DBEAFE/1D4ED8?text=Smartwatch",
+    description: "Stay connected and stylish with our latest smartwatch.",
+    url: "/products/smartwatch"
+  },
+  {
+    id: 3,
+    name: "Organic Cotton T-Shirt",
+    price: "$29.99",
+    imageUrl: "https://via.placeholder.com/450x450/E0F2FE/075985?text=T-Shirt",
+    description: "Comfortable and sustainable, perfect for everyday wear.",
+    url: "/products/tshirt"
+  },
+   {
+    id: 4,
+    name: "Artisan Coffee Blend",
+    price: "$18.75",
+    imageUrl: "https://via.placeholder.com/450x450/EDE9FE/5B21B6?text=Coffee+Blend",
+    description: "Rich and aromatic, a perfect start to your day.",
+    url: "/products/coffee"
+  }
+];
+
+const valueProps = [
+    {
+        iconPath: "M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106A48.554 48.554 0 0 0 10.026 6H6M4.5 18.75H3.375c-.621 0-1.125-.504-1.125-1.125V14.25m13.5 0V9", // SVG path for truck
+        title: "Free Worldwide Shipping",
+        description: "Get your orders delivered to your doorstep, anywhere in the world, at no extra cost."
+    },
+    {
+        iconPath: "M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z", // SVG path for lock
+        title: "Secure Payments",
+        description: "Shop with confidence using our encrypted and secure payment gateways."
+    },
+    {
+        iconPath: "M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.822.672l-4.684-2.957a.562.562 0 0 0-.652 0l-4.684 2.957a.562.562 0 0 1-.822-.672l1.285-5.385a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z", // SVG path for star
+        title: "Premium Quality",
+        description: "All our products are crafted with the highest quality materials and attention to detail."
+    },
+    {
+        iconPath: "M12 20.25c.966 0 1.891-.39 2.573-1.072L18 15.75M12 20.25c-.966 0-1.891-.39-2.573-1.072L6 15.75M12 20.25v-4.5A2.25 2.25 0 0 1 14.25 13.5h1.5M12 20.25v-4.5A2.25 2.25 0 0 0 9.75 13.5h-1.5M3 9.75A9.75 9.75 0 0 1 12 0a9.75 9.75 0 0 1 9 9.75c0 4.72-3.201 9.25-9 13.5-5.799-4.25-9-8.78-9-13.5Z", // SVG path for chat/support
+        title: "24/7 Customer Support",
+        description: "Our dedicated support team is here to help you around the clock with any queries."
+    }
+]
+
+const primaryColor = "indigo"; // e.g., indigo, sky, rose, emerald. Check Tailwind colors.
+const secondaryColor = "green";
+---
+
+<Layout title="Your Awesome Store - Welcome!">
+  <main class="text-gray-800">
+    <section class="bg-gradient-to-br from-{primaryColor}-50 via-{primaryColor}-100 to-white dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div class="container mx-auto px-6 py-20 md:py-32 flex flex-col lg:flex-row items-center justify-between gap-12">
+        <div class="lg:w-1/2 text-center lg:text-left">
+          <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-{primaryColor}-700 dark:text-{primaryColor}-400 leading-tight mb-6">
+            Discover Your Next <span class="text-{secondaryColor}-500 dark:text-{secondaryColor}-400">Favorite Thing</span>
+          </h1>
+          <p class="text-lg md:text-xl text-gray-600 dark:text-gray-300 mb-10">
+            Shop our latest collection of high-quality products, curated just for you. Experience the difference.
+          </p>
+          <a href="/collections/all" class="inline-block bg-{primaryColor}-600 hover:bg-{primaryColor}-700 text-white font-semibold py-4 px-10 rounded-lg text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+            Shop All Products
+          </a>
+        </div>
+        <div class="lg:w-1/2 mt-10 lg:mt-0">
+          <img src="https://via.placeholder.com/700x550/BFDBFE/1E40AF?text=Stunning+Product+Display" alt="Featured Product Showcase" class="rounded-xl shadow-2xl w-full h-auto object-cover" />
+        </div>
+      </div>
+    </section>
+
+    <section class="py-16 sm:py-24 bg-white dark:bg-gray-800">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl sm:text-4xl font-bold text-center text-gray-800 dark:text-white mb-16">Why Shop With Us?</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10">
+                {valueProps.map(prop => (
+                    <div class="flex flex-col items-center text-center p-6 bg-gray-50 dark:bg-gray-700 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
+                        <div class={`bg-${primaryColor}-100 dark:bg-${primaryColor}-700 p-4 rounded-full mb-5`}>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class={`w-8 h-8 text-${primaryColor}-600 dark:text-${primaryColor}-300`}>
+                                <path stroke-linecap="round" stroke-linejoin="round" d={prop.iconPath} />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-100 mb-2">{prop.title}</h3>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">{prop.description}</p>
+                    </div>
+                ))}
+            </div>
+        </div>
+    </section>
+
+    <section class="py-16 sm:py-24 bg-gray-50 dark:bg-gray-900">
+      <div class="container mx-auto px-6">
+        <h2 class="text-3xl sm:text-4xl font-bold text-center text-gray-800 dark:text-white mb-16">Featured Products</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          {featuredProducts.map(product => (
+            <a href={product.url} class="group block bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1">
+              <div class="relative overflow-hidden h-64">
+                <img src={product.imageUrl} alt={product.name} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
+                <div class="absolute inset-0 bg-black bg-opacity-10 group-hover:bg-opacity-0 transition-opacity duration-300"></div>
+              </div>
+              <div class="p-6">
+                <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-2 truncate group-hover:text-{primaryColor}-600 dark:group-hover:text-{primaryColor}-400">{product.name}</h3>
+                <p class="text-lg font-bold text-{primaryColor}-600 dark:text-{primaryColor}-400 mb-4">{product.price}</p>
+                <button class="w-full bg-{secondaryColor}-500 hover:bg-{secondaryColor}-600 text-white font-medium py-3 px-5 rounded-lg transition-colors duration-300 text-center">
+                  View Product
+                </button>
+              </div>
+            </a>
+          ))}
+        </div>
+        <div class="text-center mt-16">
+            <a href="/collections/all" class="text-{primaryColor}-600 dark:text-{primaryColor}-400 hover:text-{primaryColor}-800 dark:hover:text-{primaryColor}-200 font-semibold text-lg group">
+                Shop All Products
+                <span aria-hidden="true" class="inline-block transition-transform group-hover:translate-x-1 ml-1">&rarr;</span>
+            </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="py-16 sm:py-24 bg-{primaryColor}-600 dark:bg-{primaryColor}-800 text-white">
+        <div class="container mx-auto px-6 flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+            <div class="lg:w-1/2">
+                <img src="https://via.placeholder.com/600x450/A5B4FC/312E81?text=Seasonal+Collection" alt="Summer Collection" class="rounded-xl shadow-2xl w-full h-auto object-cover" />
+            </div>
+            <div class="lg:w-1/2 text-center lg:text-left">
+                <h2 class="text-3xl sm:text-4xl font-bold mb-6">Explore Our <span class="text-{secondaryColor}-300">Seasonal</span> Collection</h2>
+                <p class="text-lg text-{primaryColor}-100 dark:text-{primaryColor}-200 mb-10">
+                    Brighten up your style with fresh arrivals perfect for the season. Limited stock available! Don't miss out.
+                </p>
+                <a href="/collections/summer" class="inline-block bg-white hover:bg-gray-100 text-{primaryColor}-700 font-semibold py-4 px-10 rounded-lg text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                    Shop The Collection
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-16 sm:py-24 bg-gray-50 dark:bg-gray-900">
+      <div class="container mx-auto px-6">
+        <h2 class="text-3xl sm:text-4xl font-bold text-center text-gray-800 dark:text-white mb-16">What Our Customers Say</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {[
+            { text: "Absolutely love the quality and design! My new favorite store. The shipping was surprisingly fast too.", author: "Alex P.", avatar: "https://via.placeholder.com/80x80/C7D2FE/4338CA?text=AP" },
+            { text: "Fantastic customer service and the product exceeded my expectations. Will definitely shop here again.", author: "Jamie L.", avatar: "https://via.placeholder.com/80x80/A5F3FC/0E7490?text=JL" },
+            { text: "Great prices for such high-quality items. The unboxing experience was also a nice touch! Highly recommend.", author: "Morgan K.", avatar: "https://via.placeholder.com/80x80/FBCFE8/9D174D?text=MK" }
+          ].map(testimonial => (
+            <div class="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-xl hover:shadow-2xl transition-shadow duration-300 flex flex-col">
+              <div class="flex-grow">
+                <svg class="w-10 h-10 text-{primaryColor}-500 dark:text-{primaryColor}-400 mb-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3.5a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-2a.999.999 0 01.788 0l4 2a.999.999 0 01.356.257l2.644-.691a1 1 0 000-1.84l-7-3.5zM2 9.667l10 5 10-5-10-5-10 5zM2 12.667l10 5 10-5v1.333l-10 5-10-5v-1.333z"></path> {/* Placeholder quote icon, replace if desired */}
+                </svg>
+                <p class="text-gray-600 dark:text-gray-300 italic mb-6 leading-relaxed">"{testimonial.text}"</p>
+              </div>
+              <div class="flex items-center mt-auto">
+                <img src={testimonial.avatar} alt={testimonial.author} class="w-12 h-12 rounded-full mr-4 object-cover"/>
+                <div>
+                  <p class="font-semibold text-gray-700 dark:text-gray-100">{testimonial.author}</p>
+                  <p class="text-sm text-{primaryColor}-500 dark:text-{primaryColor}-400">Verified Buyer</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="py-16 sm:py-24 bg-gradient-to-r from-{primaryColor}-600 to-{primaryColor}-700 dark:from-gray-800 dark:to-gray-900">
+      <div class="container mx-auto px-6 text-center">
+        <h2 class="text-3xl sm:text-4xl font-bold text-white mb-6">Stay In The Know</h2>
+        <p class="text-lg text-{primaryColor}-100 dark:text-gray-300 mb-10 max-w-2xl mx-auto">
+          Subscribe to our newsletter for exclusive deals, new product announcements, and a dash of inspiration.
+        </p>
+        <form class="max-w-lg mx-auto flex flex-col sm:flex-row gap-4">
+          <label for="email-address" class="sr-only">Email address</label>
+          <input
+            id="email-address"
+            name="email"
+            type="email"
+            autocomplete="email"
+            required
+            class="flex-grow appearance-none min-w-0 w-full bg-white dark:bg-gray-700 border border-transparent rounded-md py-3 px-4 text-base text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-{primaryColor}-700 dark:focus:ring-offset-gray-800 focus:ring-white focus:border-white"
+            placeholder="Enter your email address"
+          />
+          <button
+            type="submit"
+            class="w-full sm:w-auto bg-{secondaryColor}-500 hover:bg-{secondaryColor}-600 text-white font-semibold py-3 px-8 rounded-md shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5"
+          >
+            Subscribe
+          </button>
+        </form>
+        <p class="mt-6 text-sm text-{primaryColor}-200 dark:text-gray-400">
+          We respect your privacy. Unsubscribe at any time.
+        </p>
+      </div>
+    </section>
+  </main>
+</Layout>

@@ -24,44 +24,48 @@ pub enum Access {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UserPermissions(Vec<(Permission, Access)>);
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct UserFetch {
-    pub id: ObjectId,
+    pub email: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct UserCreate {
+    pub store_id: String,
     pub name: String,
     pub email: String,
     pub password: String,
-    pub permissions: UserPermissions,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, TS)]
 pub struct UserUpdateBody {
     pub name: Option<String>,
     pub email: Option<String>,
     pub password: Option<String>,
-    pub permissions: Option<UserPermissions>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct UserUpdate {
-    pub id: ObjectId,
+    pub email: String,
     pub body: UserUpdateBody,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct UserDelete {
-    pub id: ObjectId,
+    pub email: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, TS)]
+#[ts(export)]
 pub struct UserPublic {
     pub id: ObjectId,
+    pub store_id: String,
     pub name: String,
     pub email: String,
-    pub permissions: UserPermissions,
 }
 
 pub struct User;

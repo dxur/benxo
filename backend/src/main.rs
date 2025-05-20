@@ -12,12 +12,14 @@ mod validators;
 extern crate dotenv_codegen;
 
 use axum::{routing::get, Router};
-use db::{product::Product, ModelInDb};
+use db::ModelInDb;
 use events::EventBus;
 use extractors::StoreId;
+use models::{order::Order, product::Product, settings::Settings, user::User};
 use routes::ApiRoutes;
 use std::sync::Arc;
 use tokio::net::TcpListener;
+use tower_cookies::CookieManagerLayer;
 use tower_http::trace::TraceLayer;
 use tracing::info;
 use utils::router::RoutePacked;
@@ -40,6 +42,9 @@ async fn main() {
 
     let db = db::Db::new(dotenv!("DB_URI"), dotenv!("DB_NAME")).await;
     Product::init_coll(&db).await.unwrap();
+    User::init_coll(&db).await.unwrap();
+    Settings::init_coll(&db).await.unwrap();
+    Order::init_coll(&db).await.unwrap();
 
     let (tx, rx) = tokio::sync::mpsc::channel(10);
     let event_bus = events::EventBus::new(tx);
@@ -53,8 +58,9 @@ async fn main() {
 
     let app = Router::new()
         .nest_packed(ApiRoutes::make_router())
-        .layer(TraceLayer::new_for_http())
         .route("/api/health", get(health))
+        .layer(CookieManagerLayer::new())
+        .layer(TraceLayer::new_for_http())
         .with_state(state);
 
     let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
@@ -63,5 +69,5 @@ async fn main() {
 }
 
 async fn health(StoreId(store_id): StoreId) -> String {
-    format!("StoreId({})", store_id)
+    format!("StoreId({:?})", store_id)
 }

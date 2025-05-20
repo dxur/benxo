@@ -57,6 +57,7 @@ pub enum OrderStatus {
 #[ts(export)]
 pub struct OrderHistoryEntry {
     pub status: OrderStatus,
+    pub time: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, TS)]
