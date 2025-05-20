@@ -6,7 +6,9 @@
 
   function submit() {
     console.log("register");
-    ApiRoutes.login({ email, password });
+    ApiRoutes.login({ email, password }).then((_) => {
+      location.assign("/mystore");
+    });
   }
 </script>
 

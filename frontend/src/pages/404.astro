@@ -1,0 +1,27 @@
+---
+import CenterLayout from "@/layouts/CenterLayout.astro";
+import Card from "@/components/Card.astro";
+---
+
+<CenterLayout>
+  <Card>
+    <h1>🚀 Lost in Space?</h1>
+    <p>
+      Don't worry, it happens to the best of us.<br /> Double-check the URL, or head
+      back
+      <a href="/">home</a>.
+    </p>
+  </Card>
+</CenterLayout>
+
+<style>
+  h1,
+  p {
+    text-align: center;
+  }
+
+  p {
+    max-width: 450px;
+    font-size: var(--font-size-xl);
+  }
+</style>

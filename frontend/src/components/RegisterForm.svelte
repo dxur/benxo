@@ -7,7 +7,9 @@
 
   function submit() {
     console.log("register");
-    ApiRoutes.register({ name, email, password });
+    ApiRoutes.register({ name, email, password }).then((_) => {
+      location.assign("/login");
+    });
   }
 </script>
 
