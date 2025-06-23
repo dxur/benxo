@@ -7,11 +7,12 @@ use serde::{Deserialize, Serialize};
 use super::*;
 use super::{Error, FetchableInDb, FindableInDb, ModelInDb};
 use crate::models::order::*;
+use crate::register_model;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct OrderInDb {
     pub _id: ObjectId,
-    pub store_id: String,
+    pub business_id: ObjectId,
     pub status: OrderStatus,
     pub full_name: String,
     pub phone: String,
@@ -68,12 +69,12 @@ impl Into<FindInDb> for &OrderUpdate {
     }
 }
 
-impl From<ByStoreId<OrderCreate>> for OrderInDb {
-    fn from(value: ByStoreId<OrderCreate>) -> Self {
-        let ByStoreId { store_id, body } = value;
+impl From<ByBusinessId<OrderCreate>> for OrderInDb {
+    fn from(value: ByBusinessId<OrderCreate>) -> Self {
+        let ByBusinessId { business_id, body } = value;
         OrderInDb {
             _id: ObjectId::new(),
-            store_id,
+            business_id,
             status: OrderStatus::Pending,
             full_name: body.full_name,
             phone: body.phone,
@@ -93,12 +94,13 @@ impl From<ByStoreId<OrderCreate>> for OrderInDb {
     }
 }
 
+register_model!(Order);
 impl ModelInDb for Order {
     const COLLECTION_NAME: &'static str = "orders";
     const UNIQUE_INDICES: &'static [(&'static [&'static str], bool)] = &[
-        (&[field!(store_id @ OrderInDb)], false),
+        (&[field!(business_id @ OrderInDb)], false),
         (
-            &[field!(store_id @ OrderInDb), field!(_id @ OrderInDb)],
+            &[field!(business_id @ OrderInDb), field!(_id @ OrderInDb)],
             false,
         ),
     ];
@@ -107,19 +109,19 @@ impl ModelInDb for Order {
 }
 
 impl FindableInDb for Order {
-    type FindInDb = ByStoreId<FindInDb>;
+    type FindInDb = ByBusinessId<FindInDb>;
 }
 
 impl FetchableInDb for Order {
-    type FetchInDb = ByStoreId<OrderFetch>;
+    type FetchInDb = ByBusinessId<OrderFetch>;
 }
 
 impl ListableInDb for Order {
-    type ListInDb = ByStoreId<Void>;
+    type ListInDb = ByBusinessId<Void>;
 }
 
 impl CreatableInDb for Order {
-    type CreateInDb = ByStoreId<OrderCreate>;
+    type CreateInDb = ByBusinessId<OrderCreate>;
 
     // async fn create(db: &Db, body: Self::Create) -> Result<Self::InDb> {
     //     if body.items.len() == 0 {
@@ -192,7 +194,7 @@ impl CreatableInDb for Order {
 }
 
 impl UpdatableInDb for Order {
-    type UpdateInDb = ByStoreId<OrderUpdate>;
+    type UpdateInDb = ByBusinessId<OrderUpdate>;
 
     async fn update(
         db: &Db,
@@ -242,7 +244,7 @@ impl UpdatableInDb for Order {
 }
 
 impl DeletableInDb for Order {
-    type DeleteInDb = ByStoreId<OrderDelete>;
+    type DeleteInDb = ByBusinessId<OrderDelete>;
 
     // async fn delete(_: &Db, _: Self::Delete) -> Result<Option<(Self::DeleteInDb, Self::InDb)>> {
     //     todo!("Not implemented")

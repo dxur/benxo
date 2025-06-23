@@ -7,8 +7,7 @@
   import { writable } from "svelte/store";
   import { useNavigate } from "@dvcol/svelte-simple-router";
   import { AppRoutes } from "../../routes";
-  import { getOid } from "../../lib/utils";
-  import { notifCenter } from "../../stores/notifications";
+  import { notifCenter } from "@/stores/notifications";
   import type { Page } from "@bindings/Page";
   import type { ProductPublic } from "@bindings/ProductPublic";
   import type { LoadingStatus } from "../../components/LoadingShow.svelte";
@@ -50,7 +49,7 @@
   function edit(id: string) {
     push({
       path: AppRoutes.PRODUCT.path,
-      params: { oid: getOid(id) },
+      params: { oid: id },
     });
   }
 
@@ -159,8 +158,8 @@
           <input type="text" bind:value={fields.category} required />
         </label>
       </fieldset>
-      <button type="button" on:click={() => dialog.close()}>Close</button>
       <button type="submit">Submit</button>
+      <button type="button" on:click={() => dialog.close()}>Close</button>
     </form>
   </Dialog>
 </LoadingShow>

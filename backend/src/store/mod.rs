@@ -1,12 +1,9 @@
 mod config;
 mod registry;
 
-use crate::models::product::{ProductPublic, ProductUpdate};
-use crate::utils::error::Error;
-use crate::utils::types::{AtLeast, Result};
+use crate::utils::types::Result;
 use crate::AppState;
-use registry::{Registry, Templates};
-use tokio::fs;
+use registry::Registry;
 
 pub struct StoreManager {
     registry: Registry,

@@ -33,10 +33,20 @@ export namespace AppRoutes {
     path: "/products/:oid",
     component: () => import("./pages/products/edit.svelte"),
   };
-  export const STORE: Route = {
+  export const CHANNELS: Route = {
+    name: "Channels",
+    path: "/channels",
+    component: () => import("./pages/channels/index.svelte"),
+  };
+  export const CHANNEL_STORE: Route = {
     name: "Store",
-    path: "/store",
-    component: () => import("./pages/store/index.svelte"),
+    path: "/channels/store/:oid",
+    component: () => import("./pages/channels/store.svelte"),
+  };
+  export const CHANNEL_API: Route = {
+    name: "API",
+    path: "/channels/api/:oid",
+    component: () => import("./pages/channels/api.svelte"),
   };
   export const SETTINGS: Route = {
     name: "Settings",
@@ -58,9 +68,11 @@ export default <Route[]>[
   AppRoutes.ORDER,
   AppRoutes.PRODUCTS,
   AppRoutes.PRODUCT,
-  AppRoutes.STORE,
+  // AppRoutes.STORE,
   // AppRoutes.DELIVERY,
-  // AppRoutes.CHANNELS,
   // AppRoutes.USERS,
+  AppRoutes.CHANNELS,
+  AppRoutes.CHANNEL_STORE,
+  AppRoutes.CHANNEL_API,
   AppRoutes.SETTINGS
 ];

@@ -9,7 +9,7 @@
   import Table from "../../components/Table.svelte";
   import Timeline from "../../components/Timeline.svelte";
   import Dialog from "../../components/Dialog.svelte";
-  import { notifCenter } from "../../stores/notifications";
+  import { notifCenter } from "@/stores/notifications";
   import * as ApiRoutes from "@bindings/ApiRoutes";
   import { AppRoutes } from "../../routes";
   import { useRoute } from "@dvcol/svelte-simple-router/router";
@@ -32,7 +32,6 @@
     name: string;
     email: string;
     phone: string;
-    domain: string;
   };
 
   function pull() {
@@ -71,7 +70,6 @@
       name: settings.name,
       email: settings.email,
       phone: settings.phone,
-      domain: settings.domain,
     };
   }
 
@@ -144,30 +142,25 @@
                 />
               </label>
             </fieldset>
-            <fieldset>
-              <label>
-                Domain
-                <input
-                  readonly={!fields.edit_basic}
-                  type="text"
-                  placeholder="example.com"
-                  pattern="^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*$"
-                  bind:value={fields.domain}
-                  required
-                />
-              </label>
-            </fieldset>
           </Card>
         </Content>
         <Panel>
           <Card>
-            <h3>Plan</h3>
-            <Timeline>
-              <li>
-                <strong> Free Plan </strong>
-                <time> May 1, 2024 - 10:00 AM </time>
-              </li>
-            </Timeline>
+            <Row>
+              <h3>Something</h3>
+              <button type="button"> Edit </button>
+            </Row>
+            <fieldset>
+              <label>
+                <input
+                  readonly={true}
+                  type="text"
+                  placeholder="Something"
+                  pattern="^[a-zA-Z0-9]+(?:-[a-zA-Z0-9]+)*$"
+                  required
+                />
+              </label>
+            </fieldset>
           </Card>
         </Panel>
       </section>

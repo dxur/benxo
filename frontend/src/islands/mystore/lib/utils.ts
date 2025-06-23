@@ -1,7 +1,3 @@
-export function getOid(id: any): string {
-    return id.$oid;
-}
-
 export function isNone(value: any): boolean {
     return Object.keys(value).every(key => (value[key] === undefined || value[key] === null));
 }
@@ -28,7 +24,7 @@ export function deepEqual(a: any, b: any) {
 }
 
 export function formatDate(time: bigint) {
-   const date = new Date(time);
+    const date = new Date(time);
 
     const options = {
         month: 'long',

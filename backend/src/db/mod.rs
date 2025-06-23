@@ -1,19 +1,24 @@
 pub mod order;
 pub mod product;
 pub mod settings;
+pub mod store;
 // pub mod theme;
+pub mod channel;
 pub mod user;
 
 use bson::oid::ObjectId;
 use bson::to_document;
 use futures::TryStreamExt;
+use linkme::distributed_slice;
 use mongodb::bson::{doc, Document};
 use mongodb::options::{FindOneAndUpdateOptions, FindOptions, IndexOptions, ReturnDocument};
 use mongodb::IndexModel;
 use mongodb::{options::ClientOptions, Client, Database};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
+use std::future::Future;
 use std::ops::Deref;
+use std::pin::Pin;
 
 use crate::models::*;
 use crate::utils::error::*;
@@ -25,7 +30,9 @@ pub struct Db(Database);
 impl Db {
     pub async fn new(uri: &str, name: &str) -> Self {
         let client_options = ClientOptions::parse(uri).await.unwrap();
-        Db(Client::with_options(client_options).unwrap().database(name))
+        let db = Db(Client::with_options(client_options).unwrap().database(name));
+        init_models(&db).await;
+        db
     }
 }
 
@@ -36,7 +43,20 @@ impl Deref for Db {
     }
 }
 
-pub trait ModelInDb: Model {
+pub trait ModelRegisteredByMacro {}
+
+pub type ModelInitFn = for<'a> fn(&'a Db) -> Pin<Box<dyn Future<Output = Result<()>> + Send + 'a>>;
+
+#[distributed_slice]
+pub static MODELS_INIT: [ModelInitFn];
+
+pub async fn init_models(db: &Db) {
+    for f in MODELS_INIT {
+        f(&db).await.unwrap();
+    }
+}
+
+pub trait ModelInDb: Model + ModelRegisteredByMacro {
     const COLLECTION_NAME: &'static str;
     const UNIQUE_INDICES: &'static [(&'static [&'static str], bool)] = &[];
 
@@ -72,33 +92,36 @@ pub trait IntoFilter {
 }
 
 #[derive(Debug, Serialize)]
-pub struct FindInDb {
-    pub _id: ObjectId,
+pub struct FindInDb<T = ObjectId>
+where
+    T: Serialize,
+{
+    pub _id: T,
 }
 
 #[derive(Debug, Serialize)]
-pub struct ByStoreId<T> {
-    pub store_id: String,
+pub struct ByBusinessId<T> {
+    pub business_id: ObjectId,
     #[serde(skip)]
     pub body: T,
 }
 
-impl IntoFilter for ByStoreId<FindInDb> {
+impl<T: IntoFilter> IntoFilter for ByBusinessId<T> {
     fn into_filter(&self) -> Result<Document> {
-        let d = to_document(&self.body).map_err(|e| Error { msg: e.to_string() })?;
+        let d = self.body.into_filter()?;
         let mut res = to_document(self).map_err(|e| Error { msg: e.to_string() })?;
         res.extend(d);
         Ok(res)
     }
 }
 
-impl IntoFilter for ByStoreId<Void> {
+impl IntoFilter for ByBusinessId<Void> {
     fn into_filter(&self) -> Result<Document> {
         to_document(self).map_err(|e| Error { msg: e.to_string() })
     }
 }
 
-impl<T> Into<Result<Document>> for &ByStoreId<T>
+impl<T> Into<Result<Document>> for &ByBusinessId<T>
 where
     T: RefInto<Result<Document>>,
 {
@@ -107,26 +130,26 @@ where
     }
 }
 
-impl<T> From<HaveContext<T, String>> for ByStoreId<T> {
-    fn from(value: HaveContext<T, String>) -> Self {
-        let HaveContext(body, store_id) = value;
-        Self { store_id, body }
+impl<T> From<HaveContext<T, ObjectId>> for ByBusinessId<T> {
+    fn from(value: HaveContext<T, ObjectId>) -> Self {
+        let HaveContext(body, business_id) = value;
+        Self { business_id, body }
     }
 }
 
-impl<T, U> Into<ByStoreId<U>> for &ByStoreId<T>
+impl<T, U> Into<ByBusinessId<U>> for &ByBusinessId<T>
 where
     T: RefInto<U>,
 {
-    fn into(self) -> ByStoreId<U> {
-        ByStoreId {
-            store_id: self.store_id.clone(),
+    fn into(self) -> ByBusinessId<U> {
+        ByBusinessId {
+            business_id: self.business_id.clone(),
             body: self.body.ref_into(),
         }
     }
 }
 
-impl IntoFilter for FindInDb {
+impl<T: Serialize> IntoFilter for FindInDb<T> {
     fn into_filter(&self) -> Result<Document> {
         to_document(self).map_err(|e| Error { msg: e.to_string() })
     }

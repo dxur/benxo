@@ -9,7 +9,7 @@
   import Badges from "../../components/Badges.svelte";
   import Badge from "../../components/Badge.svelte";
   import Table from "../../components/Table.svelte";
-  import { notifCenter } from "../../stores/notifications";
+  import { notifCenter } from "@/stores/notifications";
   import * as ApiRoutes from "@bindings/ApiRoutes";
   import { AppRoutes } from "../../routes";
   import { useRoute } from "@dvcol/svelte-simple-router/router";

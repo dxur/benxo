@@ -1,4 +1,5 @@
 use bson::oid::ObjectId;
+use macros::Model;
 use serde::{Deserialize, Serialize};
 
 use super::*;
@@ -20,15 +21,6 @@ pub struct SettingsPublic {
     pub domain: String,
 }
 
+#[derive(Model)]
+#[model(public=SettingsPublic, fetch=Void, update=SettingsUpdate)]
 pub struct Settings;
-impl Model for Settings {
-    type Public = SettingsPublic;
-}
-
-impl Fetchable for Settings {
-    type Fetch = Void;
-}
-
-impl Updatable for Settings {
-    type Update = SettingsUpdate;
-}

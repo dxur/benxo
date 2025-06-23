@@ -1,8 +1,10 @@
 pub mod auth;
+pub mod channel;
 pub mod delivery;
 pub mod order;
 pub mod product;
 pub mod settings;
+pub mod store;
 pub mod theme;
 pub mod user;
 

@@ -5,7 +5,7 @@ pub struct Error {
 }
 
 impl From<()> for Error {
-    fn from(value: ()) -> Self {
+    fn from(_: ()) -> Self {
         Error {
             msg: "Unknown".to_string(),
         }
@@ -14,14 +14,12 @@ impl From<()> for Error {
 
 impl From<String> for Error {
     fn from(value: String) -> Self {
-        Error {
-            msg: value,
-        }
+        Error { msg: value }
     }
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, _: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         todo!()
     }
 }

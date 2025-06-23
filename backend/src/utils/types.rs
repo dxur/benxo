@@ -1,3 +1,7 @@
+use axum::Json;
+use hyper::StatusCode;
+use serde::Serialize;
+
 use crate::models::Void;
 
 use super::error::Error;
@@ -68,5 +72,15 @@ impl<T> IntoContext for T {
 impl<C> From<C> for HaveContext<Void, C> {
     fn from(value: C) -> Self {
         Self(Void, value)
+    }
+}
+
+pub trait ResultJsonExt<T> {
+    fn into_json(self) -> std::result::Result<Json<T>, StatusCode>;
+}
+
+impl<T> ResultJsonExt<T> for std::result::Result<T, StatusCode> {
+    fn into_json(self) -> std::result::Result<Json<T>, StatusCode> {
+        Ok(Json(self?))
     }
 }

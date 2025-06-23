@@ -1,4 +1,5 @@
 use bson::oid::ObjectId;
+use bson::serde_helpers::serialize_object_id_as_hex_string;
 use serde::{Deserialize, Serialize};
 
 use super::*;
@@ -33,7 +34,6 @@ pub struct UserFetch {
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct UserCreate {
-    pub store_id: String,
     pub name: String,
     pub email: String,
     pub password: String,
@@ -62,8 +62,8 @@ pub struct UserDelete {
 #[derive(Debug, Serialize, Deserialize, Clone, TS)]
 #[ts(export)]
 pub struct UserPublic {
+    #[serde(serialize_with = "serialize_object_id_as_hex_string")]
     pub id: ObjectId,
-    pub store_id: String,
     pub name: String,
     pub email: String,
 }

@@ -7,7 +7,7 @@ api:
   insecure: true
 
 log:
-  level: DEBUG
+  level: TRACE
   # filePath: /tmp/log/traefik.log
 
 providers:

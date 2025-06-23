@@ -1,5 +1,7 @@
 use bson::oid::ObjectId;
+use bson::serde_helpers::serialize_object_id_as_hex_string;
 use indexmap::{IndexMap, IndexSet};
+use macros::Model;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use ts_rs::TS;
@@ -76,6 +78,7 @@ pub struct ProductVariant {
 #[derive(Debug, Serialize, Deserialize, Clone, TS)]
 #[ts(export)]
 pub struct ProductPublic {
+    #[serde(serialize_with = "serialize_object_id_as_hex_string")]
     pub id: ObjectId,
     pub name: String,
     pub description: String,
@@ -89,19 +92,6 @@ pub struct ProductPublic {
     pub slug: String,
 }
 
+#[derive(Model)]
+#[model(public=ProductPublic, fetch=ProductFetch, create=ProductCreate, update=ProductUpdate, delete=ProductDelete)]
 pub struct Product;
-impl Model for Product {
-    type Public = ProductPublic;
-}
-impl Fetchable for Product {
-    type Fetch = ProductFetch;
-}
-impl Creatable for Product {
-    type Create = ProductCreate;
-}
-impl Updatable for Product {
-    type Update = ProductUpdate;
-}
-impl Deletable for Product {
-    type Delete = ProductDelete;
-}

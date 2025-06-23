@@ -2,7 +2,6 @@ use crate::models::product::ProductUpdate;
 use crate::models::ObjectId;
 use crate::store::StoreManager;
 use tokio::{sync::mpsc::*, task};
-use tracing::info;
 
 use crate::db::product::ProductInDb;
 use crate::AppState;

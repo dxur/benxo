@@ -1,18 +1,25 @@
 <script lang="ts">
   import * as ApiRoutes from "@bindings/ApiRoutes";
+  import { onMount } from "svelte";
+  import Notifications from "./Notifications.svelte";
+  import { notifCenter } from "@/stores/notifications";
 
   let name: string;
   let email: string;
   let password: string;
 
   function submit() {
-    console.log("register");
-    ApiRoutes.register({ name, email, password }).then((_) => {
-      location.assign("/login");
-    });
+    ApiRoutes.register({ name, email, password })
+      .then((_) => {
+        location.replace("/login");
+      })
+      .catch((e) => {
+        notifCenter.error(e);
+      });
   }
 </script>
 
+<Notifications />
 <form
   on:submit={(ev) => {
     ev.preventDefault();

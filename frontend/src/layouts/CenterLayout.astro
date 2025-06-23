@@ -1,12 +1,13 @@
 ---
-import Layout from "./Layout.astro"
-
+import Base from "./Base.astro";
+let { title } = Astro.props;
 ---
-<Layout>
+
+<Base title={title}>
   <main>
-      <slot />
+    <slot />
   </main>
-</Layout>
+</Base>
 
 <style>
   main {
@@ -16,4 +17,3 @@ import Layout from "./Layout.astro"
     background-color: var(--bg);
   }
 </style>
-

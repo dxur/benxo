@@ -7,8 +7,7 @@
   import { writable } from "svelte/store";
   import { useNavigate } from "@dvcol/svelte-simple-router";
   import { AppRoutes } from "../../routes";
-  import { getOid } from "../../lib/utils";
-  import { notifCenter } from "../../stores/notifications";
+  import { notifCenter } from "@/stores/notifications";
   import type { Page } from "@bindings/Page";
   import type { OrderPublic } from "@bindings/OrderPublic";
   import type { DeliveryType } from "@bindings/DeliveryType";
@@ -56,7 +55,7 @@
   function edit(id: string) {
     push({
       path: AppRoutes.ORDER.path,
-      params: { oid: getOid(id) },
+      params: { oid: id },
     });
   }
 
@@ -185,8 +184,8 @@
           <input type="text" bind:value={fields.note} required />
         </label>
       </fieldset>
-      <button type="button" on:click={() => dialog.close()}>Close</button>
       <button type="submit">Submit</button>
+      <button type="button" on:click={() => dialog.close()}>Close</button>
     </form>
   </Dialog>
 </LoadingShow>

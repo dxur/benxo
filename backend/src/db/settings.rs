@@ -4,11 +4,11 @@ use mongodb::bson::{doc, oid::ObjectId};
 use serde::{Deserialize, Serialize};
 
 use super::*;
-use crate::models::settings::*;
+use crate::{models::settings::*, register_model};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SettingsInDb {
-    pub store_id: String,
+    pub business_id: ObjectId,
     pub name: String,
     pub description: String,
     pub phone: String,
@@ -37,6 +37,7 @@ impl Into<Result<Document>> for &SettingsUpdate {
     }
 }
 
+register_model!(Settings);
 impl ModelInDb for Settings {
     const COLLECTION_NAME: &'static str = "settings";
 
@@ -47,7 +48,7 @@ impl ModelInDb for Settings {
         coll.create_index(
             IndexModel::builder()
                 .keys(doc! {
-                   field!(store_id @ SettingsInDb): 1,
+                   field!(business_id @ SettingsInDb): 1,
                 })
                 .build(),
         )
@@ -75,13 +76,13 @@ impl ModelInDb for Settings {
 }
 
 impl FindableInDb for Settings {
-    type FindInDb = ByStoreId<Void>;
+    type FindInDb = ByBusinessId<Void>;
 }
 
 impl FetchableInDb for Settings {
-    type FetchInDb = ByStoreId<Void>;
+    type FetchInDb = ByBusinessId<Void>;
 }
 
 impl UpdatableInDb for Settings {
-    type UpdateInDb = ByStoreId<SettingsUpdate>;
+    type UpdateInDb = ByBusinessId<SettingsUpdate>;
 }

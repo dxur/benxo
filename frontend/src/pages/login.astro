@@ -1,13 +1,16 @@
 ---
 import CenterLayout from "../layouts/CenterLayout.astro";
-import Card from "../components/Card.astro";
+import Card from "../components/Card.svelte";
 import LoginForm from "../components/LoginForm.svelte";
+import CheckAuth from "../components/CheckAuth.svelte";
 ---
 
-<CenterLayout>
-  <Card>
-    <h1>Login</h1>
-    <LoginForm client:visible />
-    <p>Don't have an account? <a href="/register">Register here</a></p>
-  </Card>
+<CenterLayout title="Login">
+  <CheckAuth client:only isAuth={false} useReturnUrl={true} redirect="/mystore">
+    <Card>
+      <h1>Login</h1>
+      <LoginForm client:only />
+      <p>Don't have an account? <a href="/register">Register here</a></p>
+    </Card>
+  </CheckAuth>
 </CenterLayout>

@@ -1,20 +1,19 @@
 use bson::DateTime;
 use field::*;
 use indexmap::{IndexMap, IndexSet};
+use macros::model_in_db;
 use mongodb::bson::to_document;
 use mongodb::bson::{doc, oid::ObjectId, Document};
 use serde::{Deserialize, Serialize};
 
 use super::*;
-use crate::events::Event;
 pub use crate::models::product::Product;
 use crate::models::product::*;
-use crate::AppState;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ProductInDb {
     pub _id: ObjectId,
-    pub store_id: String,
+    pub business_id: ObjectId,
     pub name: String,
     pub description: String,
     pub featured: bool,
@@ -47,12 +46,12 @@ impl Into<ProductPublic> for ProductInDb {
     }
 }
 
-impl Into<ProductInDb> for ByStoreId<ProductCreate> {
+impl Into<ProductInDb> for ByBusinessId<ProductCreate> {
     fn into(self) -> ProductInDb {
-        let ByStoreId { store_id, body } = self;
+        let ByBusinessId { business_id, body } = self;
         ProductInDb {
             _id: ObjectId::new(),
-            store_id,
+            business_id,
             name: body.name,
             category: body.category,
             slug: body.slug,
@@ -93,6 +92,14 @@ impl Into<Result<Document>> for &ProductUpdate {
     }
 }
 
+#[model_in_db(
+    find=ByBusinessId<FindInDb>,
+    fetch=ByBusinessId<ProductFetch>,
+    list=ByBusinessId<Void>,
+    create=ByBusinessId<ProductCreate>,
+    update=ByBusinessId<ProductUpdate>,
+    delete=ByBusinessId<ProductDelete>,
+)]
 impl ModelInDb for Product {
     const COLLECTION_NAME: &'static str = "products";
 
@@ -100,7 +107,7 @@ impl ModelInDb for Product {
 
     async fn init_coll(db: &Db) -> Result<()> {
         let keys_doc = doc! {
-            field!(store_id @ ProductInDb): 1,
+            field!(business_id @ ProductInDb): 1,
             field!(slug @ ProductInDb): 1,
         };
 
@@ -112,7 +119,7 @@ impl ModelInDb for Product {
         coll.create_index(
             IndexModel::builder()
                 .keys(doc! {
-                   field!(store_id @ ProductInDb): 1,
+                   field!(business_id @ ProductInDb): 1,
                 })
                 .build(),
         )
@@ -132,49 +139,5 @@ impl ModelInDb for Product {
         )
         .await
         .map_or_else(|e| Err(Error { msg: e.to_string() }), |_| Ok(()))
-    }
-}
-
-impl FindableInDb for Product {
-    type FindInDb = ByStoreId<FindInDb>;
-}
-
-impl FetchableInDb for Product {
-    type FetchInDb = ByStoreId<ProductFetch>;
-}
-
-impl ListableInDb for Product {
-    type ListInDb = ByStoreId<Void>;
-}
-
-impl CreatableInDb for Product {
-    type CreateInDb = ByStoreId<ProductCreate>;
-    async fn on_create(state: &AppState, body: &Self::InDb) {
-        state
-            .event_bus
-            .emit(Event::ProductCreated(body.clone()))
-            .await;
-    }
-}
-
-impl UpdatableInDb for Product {
-    type UpdateInDb = ByStoreId<ProductUpdate>;
-
-    async fn on_update(state: &AppState, update: &Self::UpdateInDb, value: &Self::InDb) {
-        state
-            .event_bus
-            .emit(Event::ProductUpdated(update.body.clone(), value.clone()))
-            .await;
-    }
-}
-
-impl DeletableInDb for Product {
-    type DeleteInDb = ByStoreId<ProductDelete>;
-
-    async fn on_delete(state: &AppState, _: &Self::DeleteInDb, value: &Self::InDb) {
-        state
-            .event_bus
-            .emit(Event::ProductDeleted(value.clone()))
-            .await;
     }
 }

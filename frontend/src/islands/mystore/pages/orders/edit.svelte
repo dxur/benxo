@@ -9,7 +9,7 @@
   import Table from "../../components/Table.svelte";
   import Timeline from "../../components/Timeline.svelte";
   import Dialog from "../../components/Dialog.svelte";
-  import { notifCenter } from "../../stores/notifications";
+  import { notifCenter } from "@/stores/notifications";
   import * as ApiRoutes from "@bindings/ApiRoutes";
   import { AppRoutes } from "../../routes";
   import { useRoute } from "@dvcol/svelte-simple-router/router";
@@ -478,8 +478,8 @@
           <input type="number" required />
         </label>
       </fieldset>
-      <button type="button" on:click={() => dialog.close()}>Close</button>
       <button type="submit">Submit</button>
+      <button type="button" on:click={() => dialog.close()}>Close</button>
     </form>
   </Dialog>
 </LoadingShow>

@@ -21,6 +21,7 @@ impl Into<ThemePublic> for ThemeInDb {
     }
 }
 
+register_model!(Theme);
 impl ModelInDb for Theme {
     const COLLECTION_NAME: &'static str = "themes";
     const UNIQUE_INDICES: &'static [&'static str] = &[];

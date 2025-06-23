@@ -171,6 +171,8 @@ aside h1::before {
 }
 
 aside nav {
+    overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
     gap: var(--spacing-sm);

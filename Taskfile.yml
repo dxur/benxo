@@ -1,0 +1,18 @@
+version: '3'
+
+tasks:
+  default:
+    deps: [entry, db, backend, frontend]
+
+  db:
+    cmds:
+      - ./scripts/run-db.sh
+  entry:
+    cmds:
+      - ./scripts/run-proxy.sh
+  backend:
+    cmds:
+      - ./scripts/run-back.sh
+  frontend:
+    cmds:
+      - ./scripts/run-front.sh

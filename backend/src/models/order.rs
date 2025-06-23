@@ -1,5 +1,7 @@
 use bson::oid::ObjectId;
+use bson::serde_helpers::serialize_object_id_as_hex_string;
 use indexmap::IndexMap;
+use macros::Model;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use strum::{Display, EnumString, VariantNames};
@@ -131,6 +133,7 @@ pub struct OrderDelete {
 #[derive(Debug, Serialize, Deserialize, Clone, TS)]
 #[ts(export)]
 pub struct OrderPublic {
+    #[serde(serialize_with = "serialize_object_id_as_hex_string")]
     pub id: ObjectId,
     pub status: OrderStatus,
     pub full_name: String,
@@ -144,19 +147,6 @@ pub struct OrderPublic {
     pub history: Vec<OrderHistoryEntry>,
 }
 
+#[derive(Model)]
+#[model(public=OrderPublic, fetch=OrderFetch, create=OrderCreate, update=OrderUpdate, delete=OrderDelete)]
 pub struct Order;
-impl Model for Order {
-    type Public = OrderPublic;
-}
-impl Fetchable for Order {
-    type Fetch = OrderFetch;
-}
-impl Creatable for Order {
-    type Create = OrderCreate;
-}
-impl Updatable for Order {
-    type Update = OrderUpdate;
-}
-impl Deletable for Order {
-    type Delete = OrderDelete;
-}

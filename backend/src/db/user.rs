@@ -1,4 +1,4 @@
-use crate::models::user::*;
+use crate::{models::user::*, register_model};
 use bson::DateTime;
 use field::field;
 use mongodb::bson::{doc, oid::ObjectId, to_document, Document};
@@ -9,7 +9,7 @@ use super::*;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UserInDb {
     pub _id: ObjectId,
-    pub store_id: String,
+    pub business_id: ObjectId,
     pub name: String,
     pub email: String,
     pub password: String,
@@ -32,13 +32,13 @@ impl Into<UserPublic> for UserInDb {
     fn into(self) -> UserPublic {
         UserPublic {
             id: self._id,
-            store_id: self.store_id,
             name: self.name,
             email: self.email,
         }
     }
 }
 
+register_model!(User);
 impl ModelInDb for User {
     const COLLECTION_NAME: &'static str = "users";
     const UNIQUE_INDICES: &'static [(&'static [&'static str], bool)] =
@@ -59,7 +59,7 @@ impl Into<UserInDb> for UserCreate {
     fn into(self) -> UserInDb {
         UserInDb {
             _id: ObjectId::new(),
-            store_id: self.store_id,
+            business_id: ObjectId::new(),
             name: self.name,
             email: self.email,
             password: self.password,

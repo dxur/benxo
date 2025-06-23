@@ -1,108 +1,271 @@
 extern crate proc_macro;
 
+use core::panic;
 use std::collections::HashSet;
 
 use proc_macro::TokenStream;
 use proc_macro2::Span;
-use quote::{ToTokens, quote};
+use quote::{quote, ToTokens};
 use regex::Regex;
-use syn::{FnArg, Ident, ImplItem, ImplItemFn, ItemImpl, LitStr, PatType, meta, parse_macro_input};
+use syn::{
+    meta, parse_macro_input, punctuated::Punctuated, DeriveInput, FnArg, Ident, ImplItem,
+    ImplItemFn, ItemImpl, LitStr, Meta, PatType, Path, Type,
+};
 
-#[proc_macro_attribute]
-pub fn route(args: TokenStream, input: TokenStream) -> TokenStream {
-    let mut method: Option<Ident> = None;
-    let mut path: Option<LitStr> = None;
+#[proc_macro_derive(Model, attributes(model))]
+pub fn derive_model(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
 
-    let parser = meta::parser(|meta| {
-        if meta.path.is_ident("method") {
-            let ident: Ident = meta.value()?.parse()?;
+    let mut public = None;
+    let mut fetch = None;
+    let mut create = None;
+    let mut update = None;
+    let mut delete = None;
 
-            let valid_methods = [
-                "connect", "delete", "get", "head", "options", "patch", "post", "put", "trace",
-            ];
+    for attr in input.attrs {
+        if let Some(attr_meta_name) = attr.path().get_ident() {
+            if attr_meta_name == "model" {
+                let attr_meta = attr.meta;
 
-            if !valid_methods.contains(&ident.to_string().as_str()) {
-                return Err(meta.error("unsupported method; allowed methods are: connect, delete, get, head, options, patch, post, put, trace"));
+                match attr_meta {
+                    Meta::List(list) => {
+                        list.parse_nested_meta(|meta| {
+                            let key = meta.path.get_ident().unwrap().to_string();
+                            match key.as_str() {
+                                "public" => public = Some(meta.value()?.parse::<Path>()?),
+                                "fetch" => fetch = Some(meta.value()?.parse::<Path>()?),
+                                "create" => create = Some(meta.value()?.parse::<Path>()?),
+                                "update" => update = Some(meta.value()?.parse::<Path>()?),
+                                "delete" => delete = Some(meta.value()?.parse::<Path>()?),
+                                _ => Err(meta.error("unsupported attribute"))?,
+                            }
+                            Ok(())
+                        })
+                        .unwrap();
+                    }
+                    _ => panic!("Incorrect format for using the `model` attribute."),
+                }
             }
-
-            method = Some(ident);
-            Ok(())
-        } else if meta.path.is_ident("path") {
-            path = Some(meta.value()?.parse()?);
-            Ok(())
-        } else {
-            Err(meta.error("unsupported attribute key, expected: method or path"))
-        }
-    });
-
-    parse_macro_input!(args with parser);
-
-    let _method = method.expect("expected #[route(method = ..., path = ...)]");
-    let _path = path.expect("expected #[route(method = ..., path = ...)]");
-
-    let input_fn = parse_macro_input!(input as ImplItemFn);
-
-    let sig = &input_fn.sig;
-    let body = input_fn.block;
-    let asyncness = &sig.asyncness;
-    let original_fn_name = &sig.ident;
-    let generics = &sig.generics;
-    let where_clause = &sig.generics.where_clause;
-
-    let mut wrapper_args = vec![];
-    let mut handler_call_args = vec![];
-    let mut arg_types = vec![];
-
-    for input in &sig.inputs {
-        if let FnArg::Typed(PatType { attrs, pat, ty, .. }) = input {
-            let wrapper = match attrs.len() {
-                0 => {
-                    quote! { #pat: #ty }
-                }
-                1 => {
-                    let attr_name = attrs[0].path().to_token_stream().to_string();
-                    match attr_name.as_str() {
-                        "query" => quote! { axum::extract::Query(#pat): axum::extract::Query<#ty> },
-                        "json" => quote! { axum::extract::Json(#pat): axum::extract::Json<#ty> },
-                        other => {
-                            panic!("Unsupported attribute #[{}]", other);
-                        }
-                    }
-                }
-                _ => {
-                    quote! {
-                        compile_error!("Only one attribute is allowed per argument");
-                    }
-                }
-            };
-
-            wrapper_args.push(wrapper);
-            handler_call_args.push(quote! { #pat });
-            arg_types.push(ty.clone());
         }
     }
 
-    let return_type = match &sig.output {
-        syn::ReturnType::Default => quote! { () },
-        syn::ReturnType::Type(_, ty) => quote! { #ty },
-    };
+    let name = &input.ident;
+    let mut expanded = quote! {};
+
+    if let Some(p) = public {
+        expanded.extend(quote! {
+            impl Model for #name {
+                type Public = #p;
+            }
+        });
+    }
+
+    if let Some(p) = fetch {
+        expanded.extend(quote! {
+            impl Fetchable for #name {
+                type Fetch = #p;
+            }
+        });
+    }
+
+    if let Some(p) = create {
+        expanded.extend(quote! {
+            impl Creatable for #name {
+                type Create = #p;
+            }
+        });
+    }
+
+    if let Some(p) = update {
+        expanded.extend(quote! {
+            impl Updatable for #name {
+                type Update = #p;
+            }
+        });
+    }
+
+    if let Some(p) = delete {
+        expanded.extend(quote! {
+            impl Deletable for #name {
+                type Delete = #p;
+            }
+        });
+    }
+
+    TokenStream::from(expanded)
+}
+
+#[proc_macro_attribute]
+pub fn model_in_db(args: TokenStream, input: TokenStream) -> TokenStream {
+    let mut find = None;
+    let mut fetch = None;
+    let mut list = None;
+    let mut create = None;
+    let mut update = None;
+    let mut delete = None;
+
+    let parser = meta::parser(|meta| {
+        let key = meta.path.get_ident().unwrap().to_string();
+        match key.as_str() {
+            "find" => find = Some(meta.value()?.parse::<Path>()?),
+            "fetch" => fetch = Some(meta.value()?.parse::<Path>()?),
+            "list" => list = Some(meta.value()?.parse::<Path>()?),
+            "create" => create = Some(meta.value()?.parse::<Path>()?),
+            "update" => update = Some(meta.value()?.parse::<Path>()?),
+            "delete" => delete = Some(meta.value()?.parse::<Path>()?),
+            _ => Err(meta.error(format!("unsupported attribute: {}", key.as_str())))?,
+        }
+        Ok(())
+    });
+
+    parse_macro_input!(args with parser);
+    let input_impl = parse_macro_input!(input as ItemImpl);
+
+    let name = &*input_impl.self_ty;
+
+    let tokens: proc_macro2::TokenStream = [
+        find.map(|path| {
+            quote! { impl crate::db::FindableInDb for #name {
+                type FindInDb = #path;
+            } }
+        }),
+        fetch.map(|path| {
+            quote! { impl crate::db::FetchableInDb for #name {
+                type FetchInDb = #path;
+            } }
+        }),
+        list.map(|path| {
+            quote! { impl crate::db::ListableInDb for #name {
+                type ListInDb = #path;
+            } }
+        }),
+        create.map(|path| {
+            quote! { impl crate::db::CreatableInDb for #name {
+                type CreateInDb = #path;
+            } }
+        }),
+        update.map(|path| {
+            quote! { impl crate::db::UpdatableInDb for #name {
+                type UpdateInDb = #path;
+            } }
+        }),
+        delete.map(|path| {
+            quote! { impl crate::db::DeletableInDb for #name {
+                type DeleteInDb = #path;
+            } }
+        }),
+    ]
+    .into_iter()
+    .flatten()
+    .collect();
 
     let expanded = quote! {
-        #asyncness fn
-            #original_fn_name #generics (#(#wrapper_args),*)
-            -> std::result::Result<axum::Json<#return_type>, axum::http::StatusCode> #where_clause {
-                #body
-            }
-    };
+        impl crate::db::ModelRegisteredByMacro for #name {}
+        #[linkme::distributed_slice(crate::db::MODELS_INIT)]
+        pub static __INIT_MODEL: crate::ModelInitFn = |db| Box::pin(<#name>::init_coll(db));
 
+        #input_impl
+        #tokens
+    };
     println!("expanded: {}", expanded);
     expanded.into()
 }
 
+// #[proc_macro_attribute]
+// pub fn route(args: TokenStream, input: TokenStream) -> TokenStream {
+//     let mut method: Option<Ident> = None;
+//     let mut path: Option<LitStr> = None;
+
+//     let parser = meta::parser(|meta| {
+//         if meta.path.is_ident("method") {
+//             let ident: Ident = meta.value()?.parse()?;
+
+//             let valid_methods = [
+//                 "connect", "delete", "get", "head", "options", "patch", "post", "put", "trace",
+//             ];
+
+//             if !valid_methods.contains(&ident.to_string().as_str()) {
+//                 return Err(meta.error("unsupported method; allowed methods are: connect, delete, get, head, options, patch, post, put, trace"));
+//             }
+
+//             method = Some(ident);
+//             Ok(())
+//         } else if meta.path.is_ident("path") {
+//             path = Some(meta.value()?.parse()?);
+//             Ok(())
+//         } else {
+//             Err(meta.error("unsupported attribute key, expected: method or path"))
+//         }
+//     });
+
+//     parse_macro_input!(args with parser);
+
+//     let _method = method.expect("expected #[route(method = ..., path = ...)]");
+//     let _path = path.expect("expected #[route(method = ..., path = ...)]");
+
+//     let input_fn = parse_macro_input!(input as ImplItemFn);
+
+//     let sig = &input_fn.sig;
+//     let body = input_fn.block;
+//     let asyncness = &sig.asyncness;
+//     let original_fn_name = &sig.ident;
+//     let generics = &sig.generics;
+//     let where_clause = &sig.generics.where_clause;
+
+//     let mut wrapper_args = vec![];
+//     let mut handler_call_args = vec![];
+//     let mut arg_types = vec![];
+
+//     for input in &sig.inputs {
+//         if let FnArg::Typed(PatType { attrs, pat, ty, .. }) = input {
+//             let wrapper = match attrs.len() {
+//                 0 => {
+//                     quote! { #pat: #ty }
+//                 }
+//                 1 => {
+//                     let attr_name = attrs[0].path().to_token_stream().to_string();
+//                     match attr_name.as_str() {
+//                         "query" => quote! { axum::extract::Query(#pat): axum::extract::Query<#ty> },
+//                         "json" => quote! { axum::extract::Json(#pat): axum::extract::Json<#ty> },
+//                         other => {
+//                             panic!("Unsupported attribute #[{}]", other);
+//                         }
+//                     }
+//                 }
+//                 _ => {
+//                     quote! {
+//                         compile_error!("Only one attribute is allowed per argument");
+//                     }
+//                 }
+//             };
+
+//             wrapper_args.push(wrapper);
+//             handler_call_args.push(quote! { #pat });
+//             arg_types.push(ty.clone());
+//         }
+//     }
+
+//     let return_type = match &sig.output {
+//         syn::ReturnType::Default => quote! { () },
+//         syn::ReturnType::Type(_, ty) => quote! { #ty },
+//     };
+
+//     let expanded = quote! {
+//         #asyncness fn
+//             #original_fn_name #generics (#(#wrapper_args),*)
+//             -> std::result::Result<axum::Json<#return_type>, axum::http::StatusCode> #where_clause {
+//                 #body
+//             }
+//     };
+
+//     println!("expanded: {}", expanded);
+//     expanded.into()
+// }
+
 #[proc_macro_attribute]
 pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
     let mut prefix: Option<LitStr> = None;
-    let mut state: Option<LitStr> = None;
+    let mut state: Option<Path> = None;
 
     let parser = meta::parser(|meta| {
         if meta.path.is_ident("prefix") {
@@ -119,8 +282,7 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
     parse_macro_input!(args with parser);
     let prefix = prefix.expect("expected #[routes(prefix = ...)]");
     let prefix_str = prefix.value();
-    let state = state.expect("expected #[routes(prefix = ...)]");
-    let state_ident = Ident::new(&state.value().as_str(), state.span());
+    let state_ident = state.expect("expected #[routes(state = ...)]");
 
     let mut input_impl = parse_macro_input!(input as ItemImpl);
     let routes_name = input_impl.self_ty.to_token_stream().to_string();
@@ -144,136 +306,251 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
             ));
         }
     };
-    for item in &input_impl.items {
-        if let ImplItem::Fn(ImplItemFn { sig, attrs, .. }) = item {
-            for attr in attrs {
+
+    for item in &mut input_impl.items {
+        if let ImplItem::Fn(ImplItemFn {
+            sig, attrs, block, ..
+        }) = item
+        {
+            let original_block = block.clone();
+            let mut route_attr_index = None;
+            let mut route_info = None;
+
+            // Find the route attribute
+            for (i, attr) in attrs.iter().enumerate() {
                 if attr.path().is_ident("route") {
+                    route_attr_index = Some(i);
+
                     let mut method: Option<Ident> = None;
                     let mut path: Option<String> = None;
+                    let mut route_type: Option<Ident> = None;
+                    let mut res_type: Option<Type> = None;
+
                     let _ = attr.parse_nested_meta(|meta| {
                         if meta.path.is_ident("method") {
                             method = Some(meta.value()?.parse()?);
                         } else if meta.path.is_ident("path") {
                             let value: LitStr = meta.value()?.parse()?;
                             path = Some(value.value());
+                        } else if meta.path.is_ident("type") {
+                            route_type = Some(meta.value()?.parse()?);
+                        } else if meta.path.is_ident("res") {
+                            res_type = Some(meta.value()?.parse()?);
                         } else {
-                            return Err(meta.error("expected #[route(method = ..., path = ...)]"));
+                            return Err(meta.error("expected #[route(method = ..., path = ..., type = ..., res = ...)]"));
                         }
                         Ok(())
                     });
+
                     let method = method.expect("expected method in #[route(...)]");
-                    let method_uppercase = method.to_string().to_uppercase();
-                    let mut path = path.expect("expected path in #[route(...)]");
-                    let fn_name = &sig.ident;
-                    let method_ident =
-                        Ident::new(&method.to_string().to_lowercase(), method.span());
-                    route_entries.push(quote! {
-                        .route(#path, axum::routing::#method_ident(Self::#fn_name))
-                    });
-                    path = prefix_str.clone() + path.as_str();
-                    let mut ret_type = None;
-                    let mut json_type = None;
-                    let mut query_type = None;
+                    let path = path.expect("expected path in #[route(...)]");
 
-                    for input in sig.inputs.iter() {
-                        if let syn::FnArg::Typed(pat_type) = input {
-                            let attrs = &pat_type.attrs;
-                            let ty = &*pat_type.ty;
-                            let ty_str = ty.to_token_stream().to_string().replace(' ', "");
-
-                            let mut has_json = false;
-                            let mut has_query = false;
-
-                            for attr in attrs {
-                                if attr.path().is_ident("json") {
-                                    has_json = true;
-                                } else if attr.path().is_ident("query") {
-                                    has_query = true;
-                                }
-                            }
-
-                            if has_json && has_query {
-                                panic!("Only one of #[json] or #[query] allowed per parameter");
-                            } else if has_json {
-                                if json_type.is_some() {
-                                    panic!("Only one #[json] parameter allowed");
-                                }
-                                json_type = Some(ty_str);
-                            } else if has_query {
-                                if query_type.is_some() {
-                                    panic!("Only one #[query] parameter allowed");
-                                }
-                                query_type = Some(ty_str);
-                            }
+                    // Validate type - only allow "json" for now
+                    if let Some(ref t) = route_type {
+                        if t != "json" {
+                            panic!(
+                                "unsupported type: {}, only 'json' is currently supported",
+                                t
+                            );
                         }
                     }
-                    // Handle return type
-                    if let syn::ReturnType::Type(_, ty) = &sig.output {
+
+                    route_info = Some((method, path, route_type, res_type));
+                    break;
+                }
+            }
+
+            if let Some((method, path, route_type, res_type)) = route_info {
+                // Remove the route attribute
+                if let Some(index) = route_attr_index {
+                    attrs.remove(index);
+                }
+
+                let valid_methods = [
+                    "connect", "delete", "get", "head", "options", "patch", "post", "put", "trace",
+                ];
+
+                if !valid_methods.contains(&method.to_string().as_str()) {
+                    panic!("unsupported method: {}", method)
+                }
+
+                let method_uppercase = method.to_string().to_uppercase();
+                let fn_name = &sig.ident;
+                let method_ident = Ident::new(&method.to_string().to_lowercase(), method.span());
+
+                // Transform function parameters to handle #[json] and #[query] attributes
+                let mut wrapper_args = vec![];
+                let mut handler_call_args = vec![];
+                let mut json_type = None;
+                let mut query_type = None;
+
+                for input in &mut sig.inputs {
+                    if let FnArg::Typed(PatType { attrs, pat, ty, .. }) = input {
                         let ty_str = ty.to_token_stream().to_string().replace(' ', "");
-                        ret_type = Some(ty_str);
-                    }
 
-                    // Prepare type names for TS
-                    let ts_json = json_type.clone().unwrap_or_else(|| "void".to_string());
-                    let ts_query = query_type.clone();
-                    let ts_ret = ret_type.clone().unwrap_or_else(|| "void".to_string());
-
-                    if ts_json != "void" {
-                        insert_import(&ts_json);
-                    }
-                    if let Some(ref query) = ts_query {
-                        if query != &ts_json {
-                            insert_import(query);
+                        match attrs.len() {
+                            0 => {
+                                // No attributes, keep as is
+                                wrapper_args.push(quote! { #pat: #ty });
+                                handler_call_args.push(quote! { #pat });
+                            }
+                            1 => {
+                                let attr_name = attrs[0].path().to_token_stream().to_string();
+                                match attr_name.as_str() {
+                                    "query" => {
+                                        if query_type.is_some() {
+                                            panic!("Only one #[query] parameter allowed");
+                                        }
+                                        query_type = Some(ty_str);
+                                        wrapper_args.push(quote! { axum::extract::Query(#pat): axum::extract::Query<#ty> });
+                                        handler_call_args.push(quote! { #pat });
+                                        // Remove the attribute from the parameter
+                                        attrs.clear();
+                                    }
+                                    "json" => {
+                                        if json_type.is_some() {
+                                            panic!("Only one #[json] parameter allowed");
+                                        }
+                                        json_type = Some(ty_str);
+                                        wrapper_args.push(quote! { axum::extract::Json(#pat): axum::extract::Json<#ty> });
+                                        handler_call_args.push(quote! { #pat });
+                                        // Remove the attribute from the parameter
+                                        attrs.clear();
+                                    }
+                                    other => {
+                                        panic!("Unsupported attribute #[{}]", other);
+                                    }
+                                }
+                            }
+                            _ => {
+                                panic!("Only one attribute is allowed per argument");
+                            }
                         }
                     }
-                    if ts_ret != "void"
-                        && ts_ret != ts_json
-                        && ts_ret != ts_query.clone().unwrap_or_default()
-                    {
-                        insert_import(&ts_ret);
+                }
+
+                // Update the function signature with the transformed parameters
+                let mut new_inputs = Punctuated::new();
+                for arg in wrapper_args.iter() {
+                    let parsed_arg: FnArg =
+                        syn::parse2(arg.clone()).expect("Failed to parse transformed argument");
+                    new_inputs.push(parsed_arg);
+                }
+                sig.inputs = new_inputs;
+
+                // // Create the return type wrapper for JSON responses
+                // let return_type = match &sig.output {
+                //     syn::ReturnType::Default => quote! { () },
+                //     syn::ReturnType::Type(_, ty) => quote! { #ty },
+                // };
+
+                // // Update the return type to be Result<Json<T>, StatusCode>
+                // sig.output = syn::parse_quote! {
+                //     -> std::result::Result<axum::Json<#return_type>, axum::http::StatusCode>
+                // };
+
+                route_entries.push(quote! {
+                    .route(#path, axum::routing::#method_ident(Self::#fn_name))
+                });
+
+                let full_path = prefix_str.clone() + path.as_str();
+
+                let should_export = res_type.as_ref().is_some();
+
+                let ts_ret = if let Some(res) = res_type.as_ref() {
+                    quote!(#res).to_string()
+                } else {
+                    "void".to_string()
+                };
+
+                let ts_json = json_type.clone().unwrap_or_else(|| "void".to_string());
+                let ts_query = query_type.clone();
+
+                // Add imports
+                if ts_json != "void" {
+                    insert_import(&ts_json);
+                }
+                if let Some(ref query) = ts_query {
+                    if query != &ts_json {
+                        insert_import(query);
                     }
+                }
+                if ts_ret != "void"
+                    && ts_ret != ts_json
+                    && ts_ret != ts_query.clone().unwrap_or_default()
+                {
+                    insert_import(&ts_ret);
+                }
 
-                    let fn_args = match (&ts_json[..], &ts_query) {
-                        ("void", None) => "".to_string(),
-                        ("void", Some(query)) => format!("query: {}", query),
-                        (json, None) => format!("body: {}", json),
-                        (json, Some(query)) => format!("body: {}, query: {}", json, query),
-                    };
+                let fn_args = match (&ts_json[..], &ts_query) {
+                    ("void", None) => "".to_string(),
+                    ("void", Some(query)) => format!("query: {}", query),
+                    (json, None) => format!("body: {}", json),
+                    (json, Some(query)) => format!("body: {}, query: {}", json, query),
+                };
 
-                    let query_string = if ts_query.is_some() {
-                        " + '?' + new URLSearchParams(Object.entries(query).filter(([_, value]) => value != null))"
-                    } else {
-                        ""
-                    };
+                let query_string = if ts_query.is_some() {
+                    " + '?' + new URLSearchParams(Object.entries(query).filter(([_, value]) => value != null))"
+                } else {
+                    ""
+                };
 
-                    let body_part = if ts_json != "void" {
+                let body_part = if ts_json != "void" {
+                    concat!(
+                        "headers: { 'Content-Type': 'application/json' },",
                         "body: JSON.stringify(body),"
-                    } else {
-                        ""
-                    };
-                    ts_routes.push(quote! {
-                        bindings.push(format!(
+                    )
+                } else {
+                    ""
+                };
+                let ret_part = if ts_ret != "void" {
+                    "return await res.json();"
+                } else {
+                    "return;"
+                };
+
+                ts_routes.push(quote! {
+                    bindings.push(format!(
 "export async function {}({}): Promise<{}> {{
-    const res = await fetch(`{}`{}, {{
+const res = await fetch(`{}`{}, {{
         method: '{}',
-        headers: {{ 'Content-Type': 'application/json' }},
         {}
     }});
     if (res.ok) {{
-        return await res.json();
+        {}
     }} else {{
         throw await res.text();
     }}
 }}\n",
-                            stringify!(#fn_name),
-                            #fn_args,
-                            #ts_ret,
-                            #path,
-                            #query_string,
-                            #method_uppercase,
-                            #body_part
-                        ));
-                    });
+                        stringify!(#fn_name),
+                        #fn_args,
+                        #ts_ret,
+                        #full_path,
+                        #query_string,
+                        #method_uppercase,
+                        #body_part,
+                        #ret_part
+                    ));
+                });
+
+                if should_export {
+                    *block = syn::parse_quote! {
+                        {
+                            let response = (async move ||
+                                #original_block
+                            )().await;
+                            {
+                                #[inline(always)]
+                                fn __asert_type<t: crate::utils::macros::ContainsJson<#res_type>>(r: &t) {}
+                                __asert_type(&response);
+                            }
+                            response
+                        }
+                    };
+                } else {
+                    *block = syn::parse_quote! {
+                        #original_block
+                    };
                 }
             }
         }
@@ -289,17 +566,25 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
     input_impl.items.push(router_fn);
 
     let imports = import_lines.into_iter().collect::<Vec<String>>().join("\n");
+    let mut expanded_test = quote! {};
+    if ts_routes.len() > 0 {
+        expanded_test = quote! {
+            #[test]
+            fn #routes_ident() {
+                let mut bindings = Vec::new();
+                #(#ts_routes)*
+                let output = bindings.join("\n");
+                std::fs::write(format!("bindings/{}.ts", #routes_name),
+                    format!("// this file is autogenerated DONT EDIT IT!\n\n{}\n\n{}\n", #imports, output)
+                ).expect("failed to write TypeScript bindings");
+            }
+        };
+    }
     let expanded = quote! {
         #input_impl
-        #[test]
-        fn #routes_ident() {
-            let mut bindings = Vec::new();
-            #(#ts_routes)*
-
-            let output = bindings.join("\n");
-            std::fs::write(format!("bindings/{}.ts", #routes_name), format!("// this file is autogenerated DONT EDIT IT!\n\n{}\n\n{}\n", #imports, output)).expect("failed to write TypeScript bindings");
-        }
+        #expanded_test
     };
+
     println!("expanded: {}", expanded);
     expanded.into()
 }

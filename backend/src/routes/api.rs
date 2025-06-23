@@ -1,0 +1,233 @@
+use axum::extract::State;
+use axum::response::IntoResponse;
+use axum::Json;
+use bcrypt::{hash, verify, DEFAULT_COST};
+use hyper::StatusCode;
+use macros::routes;
+use tower_cookies::Cookie;
+use tower_cookies::Cookies;
+
+use super::*;
+use crate::db::CreatableInDb;
+use crate::db::FetchableInDb;
+use crate::extractors::UserData;
+use crate::models::auth::LoginCredentials;
+use crate::models::auth::RegisterCredentials;
+use crate::models::channel::*;
+use crate::models::order::*;
+use crate::models::product::*;
+use crate::models::settings::*;
+use crate::models::store::*;
+use crate::models::user::*;
+use crate::models::*;
+use crate::utils::auth::issue_access_tokens;
+use crate::utils::auth::issue_refresh_tokens;
+use crate::utils::types::IntoContext;
+use crate::utils::types::ResultJsonExt;
+use crate::utils::types::WithContext;
+use crate::AppState;
+
+pub struct ApiRoutes;
+
+#[routes(prefix="/api", state=AppState)]
+impl ApiRoutes {
+    // ---- Auth ----
+    #[route(method=post, path="/auth")]
+    async fn auth(_: State<AppState>, _: UserData) {}
+
+    #[route(method=post, path="/register")]
+    async fn register(
+        State(state): State<AppState>,
+        #[json] credentrals: RegisterCredentials,
+    ) -> impl IntoResponse {
+        let RegisterCredentials {
+            name,
+            email,
+            password,
+        } = credentrals;
+        let hash = hash(password, DEFAULT_COST).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        let _ = User::create(
+            &state.db,
+            UserCreate {
+                name,
+                email,
+                password: hash,
+            }
+            .into(),
+        )
+        .await
+        .map_err(|_| StatusCode::BAD_REQUEST)?;
+        Result::<StatusCode, StatusCode>::Ok(StatusCode::OK)
+    }
+
+    #[route(method=post, path="/login")]
+    async fn login(
+        State(state): State<AppState>,
+        cookies: Cookies,
+        #[json] credentrals: LoginCredentials,
+    ) -> impl IntoResponse {
+        let LoginCredentials { email, password } = credentrals;
+
+        let mut user = User::get_one(&state.db, UserFetch { email })
+            .await
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
+            .ok_or(StatusCode::UNAUTHORIZED)?;
+
+        if !verify(&password, &user.password).unwrap() {
+            return Err(StatusCode::UNAUTHORIZED);
+        }
+
+        let data = UserData {
+            business_id: user.business_id,
+            email: user.email,
+        };
+
+        let access_token = issue_access_tokens(&data).ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
+        let refresh_token = issue_refresh_tokens(&data).ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
+
+        cookies.add(Cookie::build(("access_token", access_token)).build());
+        cookies.add(Cookie::build(("refresh_token", refresh_token)).build());
+
+        user.business_id = data.business_id;
+        user.email = data.email;
+        Ok(Json(UserPublic::from(user.into())))
+    }
+
+    #[route(method=get, path="/logout")]
+    async fn logout(cookies: Cookies) {
+        cookies.remove(Cookie::build("access_token").build());
+        cookies.remove(Cookie::build("refresh_token").build());
+    }
+
+    // ---- Products ----
+    #[route(method=get, path="/products", type=json, res=Page<ProductPublic>)]
+    async fn get_all_products(
+        State(state): State<AppState>,
+        user: UserData,
+        #[query] pagination: Pagination,
+    ) -> impl IntoResponse {
+        generic::get_all::<Product>(&state, pagination, user.business_id.into_context())
+            .await
+            .into_json()
+    }
+
+    #[route(method=post, path="/products/", type=json, res=ProductPublic)]
+    async fn get_one_product(
+        State(state): State<AppState>,
+        user: UserData,
+        #[json] body: ProductFetch,
+    ) -> impl IntoResponse {
+        generic::get_one::<Product>(&state, body.with_context(user.business_id))
+            .await
+            .into_json()
+    }
+
+    #[route(method=post, path="/products", type=json, res=ProductPublic)]
+    async fn create_product(
+        State(state): State<AppState>,
+        user: UserData,
+        #[json] body: ProductCreate,
+    ) -> impl IntoResponse {
+        generic::create::<Product>(&state, body.with_context(user.business_id))
+            .await
+            .into_json()
+    }
+
+    #[route(method=patch, path="/products/", type=json, res=ProductPublic)]
+    async fn update_product(
+        State(state): State<AppState>,
+        user: UserData,
+        #[json] body: ProductUpdate,
+    ) -> impl IntoResponse {
+        generic::update::<Product>(&state, body.with_context(user.business_id))
+            .await
+            .into_json()
+    }
+
+    #[route(method=delete, path="/products/", type=json, res=ProductPublic)]
+    async fn delete_product(
+        State(state): State<AppState>,
+        user: UserData,
+        #[json] body: ProductDelete,
+    ) -> impl IntoResponse {
+        generic::delete::<Product>(&state, body.with_context(user.business_id))
+            .await
+            .into_json()
+    }
+
+    // ---- Orders ----
+    #[route(method=get, path="/orders", type=json, res=Page<OrderPublic>)]
+    async fn get_all_orders(
+        State(state): State<AppState>,
+        user: UserData,
+        #[query] pagination: Pagination,
+    ) -> impl IntoResponse {
+        generic::get_all::<Order>(&state, pagination, user.business_id.into_context())
+            .await
+            .into_json()
+    }
+
+    #[route(method=post, path="/orders/", type=json, res=OrderPublic)]
+    async fn get_one_order(
+        State(state): State<AppState>,
+        user: UserData,
+        #[json] body: OrderFetch,
+    ) -> impl IntoResponse {
+        generic::get_one::<Order>(&state, body.with_context(user.business_id))
+            .await
+            .into_json()
+    }
+
+    #[route(method=post, path="/orders", type=json, res=OrderPublic)]
+    async fn create_order(
+        State(state): State<AppState>,
+        user: UserData,
+        #[json] body: OrderCreate,
+    ) -> impl IntoResponse {
+        generic::create::<Order>(&state, body.with_context(user.business_id))
+            .await
+            .into_json()
+    }
+
+    #[route(method=patch, path="/orders/", type=json, res=OrderPublic)]
+    async fn update_order(
+        State(state): State<AppState>,
+        user: UserData,
+        #[json] body: OrderUpdate,
+    ) -> impl IntoResponse {
+        generic::update::<Order>(&state, body.with_context(user.business_id))
+            .await
+            .into_json()
+    }
+
+    #[route(method=delete, path="/orders/", type=json, res=OrderPublic)]
+    async fn delete_order(
+        State(state): State<AppState>,
+        user: UserData,
+        #[json] body: OrderDelete,
+    ) -> impl IntoResponse {
+        generic::delete::<Order>(&state, body.with_context(user.business_id))
+            .await
+            .into_json()
+    }
+
+    // ---- Channels ----
+    #[route(method=post, path="/channels", type=json, res=ChannelPublic)]
+    async fn create_channel(
+        State(state): State<AppState>,
+        user: UserData,
+        #[json] body: ChannelCreate,
+    ) -> impl IntoResponse {
+        generic::create::<Channel>(&state, body.with_context(user.business_id))
+            .await
+            .into_json()
+    }
+
+    // ---- Settings ----
+    #[route(method=get, path="/settings", type=json, res=SettingsPublic)]
+    async fn get_settings(State(state): State<AppState>, user: UserData) -> impl IntoResponse {
+        generic::get_one::<Settings>(&state, user.business_id.into_context())
+            .await
+            .into_json()
+    }
+}

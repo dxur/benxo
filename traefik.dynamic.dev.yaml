@@ -1,19 +1,28 @@
 http:
   routers:
-    api:
-      rule: "PathPrefix(`/api`)"
-      service: api
+    web:
+      rule: "HostRegexp(`^.+\\.mystore\\.localhost$`)"
+      service: web
       priority: 1000
+    api:
+      rule: "PathPrefix(`/api`) && Host(`localhost`)"
+      service: api
+      priority: 100
     front:
-      rule: "PathPrefix(`/`)"
+      rule: "PathPrefix(`/`) && Host(`localhost`)"
       service: front
+      priority: 0
     
   services:
+    web:
+      loadBalancer:
+        servers:
+        - url: "http://127.0.0.1:3000/"
     api:
       loadBalancer:
         servers:      
         - url: "http://127.0.0.1:3000/"
     front:
       loadBalancer:
-        servers:      
+        servers:
         - url: "http://127.0.0.1:4321/"
