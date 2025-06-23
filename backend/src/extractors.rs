@@ -9,6 +9,7 @@ use tower_cookies::Cookies;
 
 use crate::db::store::StoreInDb;
 use crate::db::FetchableInDb;
+use crate::models::domain::{Domain, DomainFetch};
 use crate::models::store::{Store, StoreFetch};
 use crate::utils::auth::{decode_access_token, decode_refresh_token};
 use crate::AppState;
@@ -110,9 +111,23 @@ impl FromRequestParts<AppState> for StoreMeta {
         let suffix = ".mystore.localhost";
 
         let store = if let Some(stripped) = host.strip_suffix(suffix) {
-            StoreFetch::Id(stripped.to_string())
+            StoreFetch {
+                id: stripped.to_string(),
+            }
         } else {
-            StoreFetch::Domain(host.to_string())
+            let domain = Domain::get_one(
+                &state.db,
+                DomainFetch {
+                    domain: host.to_string(),
+                },
+            )
+            .await
+            .map_err(|_| Self::Rejection {})?
+            .ok_or(Self::Rejection {})?;
+
+            StoreFetch {
+                id: domain.store_id,
+            }
         };
 
         Ok(StoreMeta(

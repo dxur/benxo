@@ -10,7 +10,6 @@ use crate::models::store::*;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StoreInDb {
     pub id: String,
-    pub domain: String,
     pub business_id: ObjectId,
     pub name: String,
 }
@@ -30,15 +29,19 @@ impl Into<Result<Document>> for &StoreUpdate {
     }
 }
 
-impl Into<StoreFetch> for &StoreDelete {
-    fn into(self) -> StoreFetch {
-        StoreFetch::Id(self.id.clone())
+impl Into<FindInDb<String>> for &StoreDelete {
+    fn into(self) -> FindInDb<String> {
+        FindInDb {
+            _id: self.id.clone(),
+        }
     }
 }
 
-impl Into<StoreFetch> for &StoreUpdate {
-    fn into(self) -> StoreFetch {
-        StoreFetch::Id(self.id.clone())
+impl Into<FindInDb<String>> for &StoreUpdate {
+    fn into(self) -> FindInDb<String> {
+        FindInDb {
+            _id: self.id.clone(),
+        }
     }
 }
 
@@ -47,27 +50,22 @@ impl From<ByBusinessId<StoreCreate>> for StoreInDb {
         let ByBusinessId { business_id, body } = value;
         StoreInDb {
             id: body.id,
-            domain: body.domain,
             business_id,
             name: body.name,
         }
     }
 }
 
-impl IntoFilter for StoreFetch {
-    fn into_filter(&self) -> Result<Document> {
-        to_document(self).map_err(|e| Error { msg: e.to_string() })
-    }
-}
-
-impl Into<StoreFetch> for &StoreFetch {
-    fn into(self) -> StoreFetch {
-        (*self).clone()
+impl Into<FindInDb<String>> for &StoreFetch {
+    fn into(self) -> FindInDb<String> {
+        FindInDb {
+            _id: self.id.clone(),
+        }
     }
 }
 
 #[model_in_db(
-    find=StoreFetch,
+    find=FindInDb<String>,
     fetch=StoreFetch,
     list=ByBusinessId<Void>,
     create=ByBusinessId<StoreCreate>,
@@ -76,10 +74,6 @@ impl Into<StoreFetch> for &StoreFetch {
 )]
 impl ModelInDb for Store {
     const COLLECTION_NAME: &'static str = "stores";
-    const UNIQUE_INDICES: &'static [(&'static [&'static str], bool)] = &[
-        (&[field!(id@ StoreInDb)], true),
-        (&[field!(domain @ StoreInDb)], true),
-    ];
 
     type InDb = StoreInDb;
 }

@@ -5,10 +5,8 @@ use super::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
-#[serde(rename_all = "snake_case")]
-pub enum StoreFetch {
-    Id(String),
-    Domain(String),
+pub struct StoreFetch {
+    pub id: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
@@ -16,7 +14,6 @@ pub enum StoreFetch {
 pub struct StoreCreate {
     pub id: String,
     pub name: String,
-    pub domain: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]

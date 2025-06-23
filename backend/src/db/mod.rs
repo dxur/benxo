@@ -1,3 +1,4 @@
+pub mod domain;
 pub mod order;
 pub mod product;
 pub mod settings;

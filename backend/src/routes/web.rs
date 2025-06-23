@@ -6,16 +6,12 @@ use serde::Deserialize;
 use ts_rs::TS;
 
 use crate::extractors::{StoreMeta, UserData};
+use crate::models::domain::{Domain, DomainFetch};
 use crate::models::store::{Store, StoreCreate, StoreFetch};
 use crate::models::Pagination;
 use crate::routes::generic;
 use crate::utils::types::{IntoContext, WithContext};
 use crate::AppState;
-
-#[derive(Debug, Deserialize)]
-struct Domain {
-    domain: String,
-}
 
 pub struct WebRoutes;
 
@@ -52,9 +48,9 @@ impl WebRoutes {
     #[route(method=get, path="/should-issue")]
     async fn cert(
         State(state): State<AppState>,
-        Query(Domain { domain }): Query<Domain>,
+        Query(domain): Query<DomainFetch>,
     ) -> impl IntoResponse {
-        generic::get_one::<Store>(&state, StoreFetch::Domain(domain))
+        generic::get_one::<Domain>(&state, domain)
             .await
             .map(|_| StatusCode::OK)
     }
