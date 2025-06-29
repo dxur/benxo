@@ -7,10 +7,11 @@ use hyper::StatusCode;
 use serde::{Deserialize, Serialize};
 use tower_cookies::Cookies;
 
-use crate::db::store::StoreInDb;
+use crate::db::domain::Domain;
+use crate::db::store::{Store, StoreInDb};
 use crate::db::FetchableInDb;
-use crate::models::domain::{Domain, DomainFetch};
-use crate::models::store::{Store, StoreFetch};
+use crate::models::domain::DomainFetch;
+use crate::models::store::StoreFetch;
 use crate::utils::auth::{decode_access_token, decode_refresh_token};
 use crate::WithDb;
 

@@ -1,10 +1,10 @@
+// pub mod channel;
 pub mod domain;
+pub mod file;
 pub mod order;
 pub mod product;
 pub mod settings;
 pub mod store;
-// pub mod theme;
-pub mod channel;
 pub mod user;
 
 use bson::oid::ObjectId;
@@ -21,9 +21,9 @@ use std::future::Future;
 use std::ops::Deref;
 use std::pin::Pin;
 
-use crate::models::*;
+use crate::models::ById;
 use crate::utils::error::*;
-use crate::utils::types::{HaveContext, IntoInner, RefInto, Result};
+use crate::utils::types::{HaveContext, RefInto, Result};
 use crate::WithDb;
 
 pub struct Db(Database);
@@ -44,7 +44,7 @@ impl Deref for Db {
     }
 }
 
-pub trait ModelRegisteredByMacro {}
+pub trait __ModelRegisteredByMacro {}
 
 pub type ModelInitFn = for<'a> fn(&'a Db) -> Pin<Box<dyn Future<Output = Result<()>> + Send + 'a>>;
 
@@ -57,11 +57,11 @@ pub async fn init_models(db: &Db) {
     }
 }
 
-pub trait ModelInDb: Model + ModelRegisteredByMacro {
+pub trait ModelInDb: __ModelRegisteredByMacro {
     const COLLECTION_NAME: &'static str;
     const UNIQUE_INDICES: &'static [(&'static [&'static str], bool)] = &[];
 
-    type InDb: Debug + Send + Sync + Serialize + for<'a> Deserialize<'a> + Into<Self::Public>;
+    type InDb: Debug + Send + Sync + Serialize + for<'a> Deserialize<'a>;
 
     async fn init_coll(db: &Db) -> Result<()> {
         if Self::UNIQUE_INDICES.len() == 0 {
@@ -98,6 +98,23 @@ where
     T: Serialize,
 {
     pub _id: T,
+}
+
+impl<T: Serialize + Clone> Into<FindInDb<T>> for &ById<T> {
+    fn into(self) -> FindInDb<T> {
+        FindInDb {
+            _id: self.id.clone(),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Copy, Default, PartialEq, Eq)]
+pub struct Void;
+
+impl<T> From<&T> for Void {
+    fn from(_: &T) -> Self {
+        Void
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -160,13 +177,13 @@ pub trait FindableInDb: ModelInDb {
     type FindInDb: Debug + Serialize + IntoFilter;
 }
 
-pub trait CreatableInDb: ModelInDb + Creatable {
-    type CreateInDb: Debug + Send + Sync + Serialize + IntoInner<Self::InDb>;
+pub trait CreatableInDb: ModelInDb {
+    type CreateInDb: Debug + Send + Sync + Serialize + Into<Self::InDb>;
 
     async fn on_create(_: &impl WithDb, _: &Self::InDb) {}
 
     async fn create(db: &Db, body: Self::CreateInDb) -> Result<Self::InDb> {
-        let model: Self::InDb = body.into_inner();
+        let model: Self::InDb = body.into();
         match db
             .collection::<Self::InDb>(Self::COLLECTION_NAME)
             .insert_one(&model)
@@ -223,7 +240,7 @@ pub trait ListableInDb: ModelInDb {
     }
 }
 
-pub trait FetchableInDb: FindableInDb + Fetchable {
+pub trait FetchableInDb: FindableInDb {
     type FetchInDb: Debug + Send + Sync + RefInto<Self::FindInDb>;
 
     async fn get_one(db: &Db, body: Self::FetchInDb) -> Result<Option<Self::InDb>> {
@@ -243,7 +260,7 @@ pub trait FetchableInDb: FindableInDb + Fetchable {
     }
 }
 
-pub trait UpdatableInDb: FindableInDb + Updatable {
+pub trait UpdatableInDb: FindableInDb {
     type UpdateInDb: Send + Debug + Sync + RefInto<Self::FindInDb> + RefInto<Result<Document>>;
 
     async fn on_update(_: &impl WithDb, _: &Self::UpdateInDb, _: &Self::InDb) {}
@@ -283,7 +300,7 @@ pub trait UpdatableInDb: FindableInDb + Updatable {
     }
 }
 
-pub trait DeletableInDb: FindableInDb + Deletable {
+pub trait DeletableInDb: FindableInDb {
     type DeleteInDb: Debug + Send + Sync + RefInto<Self::FindInDb>;
 
     async fn on_delete(_: &impl WithDb, _: &Self::DeleteInDb, _: &Self::InDb) {}
@@ -311,7 +328,7 @@ pub trait DeletableInDb: FindableInDb + Deletable {
     }
 }
 
-pub trait FilterableInDb: ModelInDb + Filterable {
+pub trait FilterableInDb: ModelInDb {
     type FilterInDb: Debug + Send + Sync + Serialize + RefInto<Result<Document>>;
 
     async fn get_some(

@@ -1,4 +1,3 @@
-use macros::Model;
 use serde::{Deserialize, Serialize};
 
 use super::*;
@@ -34,7 +33,3 @@ pub struct DomainPublic {
     pub domain: String,
     pub store_id: String,
 }
-
-#[derive(Model)]
-#[model(public=DomainPublic, fetch=DomainFetch, create=DomainCreate, delete=DomainDelete)]
-pub struct Domain;

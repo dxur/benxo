@@ -93,7 +93,3 @@ pub struct ProductPublic {
     pub variants: Vec<ProductVariant>,
     pub slug: String,
 }
-
-#[derive(Model)]
-#[model(public=ProductPublic, fetch=ProductFetch, create=ProductCreate, update=ProductUpdate, delete=ProductDelete)]
-pub struct Product;

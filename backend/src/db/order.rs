@@ -1,6 +1,7 @@
 use bson::{to_bson, DateTime};
 use field::*;
 use indexmap::IndexMap;
+use macros::Model;
 use mongodb::bson::{doc, oid::ObjectId, to_document, Document};
 use serde::{Deserialize, Serialize};
 
@@ -94,6 +95,16 @@ impl From<ByBusinessId<OrderCreate>> for OrderInDb {
     }
 }
 
+#[derive(Model)]
+#[model(
+    find=ByBusinessId<FindInDb>,
+    fetch=ByBusinessId<OrderFetch>,
+    list=ByBusinessId<Void>,
+    create=ByBusinessId<OrderCreate>,
+    delete=ByBusinessId<OrderDelete>,
+)]
+pub struct Order;
+
 register_model!(Order);
 impl ModelInDb for Order {
     const COLLECTION_NAME: &'static str = "orders";
@@ -106,91 +117,6 @@ impl ModelInDb for Order {
     ];
 
     type InDb = OrderInDb;
-}
-
-impl FindableInDb for Order {
-    type FindInDb = ByBusinessId<FindInDb>;
-}
-
-impl FetchableInDb for Order {
-    type FetchInDb = ByBusinessId<OrderFetch>;
-}
-
-impl ListableInDb for Order {
-    type ListInDb = ByBusinessId<Void>;
-}
-
-impl CreatableInDb for Order {
-    type CreateInDb = ByBusinessId<OrderCreate>;
-
-    // async fn create(db: &Db, body: Self::Create) -> Result<Self::InDb> {
-    //     if body.items.len() == 0 {
-    //         return CreatableInDb::create(db, body);
-    //     }
-
-    //     let mut session = db.client().start_session().await.map_err(|_| ())?;
-    //     let txn_options = TransactionOptions::builder().build();
-    //     session
-    //         .start_transaction()
-    //         .with_options(txn_options)
-    //         .await
-    //         .map_err(|_| ())?;
-
-    //     let products = db.collection::<<Product as ModelInDb>::InDb>(Product::COLLECTION_NAME);
-    //     let orders = db.collection::<Self::InDb>(Self::COLLECTION_NAME);
-
-    //     let mut products_qnt = HashMap::<String, u32>::new();
-
-    //     for (sku, item) in &body.items {
-    //         products_qnt
-    //             .entry(sku.clone())
-    //             .and_modify(|q| *q += item.quantity)
-    //             .or_insert(item.quantity);
-    //     }
-
-    //     for (sku, qnt) in &products_qnt {
-    //         let filter = doc! {
-    //             field!(sku @ ProductVariant): sku,
-    //             field!(stocks @ ProductVarInDb): { "$gte": qnt }
-    //         };
-
-    //         let product = products
-    //             .find_one(filter)
-    //             .session(&mut session)
-    //             .await
-    //             .map_err(|_| ())?;
-
-    //         if product.is_none() {
-    //             session.abort_transaction().await.map_err(|_| ())?;
-    //             return Err(Error {
-    //                 msg: "Not enough stocks".to_string(),
-    //             });
-    //         }
-    //     }
-
-    //     for (sku, item) in &body.items {
-    //         let filter = doc! { field!(sku @ ProductVarInDb): &sku };
-    //         let update =
-    //             doc! { "$inc": { field!(stocks @ ProductVarInDb): -(item.quantity as i32) } };
-
-    //         products
-    //             .update_one(filter, update)
-    //             .session(&mut session)
-    //             .await
-    //             .map_err(|_| ())?;
-    //     }
-
-    //     let order: Self::InDb = body.into();
-    //     orders
-    //         .insert_one(&order)
-    //         .session(&mut session)
-    //         .await
-    //         .map_err(|_| ())?;
-
-    //     session.commit_transaction().await.map_err(|_| ())?;
-
-    //     Ok(order)
-    // }
 }
 
 impl UpdatableInDb for Order {
@@ -241,12 +167,4 @@ impl UpdatableInDb for Order {
             None => None,
         })
     }
-}
-
-impl DeletableInDb for Order {
-    type DeleteInDb = ByBusinessId<OrderDelete>;
-
-    // async fn delete(_: &Db, _: Self::Delete) -> Result<Option<(Self::DeleteInDb, Self::InDb)>> {
-    //     todo!("Not implemented")
-    // }
 }

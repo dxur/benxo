@@ -16,8 +16,11 @@ use syn::{
 pub fn derive_model(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
-    let mut public = None;
+    let mut coll = None;
+    let mut indb = None;
+    let mut find = None;
     let mut fetch = None;
+    let mut listable = None;
     let mut create = None;
     let mut update = None;
     let mut delete = None;
@@ -26,18 +29,20 @@ pub fn derive_model(input: TokenStream) -> TokenStream {
         if let Some(attr_meta_name) = attr.path().get_ident() {
             if attr_meta_name == "model" {
                 let attr_meta = attr.meta;
-
                 match attr_meta {
                     Meta::List(list) => {
                         list.parse_nested_meta(|meta| {
                             let key = meta.path.get_ident().unwrap().to_string();
                             match key.as_str() {
-                                "public" => public = Some(meta.value()?.parse::<Path>()?),
+                                "coll" => coll = Some(meta.value()?.parse::<LitStr>()?),
+                                "indb" => indb = Some(meta.value()?.parse::<Path>()?),
+                                "find" => find = Some(meta.value()?.parse::<Path>()?),
                                 "fetch" => fetch = Some(meta.value()?.parse::<Path>()?),
+                                "list" => listable = Some(meta.value()?.parse::<Path>()?),
                                 "create" => create = Some(meta.value()?.parse::<Path>()?),
                                 "update" => update = Some(meta.value()?.parse::<Path>()?),
                                 "delete" => delete = Some(meta.value()?.parse::<Path>()?),
-                                _ => Err(meta.error("unsupported attribute"))?,
+                                v => Err(meta.error(format!("unsupported attribute {}", v)))?,
                             }
                             Ok(())
                         })
@@ -52,122 +57,68 @@ pub fn derive_model(input: TokenStream) -> TokenStream {
     let name = &input.ident;
     let mut expanded = quote! {};
 
-    if let Some(p) = public {
+    if let Some(col) = coll {
+        if let Some(p) = indb {
+            expanded.extend(quote! {
+                impl ModelInDb for #name {
+                    const COLLECTION_NAME: &'static str = #col;
+                    type InDb = #p;
+                }
+            });
+        }
+    } else if coll.is_some() || indb.is_some() {
+        panic!("Both 'coll' and 'indb' must be specified together, or neither.");
+    }
+
+    if let Some(p) = find {
         expanded.extend(quote! {
-            impl Model for #name {
-                type Public = #p;
+            impl FindableInDb for #name {
+                type FindInDb = #p;
             }
         });
     }
 
     if let Some(p) = fetch {
         expanded.extend(quote! {
-            impl Fetchable for #name {
-                type Fetch = #p;
+            impl FetchableInDb for #name {
+                type FetchInDb = #p;
+            }
+        });
+    }
+
+    if let Some(p) = listable {
+        expanded.extend(quote! {
+            impl ListableInDb for #name {
+                type ListInDb = #p;
             }
         });
     }
 
     if let Some(p) = create {
         expanded.extend(quote! {
-            impl Creatable for #name {
-                type Create = #p;
+            impl CreatableInDb for #name {
+                type CreateInDb = #p;
             }
         });
     }
 
     if let Some(p) = update {
         expanded.extend(quote! {
-            impl Updatable for #name {
-                type Update = #p;
+            impl UpdatableInDb for #name {
+                type UpdateInDb = #p;
             }
         });
     }
 
     if let Some(p) = delete {
         expanded.extend(quote! {
-            impl Deletable for #name {
-                type Delete = #p;
+            impl DeletableInDb for #name {
+                type DeleteInDb = #p;
             }
         });
     }
 
     TokenStream::from(expanded)
-}
-
-#[proc_macro_attribute]
-pub fn model_in_db(args: TokenStream, input: TokenStream) -> TokenStream {
-    let mut find = None;
-    let mut fetch = None;
-    let mut list = None;
-    let mut create = None;
-    let mut update = None;
-    let mut delete = None;
-
-    let parser = meta::parser(|meta| {
-        let key = meta.path.get_ident().unwrap().to_string();
-        match key.as_str() {
-            "find" => find = Some(meta.value()?.parse::<Path>()?),
-            "fetch" => fetch = Some(meta.value()?.parse::<Path>()?),
-            "list" => list = Some(meta.value()?.parse::<Path>()?),
-            "create" => create = Some(meta.value()?.parse::<Path>()?),
-            "update" => update = Some(meta.value()?.parse::<Path>()?),
-            "delete" => delete = Some(meta.value()?.parse::<Path>()?),
-            _ => Err(meta.error(format!("unsupported attribute: {}", key.as_str())))?,
-        }
-        Ok(())
-    });
-
-    parse_macro_input!(args with parser);
-    let input_impl = parse_macro_input!(input as ItemImpl);
-
-    let name = &*input_impl.self_ty;
-
-    let tokens: proc_macro2::TokenStream = [
-        find.map(|path| {
-            quote! { impl crate::db::FindableInDb for #name {
-                type FindInDb = #path;
-            } }
-        }),
-        fetch.map(|path| {
-            quote! { impl crate::db::FetchableInDb for #name {
-                type FetchInDb = #path;
-            } }
-        }),
-        list.map(|path| {
-            quote! { impl crate::db::ListableInDb for #name {
-                type ListInDb = #path;
-            } }
-        }),
-        create.map(|path| {
-            quote! { impl crate::db::CreatableInDb for #name {
-                type CreateInDb = #path;
-            } }
-        }),
-        update.map(|path| {
-            quote! { impl crate::db::UpdatableInDb for #name {
-                type UpdateInDb = #path;
-            } }
-        }),
-        delete.map(|path| {
-            quote! { impl crate::db::DeletableInDb for #name {
-                type DeleteInDb = #path;
-            } }
-        }),
-    ]
-    .into_iter()
-    .flatten()
-    .collect();
-
-    let expanded = quote! {
-        impl crate::db::ModelRegisteredByMacro for #name {}
-        #[linkme::distributed_slice(crate::db::MODELS_INIT)]
-        pub static __INIT_MODEL: crate::db::ModelInitFn = |db| Box::pin(<#name>::init_coll(db));
-
-        #input_impl
-        #tokens
-    };
-    expanded.into()
 }
 
 // #[proc_macro_attribute]

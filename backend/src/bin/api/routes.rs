@@ -1,6 +1,12 @@
 use axum::extract::State;
 use axum::response::IntoResponse;
 use axum::Json;
+use backend::db::domain::Domain;
+use backend::db::order::Order;
+use backend::db::product::Product;
+use backend::db::store::Store;
+use backend::utils::types::ResultBodyExt;
+use backend::utils::types::ResultPageExt;
 use bcrypt::{hash, verify, DEFAULT_COST};
 use hyper::StatusCode;
 use macros::routes;
@@ -108,6 +114,7 @@ impl Routes {
     ) -> impl IntoResponse {
         generic::get_all::<Product>(&state, pagination, user.business_id.into_context())
             .await
+            .into_page()
             .into_json()
     }
 
@@ -119,6 +126,7 @@ impl Routes {
     ) -> impl IntoResponse {
         generic::get_one::<Product>(&state, body.with_context(user.business_id))
             .await
+            .into_body()
             .into_json()
     }
 
@@ -130,6 +138,7 @@ impl Routes {
     ) -> impl IntoResponse {
         generic::create::<Product>(&state, body.with_context(user.business_id))
             .await
+            .into_body()
             .into_json()
     }
 
@@ -141,6 +150,7 @@ impl Routes {
     ) -> impl IntoResponse {
         generic::update::<Product>(&state, body.with_context(user.business_id))
             .await
+            .into_body()
             .into_json()
     }
 
@@ -152,6 +162,7 @@ impl Routes {
     ) -> impl IntoResponse {
         generic::delete::<Product>(&state, body.with_context(user.business_id))
             .await
+            .into_body()
             .into_json()
     }
 
@@ -164,6 +175,7 @@ impl Routes {
     ) -> impl IntoResponse {
         generic::get_all::<Order>(&state, pagination, user.business_id.into_context())
             .await
+            .into_page()
             .into_json()
     }
 
@@ -175,6 +187,7 @@ impl Routes {
     ) -> impl IntoResponse {
         generic::get_one::<Order>(&state, body.with_context(user.business_id))
             .await
+            .into_body()
             .into_json()
     }
 
@@ -186,6 +199,7 @@ impl Routes {
     ) -> impl IntoResponse {
         generic::create::<Order>(&state, body.with_context(user.business_id))
             .await
+            .into_body()
             .into_json()
     }
 
@@ -197,6 +211,7 @@ impl Routes {
     ) -> impl IntoResponse {
         generic::update::<Order>(&state, body.with_context(user.business_id))
             .await
+            .into_body()
             .into_json()
     }
 
@@ -208,6 +223,7 @@ impl Routes {
     ) -> impl IntoResponse {
         generic::delete::<Order>(&state, body.with_context(user.business_id))
             .await
+            .into_body()
             .into_json()
     }
 
@@ -220,6 +236,7 @@ impl Routes {
     ) -> impl IntoResponse {
         generic::get_all::<Store>(&state, pagination, user.business_id.into_context())
             .await
+            .into_page()
             .into_json()
     }
 
@@ -249,6 +266,7 @@ impl Routes {
     ) -> impl IntoResponse {
         generic::create::<Store>(&state, body.with_context(user.business_id))
             .await
+            .into_body()
             .into_json()
     }
 
@@ -260,6 +278,7 @@ impl Routes {
     ) -> impl IntoResponse {
         generic::update::<Store>(&state, body.with_context(user.business_id))
             .await
+            .into_body()
             .into_json()
     }
 
@@ -271,6 +290,7 @@ impl Routes {
     ) -> impl IntoResponse {
         generic::delete::<Store>(&state, body.with_context(user.business_id))
             .await
+            .into_body()
             .into_json()
     }
     // ---- Domains ----
@@ -283,6 +303,7 @@ impl Routes {
     ) -> impl IntoResponse {
         generic::get_all::<Domain>(&state, pagination, body.with_context(user.business_id))
             .await
+            .into_page()
             .into_json()
     }
 
@@ -291,6 +312,7 @@ impl Routes {
     async fn get_settings(State(state): State<AppState>, user: UserData) -> impl IntoResponse {
         generic::get_one::<Settings>(&state, user.business_id.into_context())
             .await
+            .into_body()
             .into_json()
     }
 }

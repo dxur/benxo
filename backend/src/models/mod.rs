@@ -1,51 +1,26 @@
 pub mod auth;
 pub mod channel;
-pub mod delivery;
+// pub mod delivery;
 pub mod domain;
+pub mod file;
 pub mod order;
 pub mod product;
 pub mod settings;
 pub mod store;
-pub mod theme;
 pub mod user;
-
-use std::fmt::Debug;
 
 pub use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
 use ts_rs::TS;
 
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, Default, PartialEq, Eq)]
-pub struct Void;
+pub use crate::db::*;
+use crate::utils::types::IntoInner;
 
-impl<T> From<&T> for Void {
-    fn from(_: &T) -> Self {
-        Void
-    }
-}
-
-pub trait Model {
-    type Public: Debug + Send + Sync + Serialize + for<'a> Deserialize<'a>;
-}
-
-pub trait Fetchable: Model {
-    type Fetch: Debug + Send + Sync + Serialize + for<'a> Deserialize<'a>;
-}
-
-pub trait Creatable: Model {
-    type Create: Debug + Send + Sync + Serialize + for<'a> Deserialize<'a>;
-}
-
-pub trait Updatable: Model {
-    type Update: Debug + Send + Sync + Serialize + for<'a> Deserialize<'a>;
-}
-
-pub trait Deletable: Model {
-    type Delete: Debug + Send + Sync + Serialize + for<'a> Deserialize<'a>;
-}
-
-pub trait Filterable: Model {
-    type Filter: Debug + Send + Sync + Serialize + for<'a> Deserialize<'a>;
+#[derive(Debug, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct ById<T = ObjectId> {
+    pub id: T,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]
@@ -90,6 +65,17 @@ impl<T> Default for Page<T> {
             total: 0,
             page: 1,
             per_page: 10,
+        }
+    }
+}
+
+impl<T, U: Into<T>> IntoInner<Page<T>> for Page<U> {
+    fn into_inner(self) -> Page<T> {
+        Page {
+            data: self.data.into_iter().map(|v| v.into()).collect(),
+            total: self.total,
+            page: self.page,
+            per_page: self.per_page,
         }
     }
 }

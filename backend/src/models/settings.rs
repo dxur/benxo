@@ -21,6 +21,4 @@ pub struct SettingsPublic {
     pub domain: String,
 }
 
-#[derive(Model)]
-#[model(public=SettingsPublic, fetch=Void, update=SettingsUpdate)]
 pub struct Settings;

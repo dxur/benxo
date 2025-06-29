@@ -29,7 +29,7 @@ impl WithDb for AppState {
 #[tokio::main]
 async fn main() {
     init_tracing();
-    let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    let listener = TcpListener::bind("0.0.0.0:3001").await.unwrap();
     info!("listening on {}", listener.local_addr().unwrap());
 
     let state = AppState {

@@ -79,18 +79,3 @@ pub struct ChannelPublic {
 }
 
 pub struct Channel;
-impl Model for Channel {
-    type Public = ChannelPublic;
-}
-impl Fetchable for Channel {
-    type Fetch = ChannelFetch;
-}
-impl Creatable for Channel {
-    type Create = ChannelCreate;
-}
-impl Updatable for Channel {
-    type Update = ChannelUpdate;
-}
-impl Deletable for Channel {
-    type Delete = ChannelDelete;
-}

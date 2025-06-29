@@ -1,5 +1,6 @@
 use axum::extract::{Path, Query, State};
 use axum::response::{Html, IntoResponse};
+use backend::db::domain::Domain;
 use hyper::StatusCode;
 use macros::routes;
 use tracing::{debug, error};
@@ -7,7 +8,7 @@ use tracing::{debug, error};
 use crate::AppState;
 use backend::db::product::Product;
 use backend::extractors::StoreMeta;
-use backend::models::domain::{Domain, DomainFetch};
+use backend::models::domain::DomainFetch;
 use backend::models::product::*;
 use backend::models::Pagination;
 use backend::routes::generic;

@@ -1,11 +1,11 @@
 use hex_color::HexColor;
-use macros::model_in_db;
 use mongodb::bson::{doc, oid::ObjectId, to_document, Document};
 use serde::{Deserialize, Serialize};
 
 use super::*;
 use super::{Error, ModelInDb};
 use crate::models::store::*;
+use crate::register_model;
 
 #[derive(Debug, Serialize)]
 pub struct StoreFindInDb {
@@ -45,8 +45,8 @@ impl IntoFilter for StoreFindInDb {
     }
 }
 
-impl Into<Result<Document>> for &StoreUpdate {
-    fn into(self) -> Result<Document> {
+impl RefInto<Result<Document>> for StoreUpdate {
+    fn ref_into(&self) -> Result<Document> {
         to_document(&self.body).map_err(|e| Error { msg: e.to_string() })
     }
 }
@@ -59,8 +59,8 @@ impl Into<StoreFindInDb> for &ByBusinessId<StoreDelete> {
     }
 }
 
-impl Into<StoreFindInDb> for &ByBusinessId<StoreUpdate> {
-    fn into(self) -> StoreFindInDb {
+impl RefInto<StoreFindInDb> for ByBusinessId<StoreUpdate> {
+    fn ref_into(&self) -> StoreFindInDb {
         StoreFindInDb {
             store_id: self.body.store_id.clone(),
         }
@@ -92,16 +92,35 @@ impl Into<StoreFindInDb> for &StoreFetch {
     }
 }
 
-#[model_in_db(
-    find=StoreFindInDb,
-    fetch=StoreFetch,
-    list=ByBusinessId<Void>,
-    create=ByBusinessId<StoreCreate>,
-    update=ByBusinessId<StoreUpdate>,
-    delete=ByBusinessId<StoreDelete>,
-)]
+pub struct Store;
+
+register_model!(Store);
 impl ModelInDb for Store {
     const COLLECTION_NAME: &'static str = "stores";
 
     type InDb = StoreInDb;
+}
+
+impl FindableInDb for Store {
+    type FindInDb = StoreFindInDb;
+}
+
+impl FetchableInDb for Store {
+    type FetchInDb = StoreFetch;
+}
+
+impl ListableInDb for Store {
+    type ListInDb = ByBusinessId<Void>;
+}
+
+impl CreatableInDb for Store {
+    type CreateInDb = ByBusinessId<StoreCreate>;
+}
+
+impl UpdatableInDb for Store {
+    type UpdateInDb = ByBusinessId<StoreUpdate>;
+}
+
+impl DeletableInDb for Store {
+    type DeleteInDb = ByBusinessId<StoreDelete>;
 }

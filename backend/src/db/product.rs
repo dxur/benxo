@@ -1,14 +1,13 @@
 use bson::DateTime;
 use field::*;
 use indexmap::{IndexMap, IndexSet};
-use macros::model_in_db;
 use mongodb::bson::to_document;
 use mongodb::bson::{doc, oid::ObjectId, Document};
 use serde::{Deserialize, Serialize};
 
 use super::*;
-pub use crate::models::product::Product;
 use crate::models::product::*;
+use crate::register_model;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ProductInDb {
@@ -102,14 +101,9 @@ impl Into<Result<Document>> for &ProductUpdate {
     }
 }
 
-#[model_in_db(
-    find=ByBusinessId<ProductFetch>,
-    fetch=ByBusinessId<ProductFetch>,
-    list=ByBusinessId<Void>,
-    create=ByBusinessId<ProductCreate>,
-    update=ByBusinessId<ProductUpdate>,
-    delete=ByBusinessId<ProductDelete>,
-)]
+pub struct Product;
+
+register_model!(Product);
 impl ModelInDb for Product {
     const COLLECTION_NAME: &'static str = "products";
 
@@ -150,4 +144,28 @@ impl ModelInDb for Product {
         .await
         .map_or_else(|e| Err(Error { msg: e.to_string() }), |_| Ok(()))
     }
+}
+
+impl FindableInDb for Product {
+    type FindInDb = ByBusinessId<ProductFetch>;
+}
+
+impl FetchableInDb for Product {
+    type FetchInDb = ByBusinessId<ProductFetch>;
+}
+
+impl ListableInDb for Product {
+    type ListInDb = ByBusinessId<Void>;
+}
+
+impl CreatableInDb for Product {
+    type CreateInDb = ByBusinessId<ProductCreate>;
+}
+
+impl UpdatableInDb for Product {
+    type UpdateInDb = ByBusinessId<ProductUpdate>;
+}
+
+impl DeletableInDb for Product {
+    type DeleteInDb = ByBusinessId<ProductDelete>;
 }

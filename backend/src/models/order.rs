@@ -146,7 +146,3 @@ pub struct OrderPublic {
     pub items: IndexMap<String, CartItem>,
     pub history: Vec<OrderHistoryEntry>,
 }
-
-#[derive(Model)]
-#[model(public=OrderPublic, fetch=OrderFetch, create=OrderCreate, update=OrderUpdate, delete=OrderDelete)]
-pub struct Order;

@@ -60,7 +60,3 @@ pub struct StorePublic {
     pub background_color: HexColor,
     pub head: String,
 }
-
-#[derive(Model)]
-#[model(public=StorePublic, fetch=StoreFetch, create=StoreCreate, update=StoreUpdate, delete=StoreDelete)]
-pub struct Store;

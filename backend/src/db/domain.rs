@@ -1,10 +1,10 @@
-use macros::model_in_db;
 use mongodb::bson::{doc, oid::ObjectId, to_document, Document};
 use serde::{Deserialize, Serialize};
 
 use super::*;
 use super::{Error, ModelInDb};
 use crate::models::domain::*;
+use crate::register_model;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DomainInDb {
@@ -55,15 +55,30 @@ impl Into<FindInDb<String>> for &DomainFetch {
     }
 }
 
-#[model_in_db(
-    find=FindInDb<String>,
-    fetch=DomainFetch,
-    list=ByBusinessId<DomainList>,
-    create=ByBusinessId<DomainCreate>,
-    delete=ByBusinessId<DomainDelete>,
-)]
+pub struct Domain;
+
+register_model!(Domain);
 impl ModelInDb for Domain {
     const COLLECTION_NAME: &'static str = "domains";
-
     type InDb = DomainInDb;
+}
+
+impl FindableInDb for Domain {
+    type FindInDb = FindInDb<String>;
+}
+
+impl FetchableInDb for Domain {
+    type FetchInDb = DomainFetch;
+}
+
+impl ListableInDb for Domain {
+    type ListInDb = ByBusinessId<DomainList>;
+}
+
+impl CreatableInDb for Domain {
+    type CreateInDb = ByBusinessId<DomainCreate>;
+}
+
+impl DeletableInDb for Domain {
+    type DeleteInDb = ByBusinessId<DomainDelete>;
 }

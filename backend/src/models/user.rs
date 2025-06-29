@@ -69,18 +69,3 @@ pub struct UserPublic {
 }
 
 pub struct User;
-impl Model for User {
-    type Public = UserPublic;
-}
-impl Fetchable for User {
-    type Fetch = UserFetch;
-}
-impl Creatable for User {
-    type Create = UserCreate;
-}
-impl Updatable for User {
-    type Update = UserUpdate;
-}
-impl Deletable for User {
-    type Delete = UserDelete;
-}
