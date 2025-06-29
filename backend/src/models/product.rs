@@ -8,10 +8,12 @@ use ts_rs::TS;
 
 use super::*;
 
-#[derive(Debug, Serialize, Deserialize, TS)]
+#[derive(Debug, Serialize, Deserialize, Clone, TS)]
 #[ts(export)]
-pub struct ProductFetch {
-    pub id: ObjectId,
+#[serde(rename_all = "snake_case")]
+pub enum ProductFetch {
+    Id(ObjectId),
+    Slug(String),
 }
 
 #[derive(Debug, Serialize, Deserialize, TS)]

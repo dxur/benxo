@@ -12,7 +12,7 @@ use crate::db::FetchableInDb;
 use crate::models::domain::{Domain, DomainFetch};
 use crate::models::store::{Store, StoreFetch};
 use crate::utils::auth::{decode_access_token, decode_refresh_token};
-use crate::AppState;
+use crate::WithDb;
 
 #[derive(Debug)]
 pub struct UnauthorizedRejection;
@@ -95,28 +95,23 @@ impl IntoResponse for NotFoundRejection {
 #[derive(Debug)]
 pub struct StoreMeta(pub StoreInDb);
 
-impl FromRequestParts<AppState> for StoreMeta {
+impl<T: WithDb> FromRequestParts<T> for StoreMeta {
     type Rejection = NotFoundRejection;
 
-    async fn from_request_parts(
-        parts: &mut Parts,
-        state: &AppState,
-    ) -> Result<Self, Self::Rejection> {
+    async fn from_request_parts(parts: &mut Parts, state: &T) -> Result<Self, Self::Rejection> {
         let host = parts
             .headers
             .get(HOST)
             .and_then(|h| h.to_str().ok())
             .ok_or(Self::Rejection {})?;
 
-        let suffix = ".mystore.localhost";
-
-        let store = if let Some(stripped) = host.strip_suffix(suffix) {
+        let store = if let Some(stripped) = host.strip_suffix(dotenv!("STORE_SUFFIX")) {
             StoreFetch {
-                id: stripped.to_string(),
+                store_id: stripped.to_string(),
             }
         } else {
             let domain = Domain::get_one(
-                &state.db,
+                &state.db(),
                 DomainFetch {
                     domain: host.to_string(),
                 },
@@ -126,12 +121,14 @@ impl FromRequestParts<AppState> for StoreMeta {
             .ok_or(Self::Rejection {})?;
 
             StoreFetch {
-                id: domain.store_id,
+                store_id: domain.store_id,
             }
         };
 
+        // TODO: Redirect to the Domain name if the store uses a domain instead
+
         Ok(StoreMeta(
-            Store::get_one(&state.db, store.into())
+            Store::get_one(&state.db(), store)
                 .await
                 .map_err(|_| Self::Rejection {})?
                 .ok_or(Self::Rejection {})?,

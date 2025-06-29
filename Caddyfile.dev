@@ -9,22 +9,31 @@
   }
 }
 
-*.mystore.localhost {
-  reverse_proxy http://127.0.0.1:3000
-}
+benxo.test, www.benxo.test {
+  tls internal
 
-*.localhost {
-  respond "404 not found" 404 {
-    close
-  }
-}
-
-localhost {
   @api path /api*
   reverse_proxy @api http://127.0.0.1:3000
 
   @front not path /api*
   reverse_proxy @front http://127.0.0.1:4321
+}
+
+cdn.benxo.test {
+  tls internal
+  reverse_proxy http://127.0.0.1:9000
+}
+
+*.mystore.benxo.test {
+  tls internal
+  reverse_proxy http://127.0.0.1:3000
+}
+
+*.benxo.test {
+  tls internal
+  respond "404 not found" 404 {
+    close
+  }
 }
 
 https:// {

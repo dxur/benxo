@@ -7,7 +7,7 @@ macro_rules! register_model {
     ($model:ty) => {
         impl $crate::db::ModelRegisteredByMacro for $model {}
         #[linkme::distributed_slice($crate::db::MODELS_INIT)]
-        pub static __INIT_MODEL: $crate::ModelInitFn = |db| Box::pin(<$model>::init_coll(db));
+        pub static __INIT_MODEL: $crate::db::ModelInitFn = |db| Box::pin(<$model>::init_coll(db));
     };
 }
 

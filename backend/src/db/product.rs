@@ -28,6 +28,22 @@ pub struct ProductInDb {
     pub updated_at: DateTime,
 }
 
+impl IntoFilter for ProductFetch {
+    fn into_filter(&self) -> Result<Document> {
+        let filter = match self {
+            Self::Id(id) => FindInDb { _id: id }.into_filter()?,
+            Self::Slug(slug) => doc! {slug: slug},
+        };
+        Ok(filter)
+    }
+}
+
+impl Into<ProductFetch> for &ProductFetch {
+    fn into(self) -> ProductFetch {
+        (*self).clone()
+    }
+}
+
 impl Into<ProductPublic> for ProductInDb {
     fn into(self) -> ProductPublic {
         ProductPublic {
@@ -68,21 +84,15 @@ impl Into<ProductInDb> for ByBusinessId<ProductCreate> {
     }
 }
 
-impl Into<FindInDb> for &ProductFetch {
-    fn into(self) -> FindInDb {
-        FindInDb { _id: self.id }
+impl Into<ProductFetch> for &ProductUpdate {
+    fn into(self) -> ProductFetch {
+        ProductFetch::Id(self.id)
     }
 }
 
-impl Into<FindInDb> for &ProductUpdate {
-    fn into(self) -> FindInDb {
-        FindInDb { _id: self.id }
-    }
-}
-
-impl Into<FindInDb> for &ProductDelete {
-    fn into(self) -> FindInDb {
-        FindInDb { _id: self.id }
+impl Into<ProductFetch> for &ProductDelete {
+    fn into(self) -> ProductFetch {
+        ProductFetch::Id(self.id)
     }
 }
 
@@ -93,7 +103,7 @@ impl Into<Result<Document>> for &ProductUpdate {
 }
 
 #[model_in_db(
-    find=ByBusinessId<FindInDb>,
+    find=ByBusinessId<ProductFetch>,
     fetch=ByBusinessId<ProductFetch>,
     list=ByBusinessId<Void>,
     create=ByBusinessId<ProductCreate>,

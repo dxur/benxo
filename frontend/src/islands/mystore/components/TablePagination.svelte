@@ -1,5 +1,6 @@
 <script lang="ts">
   import { type Writable } from "svelte/store";
+  import { _ } from "svelte-i18n";
 
   export let page: Writable<number>;
   export let total: Writable<number>;
@@ -10,13 +11,13 @@
     disabled={$page === 1}
     on:click={() => page.update((n) => Math.max(n - 1, 1))}
   >
-    Previous
+    {$_("common.navigation.previous")}
   </button>
-  <span>{"Page: "}{$page}</span>
+  <span>{$_("common.navigation.page")}: {$page}</span>
   <button
     disabled={$page >= $total}
     on:click={() => page.update((n) => Math.min(n + 1, $total))}
   >
-    Next
+    {$_("common.navigation.next")}
   </button>
 </nav>

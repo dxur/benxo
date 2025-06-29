@@ -9,47 +9,52 @@ export namespace AppRoutes {
   }
 
   export const HOME: Route = {
-    name: "Home",
+    name: "home",
     path: "/home",
     component: () => import("./pages/index.svelte"),
   };
   export const ORDERS: Route = {
-    name: "Orders",
+    name: "orders",
     path: "/orders",
     component: () => import("./pages/orders/index.svelte"),
   };
   export const ORDER: Route = {
-    name: "Order Edit",
+    name: "edit-order",
     path: "/orders/:oid",
     component: () => import("./pages/orders/edit.svelte"),
   };
   export const PRODUCTS: Route = {
-    name: "Products",
+    name: "products",
     path: "/products",
     component: () => import("./pages/products/index.svelte"),
   };
   export const PRODUCT: Route = {
-    name: "Product Edit",
+    name: "edit-product",
     path: "/products/:oid",
     component: () => import("./pages/products/edit.svelte"),
   };
-  export const CHANNELS: Route = {
-    name: "Channels",
-    path: "/channels",
-    component: () => import("./pages/channels/index.svelte"),
+  export const STORES: Route = {
+    name: "stores",
+    path: "/stores",
+    component: () => import("./pages/stores/index.svelte"),
   };
-  export const CHANNEL_STORE: Route = {
-    name: "Store",
-    path: "/channels/store/:oid",
-    component: () => import("./pages/channels/store.svelte"),
+  export const STORE: Route = {
+    name: "edit-store",
+    path: "/stores/:oid",
+    component: () => import("./pages/stores/edit.svelte"),
   };
-  export const CHANNEL_API: Route = {
-    name: "API",
-    path: "/channels/api/:oid",
-    component: () => import("./pages/channels/api.svelte"),
+  export const CONVERSIONS: Route = {
+    name: "conversions",
+    path: "/conversions",
+    component: () => import("./pages/stores/index.svelte"),
+  };
+  export const CONVERSION: Route = {
+    name: "edit-conversion",
+    path: "/conversions/:oid",
+    component: () => import("./pages/stores/edit.svelte"),
   };
   export const SETTINGS: Route = {
-    name: "Settings",
+    name: "settings",
     path: "/settings",
     component: () => import("./pages/settings/index.svelte"),
   };
@@ -71,8 +76,9 @@ export default <Route[]>[
   // AppRoutes.STORE,
   // AppRoutes.DELIVERY,
   // AppRoutes.USERS,
-  AppRoutes.CHANNELS,
-  AppRoutes.CHANNEL_STORE,
-  AppRoutes.CHANNEL_API,
+  AppRoutes.STORES,
+  AppRoutes.STORE,
+  AppRoutes.CONVERSIONS,
+  AppRoutes.CONVERSION,
   AppRoutes.SETTINGS
 ];

@@ -1,3 +1,4 @@
 #!/bin/sh
 
-cargo watch -x 'run -p backend'
+cd backend
+cargo watch -x 'run'

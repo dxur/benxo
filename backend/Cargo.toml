@@ -38,3 +38,4 @@ async-smtp = "0.10.2"
 rust-s3 = "0.35.1"
 linkme = "0.3.33"
 static_assertions = "1.1.0"
+hex_color = { version = "3.0.0", features = ["serde"] }

@@ -3,6 +3,7 @@
   import Chart from "chart.js/auto";
   import { Chart as ChartJS, registerables } from "chart.js";
   import Card from "../components/Card.svelte";
+  import { _, format } from "svelte-i18n";
 
   ChartJS.register(...registerables);
 
@@ -38,9 +39,9 @@
   const salesData = [12800, 15600, 14300, 18900, 21300, 24500];
   const userData = [850, 1200, 1450, 1800, 2300, 2750];
 
-  // Order status data
-  const orderStatusData = {
-    labels: ["Processing", "Shipped", "Delivered", "Returned"],
+  // Order status data - will be updated with translations
+  let orderStatusData = {
+    labels: [] as string[],
     data: [15, 28, 52, 5],
     colors: {
       backgroundColor: [
@@ -58,9 +59,9 @@
     },
   };
 
-  // Revenue sources data
-  const revenueSources = {
-    labels: ["Online Store", "Marketplace", "Social Media", "Retail"],
+  // Revenue sources data - will be updated with translations
+  let revenueSources = {
+    labels: [] as string[],
     data: [42, 28, 18, 12],
     colors: {
       backgroundColor: [
@@ -78,6 +79,25 @@
     },
   };
 
+  // Reactive statements to update chart labels when translations change
+  $: {
+    orderStatusData.labels = [
+      $_("common.status.processing"),
+      $_("common.status.shipped"),
+      $_("common.status.delivered"),
+      $_("common.status.returned"),
+    ];
+  }
+
+  $: {
+    revenueSources.labels = [
+      $_("pages.home.charts.revenue.onlineStore"),
+      $_("pages.home.charts.revenue.marketplace"),
+      $_("pages.home.charts.revenue.socialMedia"),
+      $_("pages.home.charts.revenue.retail"),
+    ];
+  }
+
   onMount(() => {
     // Sales Chart - Bar Chart with gradient
     const salesCtx = salesCanvas.getContext("2d");
@@ -92,7 +112,7 @@
           labels: recentMonths,
           datasets: [
             {
-              label: "Monthly Sales ($)",
+              label: $_("pages.home.charts.monthlySales"),
               data: salesData,
               backgroundColor: salesGradient,
               borderColor: "rgba(55, 125, 255, 1)",
@@ -114,7 +134,9 @@
               padding: 10,
               callbacks: {
                 label: function (context) {
-                  return "$ " + context.parsed.y.toLocaleString();
+                  return $_("common.tooltips.currency", {
+                    value: context.parsed.y.toLocaleString(),
+                  });
                 },
               },
             },
@@ -155,7 +177,7 @@
           labels: recentMonths,
           datasets: [
             {
-              label: "Active Users",
+              label: $_("pages.home.charts.userGrowth"),
               data: userData,
               fill: true,
               backgroundColor: usersGradient,
@@ -237,8 +259,11 @@
                   (acc, data) => acc + data,
                   0,
                 );
-                const percentage = Math.round((value * 100) / total) + "%";
-                return label + ": " + percentage;
+                const percentage = Math.round((value * 100) / total);
+                return $_("common.tooltips.percentage", {
+                  label,
+                  percent: percentage,
+                });
               },
             },
           },
@@ -284,8 +309,11 @@
                   (acc, data) => acc + data,
                   0,
                 );
-                const percentage = Math.round((value * 100) / total) + "%";
-                return label + ": " + percentage;
+                const percentage = Math.round((value * 100) / total);
+                return $_("common.tooltips.percentage", {
+                  label,
+                  percent: percentage,
+                });
               },
             },
           },
@@ -293,48 +321,60 @@
       },
     });
   });
-  $: document.title = "Home";
+
+  // Update document title using translation
+  $: document.title = $_("routes.home.title");
 </script>
 
 <header>
-  <h1>Welcome back!</h1>
-  <p>Here's an overview of your business performance.</p>
+  <h1>{$_("pages.home.header.title")}</h1>
+  <p>{$_("pages.home.header.subtitle")}</p>
 </header>
 
 <div class="dashboard-summary">
   <Card>
     <div class="summary-icon">📈</div>
     <div class="summary-data">
-      <h3>Total Sales</h3>
+      <h3>{$_("pages.home.summary.totalSales.title")}</h3>
       <strong>$107,400</strong>
-      <p class="summary-change positive">+15.2% from last period</p>
+      <p class="summary-change positive">
+        {$_("pages.home.summary.totalSales.change", { value: "15.2" })}
+      </p>
     </div>
   </Card>
 
   <Card>
     <div class="summary-icon">👥</div>
     <div class="summary-data">
-      <h3>Visitors</h3>
+      <h3>{$_("pages.home.summary.visitors.title")}</h3>
       <strong>2,750</strong>
-      <p class="summary-change positive">+19.6% from last period</p>
+      <p class="summary-change positive">
+        {$_("pages.home.summary.visitors.change", { value: "19.6" })}
+      </p>
     </div>
   </Card>
 
   <Card>
     <div class="summary-icon">📊</div>
     <div class="summary-data">
-      <h3>Avg. Order Value</h3>
+      <h3>{$_("pages.home.summary.avgOrderValue.title")}</h3>
       <strong>$87.50</strong>
-      <p class="summary-change positive">+5.3% from last period</p>
+      <p class="summary-change positive">
+        {$_("pages.home.summary.avgOrderValue.change", { value: "5.3" })}
+      </p>
     </div>
   </Card>
 
   <Card>
     <div class="summary-icon">🎯</div>
     <div class="summary-data">
-      <h3>Conversion Rate</h3>
+      <h3>{$_("pages.home.summary.conversionRate.title")}</h3>
       <strong>3.8%</strong>
-      <p class="summary-change negative">-0.5% from last period</p>
+      <p class="summary-change negative">
+        {$_("pages.home.summary.conversionRate.changeNegative", {
+          value: "0.5",
+        })}
+      </p>
     </div>
   </Card>
 </div>
@@ -342,7 +382,7 @@
 <div class="charts-container">
   <Card class="sales-chart">
     <header>
-      <h3>Monthly Sales</h3>
+      <h3>{$_("pages.home.charts.monthlySales")}</h3>
     </header>
     <div class="chart-canvas-container">
       <canvas bind:this={salesCanvas}></canvas>
@@ -351,7 +391,7 @@
 
   <Card class="users-chart">
     <header>
-      <h3>User Growth</h3>
+      <h3>{$_("pages.home.charts.userGrowth")}</h3>
     </header>
     <div class="chart-canvas-container">
       <canvas bind:this={usersCanvas}></canvas>
@@ -360,7 +400,7 @@
 
   <Card class="orders-chart">
     <header>
-      <h3>Order Status</h3>
+      <h3>{$_("pages.home.charts.orderStatus")}</h3>
     </header>
     <div class="chart-canvas-container">
       <canvas bind:this={ordersCanvas}></canvas>
@@ -369,7 +409,7 @@
 
   <Card class="revenue-chart">
     <header>
-      <h3>Revenue Sources</h3>
+      <h3>{$_("pages.home.charts.revenueSources")}</h3>
     </header>
     <div class="chart-canvas-container">
       <canvas bind:this={revenueCanvas}></canvas>

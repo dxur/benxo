@@ -43,7 +43,7 @@
       })
       .catch((err) => {
         notifCenter.error(err);
-        status = err;
+        status = err || "An error occurred";
       });
   }
 

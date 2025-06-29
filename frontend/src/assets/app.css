@@ -102,6 +102,12 @@ body {
     height: 100%;
     margin: 0;
     overflow: hidden;
+    text-align: left;
+}
+
+html[dir="rtl"] body {
+    direction: rtl;
+    text-align: right;
 }
 
 body {
@@ -185,7 +191,6 @@ aside nav a {
     background: transparent;
     color: rgba(255, 255, 255, 0.75);
     padding: var(--spacing-sm) var(--spacing-base);
-    text-align: left;
     border-radius: var(--radius-small);
     transition: var(--transition-base);
     width: 100%;
@@ -434,7 +439,6 @@ table thead {
 }
 
 table th {
-    text-align: left;
     padding: var(--spacing-base) var(--spacing-xl);
     border-bottom: var(--border-table);
     background: var(--bg);
@@ -444,7 +448,6 @@ table th {
 }
 
 table td {
-    text-align: left;
     padding: var(--spacing-base) var(--spacing-xl);
     border-bottom: var(--border-table);
     white-space: nowrap;
@@ -733,8 +736,8 @@ dialog[open] {
 }
 
 [data-dialog] form {
-  padding: var(--spacing-xl);
-  padding-top: 0;
+    padding: var(--spacing-xl);
+    padding-top: 0;
 }
 
 
@@ -873,6 +876,14 @@ input[type="checkbox"],
 input[type="radio"] {
     width: 16px;
     height: 16px;
+    margin-left: var(--spacing-xl);
+    accent-color: var(--accent);
+}
+
+input[type="color"] {
+    width: 64px;
+    height: 32px;
+    padding: 2px;
     margin-left: var(--spacing-xl);
     accent-color: var(--accent);
 }
@@ -1159,6 +1170,7 @@ input:checked+.slider:before {
     gap: var(--spacing-md);
     justify-content: space-between;
     box-sizing: border-box;
+    align-items: center;
 }
 
 [data-notif] {

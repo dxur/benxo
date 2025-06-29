@@ -7,30 +7,30 @@ use macros::routes;
 use tower_cookies::Cookie;
 use tower_cookies::Cookies;
 
-use super::*;
-use crate::db::CreatableInDb;
-use crate::db::FetchableInDb;
-use crate::extractors::UserData;
-use crate::models::auth::LoginCredentials;
-use crate::models::auth::RegisterCredentials;
-use crate::models::channel::*;
-use crate::models::order::*;
-use crate::models::product::*;
-use crate::models::settings::*;
-use crate::models::store::*;
-use crate::models::user::*;
-use crate::models::*;
-use crate::utils::auth::issue_access_tokens;
-use crate::utils::auth::issue_refresh_tokens;
-use crate::utils::types::IntoContext;
-use crate::utils::types::ResultJsonExt;
-use crate::utils::types::WithContext;
 use crate::AppState;
+use backend::db::CreatableInDb;
+use backend::db::FetchableInDb;
+use backend::extractors::UserData;
+use backend::models::auth::LoginCredentials;
+use backend::models::auth::RegisterCredentials;
+use backend::models::domain::*;
+use backend::models::order::*;
+use backend::models::product::*;
+use backend::models::settings::*;
+use backend::models::store::*;
+use backend::models::user::*;
+use backend::models::*;
+use backend::routes::generic;
+use backend::utils::auth::issue_access_tokens;
+use backend::utils::auth::issue_refresh_tokens;
+use backend::utils::types::IntoContext;
+use backend::utils::types::ResultJsonExt;
+use backend::utils::types::WithContext;
 
-pub struct ApiRoutes;
+pub struct Routes;
 
 #[routes(prefix="/api", state=AppState)]
-impl ApiRoutes {
+impl Routes {
     // ---- Auth ----
     #[route(method=post, path="/auth")]
     async fn auth(_: State<AppState>, _: UserData) {}
@@ -211,14 +211,77 @@ impl ApiRoutes {
             .into_json()
     }
 
-    // ---- Channels ----
-    #[route(method=post, path="/channels", type=json, res=ChannelPublic)]
-    async fn create_channel(
+    // ---- Stores ----
+    #[route(method=get, path="/stores", type=json, res=Page<StorePublic>)]
+    async fn get_all_stores(
         State(state): State<AppState>,
         user: UserData,
-        #[json] body: ChannelCreate,
+        #[query] pagination: Pagination,
     ) -> impl IntoResponse {
-        generic::create::<Channel>(&state, body.with_context(user.business_id))
+        generic::get_all::<Store>(&state, pagination, user.business_id.into_context())
+            .await
+            .into_json()
+    }
+
+    #[route(method=post, path="/stores/", type=json, res=StorePublic)]
+    async fn get_one_store(
+        State(state): State<AppState>,
+        user: UserData,
+        #[json] body: StoreFetch,
+    ) -> impl IntoResponse {
+        let res = Store::get_one(&state.db, body)
+            .await
+            .map_err(|_| StatusCode::BAD_REQUEST)?
+            .ok_or(StatusCode::NOT_FOUND)?;
+
+        if res.business_id != user.business_id {
+            Err(StatusCode::NOT_FOUND)
+        } else {
+            Ok(res.into()).into_json()
+        }
+    }
+
+    #[route(method=post, path="/stores", type=json, res=StorePublic)]
+    async fn create_store(
+        State(state): State<AppState>,
+        user: UserData,
+        #[json] body: StoreCreate,
+    ) -> impl IntoResponse {
+        generic::create::<Store>(&state, body.with_context(user.business_id))
+            .await
+            .into_json()
+    }
+
+    #[route(method=patch, path="/stores/", type=json, res=StorePublic)]
+    async fn update_store(
+        State(state): State<AppState>,
+        user: UserData,
+        #[json] body: StoreUpdate,
+    ) -> impl IntoResponse {
+        generic::update::<Store>(&state, body.with_context(user.business_id))
+            .await
+            .into_json()
+    }
+
+    #[route(method=delete, path="/stores/", type=json, res=StorePublic)]
+    async fn delete_store(
+        State(state): State<AppState>,
+        user: UserData,
+        #[json] body: StoreDelete,
+    ) -> impl IntoResponse {
+        generic::delete::<Store>(&state, body.with_context(user.business_id))
+            .await
+            .into_json()
+    }
+    // ---- Domains ----
+    #[route(method=post, path="/stores/domains", type=json, res=Page<DomainPublic>)]
+    async fn get_store_domains(
+        State(state): State<AppState>,
+        user: UserData,
+        #[query] pagination: Pagination,
+        #[json] body: DomainList,
+    ) -> impl IntoResponse {
+        generic::get_all::<Domain>(&state, pagination, body.with_context(user.business_id))
             .await
             .into_json()
     }

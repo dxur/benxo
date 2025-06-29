@@ -5,11 +5,11 @@ use std::collections::HashSet;
 
 use proc_macro::TokenStream;
 use proc_macro2::Span;
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 use regex::Regex;
 use syn::{
-    meta, parse_macro_input, punctuated::Punctuated, DeriveInput, FnArg, Ident, ImplItem,
-    ImplItemFn, ItemImpl, LitStr, Meta, PatType, Path, Type,
+    DeriveInput, FnArg, Ident, ImplItem, ImplItemFn, ItemImpl, LitStr, Meta, PatType, Path, Type,
+    meta, parse_macro_input, punctuated::Punctuated,
 };
 
 #[proc_macro_derive(Model, attributes(model))]
@@ -162,12 +162,11 @@ pub fn model_in_db(args: TokenStream, input: TokenStream) -> TokenStream {
     let expanded = quote! {
         impl crate::db::ModelRegisteredByMacro for #name {}
         #[linkme::distributed_slice(crate::db::MODELS_INIT)]
-        pub static __INIT_MODEL: crate::ModelInitFn = |db| Box::pin(<#name>::init_coll(db));
+        pub static __INIT_MODEL: crate::db::ModelInitFn = |db| Box::pin(<#name>::init_coll(db));
 
         #input_impl
         #tokens
     };
-    println!("expanded: {}", expanded);
     expanded.into()
 }
 
@@ -541,7 +540,7 @@ const res = await fetch(`{}`{}, {{
                             )().await;
                             {
                                 #[inline(always)]
-                                fn __asert_type<t: crate::utils::macros::ContainsJson<#res_type>>(r: &t) {}
+                                fn __asert_type<t: backend::utils::macros::ContainsJson<#res_type>>(r: &t) {}
                                 __asert_type(&response);
                             }
                             response
@@ -585,7 +584,6 @@ const res = await fetch(`{}`{}, {{
         #expanded_test
     };
 
-    println!("expanded: {}", expanded);
     expanded.into()
 }
 

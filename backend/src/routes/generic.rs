@@ -2,26 +2,26 @@ use crate::db::*;
 use crate::models::{Page, Pagination};
 use axum::http::StatusCode;
 
-use crate::AppState;
+use crate::WithDb;
 
 pub async fn create<M: CreatableInDb>(
-    state: &AppState,
+    state: &impl WithDb,
     body: impl Into<M::CreateInDb>,
 ) -> Result<M::Public, StatusCode> {
-    let value = M::create(&state.db, body.into())
+    let value = M::create(&state.db(), body.into())
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-    M::on_create(&state, &value).await;
+    M::on_create(state, &value).await;
     Ok(value.into())
 }
 
 pub async fn get_all<M: ListableInDb>(
-    state: &AppState,
+    state: &impl WithDb,
     pagination: Pagination,
     body: impl Into<M::ListInDb>,
 ) -> Result<Page<M::Public>, StatusCode> {
     let data = M::get_all(
-        &state.db,
+        &state.db(),
         body.into(),
         pagination.limit(),
         pagination.offset(),
@@ -37,12 +37,12 @@ pub async fn get_all<M: ListableInDb>(
 }
 
 pub async fn get_some<M: FilterableInDb>(
-    state: &AppState,
+    state: &impl WithDb,
     pagination: Pagination,
     body: impl Into<M::FilterInDb>,
 ) -> Result<Page<M::Public>, StatusCode> {
     let data = M::get_some(
-        &state.db,
+        &state.db(),
         body.into(),
         pagination.limit(),
         pagination.offset(),
@@ -58,10 +58,10 @@ pub async fn get_some<M: FilterableInDb>(
 }
 
 pub async fn get_one<M: FetchableInDb>(
-    state: &AppState,
+    state: &impl WithDb,
     body: impl Into<M::FetchInDb>,
 ) -> Result<M::Public, StatusCode> {
-    Ok(M::get_one(&state.db, body.into())
+    Ok(M::get_one(&state.db(), body.into())
         .await
         .map_err(|_| StatusCode::BAD_REQUEST)?
         .ok_or(StatusCode::NOT_FOUND)?
@@ -69,25 +69,25 @@ pub async fn get_one<M: FetchableInDb>(
 }
 
 pub async fn update<M: UpdatableInDb>(
-    state: &AppState,
+    state: &impl WithDb,
     body: impl Into<M::UpdateInDb>,
 ) -> Result<M::Public, StatusCode> {
-    let value = M::update(&state.db, body.into())
+    let value = M::update(&state.db(), body.into())
         .await
         .map_err(|_| StatusCode::BAD_REQUEST)?
         .ok_or(StatusCode::NOT_FOUND)?;
-    M::on_update(&state, &value.0, &value.1).await;
+    M::on_update(state, &value.0, &value.1).await;
     Ok(value.1.into())
 }
 
 pub async fn delete<M: DeletableInDb>(
-    state: &AppState,
+    state: &impl WithDb,
     body: impl Into<M::DeleteInDb>,
 ) -> Result<M::Public, StatusCode> {
-    let value = M::delete(&state.db, body.into())
+    let value = M::delete(&state.db(), body.into())
         .await
         .map_err(|_| StatusCode::BAD_REQUEST)?
         .ok_or(StatusCode::NOT_FOUND)?;
-    M::on_delete(&state, &value.0, &value.1).await;
+    M::on_delete(state, &value.0, &value.1).await;
     Ok(value.1.into())
 }

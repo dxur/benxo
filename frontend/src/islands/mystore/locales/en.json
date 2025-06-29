@@ -1,0 +1,212 @@
+{
+  "common": {
+    "dashboard": "Dashboard",
+    "actions": {
+      "new": "New",
+      "details": "Details",
+      "submit": "Submit",
+      "close": "Close",
+      "search": "Search",
+      "logout": "Logout",
+      "login": "Login"
+    },
+    "navigation": {
+      "page": "Page",
+      "next": "Next",
+      "previous": "Previous"
+    },
+    "status": {
+      "pending": "Pending",
+      "processing": "Processing",
+      "shipped": "Shipped",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled",
+      "returned": "Returned",
+      "done": "Done"
+    },
+    "delivery": {
+      "stop_desk": "Pickup Point",
+      "domicil": "Home Delivery",
+      "other": "Other"
+    },
+    "form": {
+      "fullName": "Full Name",
+      "phone": "Phone",
+      "email": "Email",
+      "province": "Province",
+      "address": "Address",
+      "note": "Note",
+      "delivery": "Delivery Method"
+    },
+    "tableHeaders": {
+      "fullName": "Full Name",
+      "phone": "Phone",
+      "email": "Email",
+      "province": "Province",
+      "delivery": "Delivery",
+      "status": "Status",
+      "options": "Options"
+    },
+    "tooltips": {
+      "currency": "{value} $",
+      "percentage": "{label}: {percent}%"
+    },
+    "notifications": {
+      "created": "Created successfully",
+      "deleted": "Deleted"
+    },
+    "errors": {
+      "generic": "An error occurred"
+    },
+    "emptyState": "Sorry, nothing here!"
+  },
+  "routes": {
+    "home": {
+      "sidebar": "Home",
+      "title": "Dashboard"
+    },
+    "orders": {
+      "sidebar": "Orders",
+      "title": "All Orders"
+    },
+    "editOrder": {
+      "title": "Edit Order"
+    },
+    "products": {
+      "sidebar": "Products",
+      "title": "All Products"
+    },
+    "editProduct": {
+      "title": "Edit Product"
+    },
+    "stores": {
+      "sidebar": "Stores",
+      "title": "All Stores"
+    },
+    "editStore": {
+      "title": "Edit Store"
+    },
+    "conversions": {
+      "sidebar": "Conversions",
+      "title": "All Conversions"
+    },
+    "settings": {
+      "sidebar": "Settings",
+      "title": "Business Settings"
+    }
+  },
+  "pages": {
+    "home": {
+      "header": {
+        "title": "Welcome back!",
+        "subtitle": "Here's an overview of your business performance."
+      },
+      "summary": {
+        "totalSales": {
+          "title": "Total Sales",
+          "change": "+{value}% from previous period"
+        },
+        "visitors": {
+          "title": "Visitors",
+          "change": "+{value}% from previous period"
+        },
+        "avgOrderValue": {
+          "title": "Average Order Value",
+          "change": "+{value}% from previous period"
+        },
+        "conversionRate": {
+          "title": "Conversion Rate",
+          "changePositive": "+{value}% from previous period",
+          "changeNegative": "-{value}% from previous period"
+        }
+      },
+      "charts": {
+        "monthlySales": "Monthly Sales",
+        "userGrowth": "User Growth",
+        "orderStatus": "Order Status",
+        "revenueSources": "Revenue Sources",
+        "orders": {
+          "processing": "Processing",
+          "shipped": "Shipped",
+          "delivered": "Delivered",
+          "returned": "Returned"
+        },
+        "revenue": {
+          "onlineStore": "Online Store",
+          "marketplace": "Marketplaces",
+          "socialMedia": "Social Media",
+          "retail": "Retail"
+        }
+      }
+    },
+    "orders": {
+      "title": "All Orders",
+      "dialog": {
+        "title": "Create Order"
+      },
+      "form": {
+        "fullName": "Full Name",
+        "phone": "Phone",
+        "email": "Email",
+        "province": "Province",
+        "address": "Address",
+        "delivery": "Delivery Method",
+        "note": "Note"
+      },
+      "table": {
+        "headers": {
+          "fullName": "Full Name",
+          "phone": "Phone",
+          "email": "Email",
+          "province": "Province",
+          "delivery": "Delivery",
+          "status": "Status",
+          "options": "Options"
+        }
+      },
+      "delivery": {
+        "stop_desk": "Pickup Point",
+        "domicil": "Home Delivery",
+        "other": "Other"
+      },
+      "status": {
+        "pending": "Pending",
+        "processing": "Processing",
+        "shipped": "Shipped",
+        "delivered": "Delivered",
+        "cancelled": "Cancelled",
+        "returned": "Returned",
+        "done": "Done"
+      },
+      "notifications": {
+        "created": "Order created successfully",
+        "deleted": "Order deleted"
+      },
+      "errors": {
+        "generic": "An error occurred"
+      },
+      "emptyState": "Sorry, nothing here!"
+    },
+    "products": {
+      "title": "All Products"
+    },
+    "stores": {
+      "title": "All Stores"
+    },
+    "conversions": {
+      "title": "All Conversions"
+    },
+    "settings": {
+      "title": "Business Settings"
+    },
+    "editOrder": {
+      "title": "Edit Order"
+    },
+    "editProduct": {
+      "title": "Edit Product"
+    },
+    "editStore": {
+      "title": "Edit Store"
+    }
+  }
+}

@@ -24,7 +24,7 @@ use std::pin::Pin;
 use crate::models::*;
 use crate::utils::error::*;
 use crate::utils::types::{HaveContext, IntoInner, RefInto, Result};
-use crate::AppState;
+use crate::WithDb;
 
 pub struct Db(Database);
 
@@ -163,7 +163,7 @@ pub trait FindableInDb: ModelInDb {
 pub trait CreatableInDb: ModelInDb + Creatable {
     type CreateInDb: Debug + Send + Sync + Serialize + IntoInner<Self::InDb>;
 
-    async fn on_create(_: &AppState, _: &Self::InDb) {}
+    async fn on_create(_: &impl WithDb, _: &Self::InDb) {}
 
     async fn create(db: &Db, body: Self::CreateInDb) -> Result<Self::InDb> {
         let model: Self::InDb = body.into_inner();
@@ -246,7 +246,7 @@ pub trait FetchableInDb: FindableInDb + Fetchable {
 pub trait UpdatableInDb: FindableInDb + Updatable {
     type UpdateInDb: Send + Debug + Sync + RefInto<Self::FindInDb> + RefInto<Result<Document>>;
 
-    async fn on_update(_: &AppState, _: &Self::UpdateInDb, _: &Self::InDb) {}
+    async fn on_update(_: &impl WithDb, _: &Self::UpdateInDb, _: &Self::InDb) {}
 
     async fn update(
         db: &Db,
@@ -286,7 +286,7 @@ pub trait UpdatableInDb: FindableInDb + Updatable {
 pub trait DeletableInDb: FindableInDb + Deletable {
     type DeleteInDb: Debug + Send + Sync + RefInto<Self::FindInDb>;
 
-    async fn on_delete(_: &AppState, _: &Self::DeleteInDb, _: &Self::InDb) {}
+    async fn on_delete(_: &impl WithDb, _: &Self::DeleteInDb, _: &Self::InDb) {}
 
     async fn delete(
         db: &Db,

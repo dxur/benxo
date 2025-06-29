@@ -2,17 +2,20 @@ version: '3'
 
 tasks:
   default:
-    deps: [entry, db, backend, frontend]
+    deps: [entry, db, minio, backend, frontend]
 
+  minio:
+    cmds:
+      - minio server /tmp/data --console-address ":9001" &> logs/minio
   db:
     cmds:
-      - ./scripts/run-db.sh
+      - ./scripts/run-db.sh &> logs/db
   entry:
     cmds:
-      - ./scripts/run-proxy.sh
+      - ./scripts/run-proxy.sh &> logs/proxy
   backend:
     cmds:
-      - ./scripts/run-back.sh
+      - ./scripts/run-back.sh &> logs/backend
   frontend:
     cmds:
-      - ./scripts/run-front.sh
+      - ./scripts/run-front.sh &> logs/frontend

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <title>{{ store.name }}</title>
+  <style>
+    * {
+      font-family: "Cairo", sans-serif;
+      font-optical-sizing: auto;
+      font-style: normal;
+      font-variation-settings: "slnt" 0;
+    }
+    
+    :root {
+      --primary-color: {{ store.primary_color }};
+      --secondary-color: {{ store.secondary_color }};
+      --background-color: {{ store.background_color }};
+    }
+    
+    .bg-pink-100 {
+      background-color: {{ store.primary_color }}20;
+    }
+    
+    .text-pink-700, .border-pink-700, .bg-pink-700 {
+      color: {{ store.primary_color }};
+    }
+    
+    .bg-pink-700 {
+      background-color: {{ store.primary_color }};
+    }
+    
+    .border-pink-700 {
+      border-color: {{ store.primary_color }};
+    }
+    
+    .stroke-pink-700 {
+      stroke: {{ store.primary_color }};
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50">
+  <nav class="z-50 sticky top-0 bg-pink-100 py-4 flex justify-between items-center px-8 md:px-24 lg:px-48">
+    <div class="relative">
+      <input id="menu" class="sr-only peer/menu" type="checkbox" name="status" />
+      <label for="menu" class="peer-checked/menu:hidden cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 24 24">
+          <path fill="none" stroke="{{ store.primary_color }}" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+            d="M4 6h16M4 12h16M4 18h16M4" />
+        </svg>
+      </label>
+      <label for="menu" class="peer-checked/menu:block hidden cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 24 24">
+          <g fill="none" fill-rule="evenodd">
+            <path
+              d="M24 0v24H0V0zM12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.019-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z" />
+            <path fill="{{ store.primary_color }}"
+              d="m12 14.122l5.303 5.303a1.5 1.5 0 0 0 2.122-2.122L14.12 12l5.304-5.303a1.5 1.5 0 1 0-2.122-2.121L12 9.879L6.697 4.576a1.5 1.5 0 1 0-2.122 2.12L9.88 12l-5.304 5.304a1.5 1.5 0 1 0 2.122 2.12z" />
+          </g>
+        </svg>
+      </label>
+      <div
+        class="fixed top-0 right-0 h-[100dvh] w-[85%] md:w-96 bg-pink-100 flex transform translate-x-full peer-checked/menu:-translate-x-0 transition-transform duration-300 ease-in-out items-start pt-[72px] z-[-1]">
+        <ul class="flex flex-col justify-between w-full h-full">
+          <div>
+            <li><a href="/" class="block font-semibold p-4 bg-white hover:bg-gray-200 shadow-md">الصفحة الرئيسية</a>
+            </li>
+          </div>
+          <li><a href="https://www.instagram.com/k.elle_collection/" target="blank"
+              class="block p-4 font-semibold bg-white hover:bg-gray-200 shadow-md">صفحة الإنستقرام</a></li>
+        </ul>
+      </div>
+    </div>
+    <a href="/" class="block">
+      <img src="{{ store.name }}" alt="Logo" class="h-10 w-auto">
+    </a>
+    <a href="/cart" class="block" style="position: relative;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 24 24" fill="none" stroke="{{ store.primary_color }}"
+        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shopping-bag">
+        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+        <path d="M3 6h18" />
+        <path d="M16 10a4 4 0 0 1-8 0" />
+      </svg>
+      <span id="cart-badge" 
+        class="absolute -top-1 -right-1 bg-pink-700 text-white text-xs font-bold rounded-full w-4 h-4 flex items-center justify-center">
+        0
+      </span>
+    </a>
+  </nav>
+
+  <main>
+    <div class="my-16 p-4 px-6 flex flex-col items-center justify-center gap-6">
+      <span class="text-3xl font-extrabold text-pink-700">حبيبتيِ الجميلة🩷</span>
+      <span class="text-lg text-center">{{ store.description }}</span>
+      <hr class="w-32 h-0.5 bg-pink-700 border-0 rounded">
+    </div>
+
+    <div class="p-4 my-8 flex flex-col items-center justify-center">
+      <span class="text-2xl font-bold text-pink-700 text-center mb-4">منتجاتنا</span>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 items-center justify-center py-8">
+        {% for product in products.data %}
+          {% if product.variants.size > 0 %}
+            {% for variant in product.variants %}
+              <a href="/products/{{ variant.sku }}">
+                <div class="w-full flex items-center justify-center">
+                  <div class="w-48 shadow-md flex flex-col rounded-lg">
+                    {% if variant.images.size > 0 %}
+                      <img class="h-44 object-cover rounded-t-lg" src="{{ variant.images[0] }}" alt="{{ product.name }}">
+                    {% elsif product.base_images.size > 0 %}
+                      <img class="h-44 object-cover rounded-t-lg" src="{{ product.base_images[0] }}" alt="{{ product.name }}">
+                    {% endif %}
+                    <div class="px-4 py-2 flex flex-col">
+                      <span class="text-gray-500">{{ product.name }}</span>
+                      {% if variant.compare_price and variant.compare_price > variant.price %}
+                        <div class="flex flex-col items-start justify-start">
+                          <span class="line-through text-sm font-bold text-red-600">{{ variant.compare_price }} د.ج</span>
+                          <span class="text-green-800 font-bold">{{ variant.price }} د.ج</span>
+                        </div>
+                      {% else %}
+                        <span class="text-green-800 font-bold">{{ variant.price }} د.ج</span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </div>
+              </a>
+            {% endfor %}
+          {% else %}
+            <a href="/products/{{ product.slug }}">
+              <div class="w-full flex items-center justify-center">
+                <div class="w-48 shadow-md flex flex-col rounded-lg">
+                  {% if product.base_images.size > 0 %}
+                    <img class="h-44 object-cover rounded-t-lg" src="{{ product.base_images[0] }}" alt="{{ product.name }}">
+                  {% endif %}
+                  <div class="px-4 py-2 flex flex-col">
+                    <span class="text-gray-500">{{ product.name }}</span>
+                    {% if product.base_compare_price and product.base_compare_price > product.base_price %}
+                      <div class="flex flex-col items-start justify-start">
+                        <span class="line-through text-sm font-bold text-red-600">{{ product.base_compare_price }} د.ج</span>
+                        <span class="text-green-800 font-bold">{{ product.base_price }} د.ج</span>
+                      </div>
+                    {% else %}
+                      <span class="text-green-800 font-bold">{{ product.base_price }} د.ج</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </a>
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      <hr class="w-32 h-0.5 bg-pink-700 border-0 rounded">
+    </div>
+
+    <div class="p-4 flex flex-col items-center justify-center">
+      <span class="text-2xl font-bold text-pink-700 text-center mb-4">خدماتنا</span>
+      <div class="flex flex-col w-full gap-4 items-center justify-center">
+        <div class="flex flex-col items-center p-8">
+          <svg xmlns="http://www.w3.org/2000/svg" width="4rem" height="4rem" viewBox="0 0 24 24">
+            <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="m3.346 16.198l12.829-12.83m2.457 7.688l-2.2 2.2m-1.877 1.854l-.979.979m-10.401.052a4.01 4.01 0 0 1 0-5.672l7.294-7.294a4.01 4.01 0 0 1 5.672 0l4.684 4.684a4.01 4.01 0 0 1 0 5.672l-7.294 7.294a4.01 4.01 0 0 1-5.672 0zM4 22h16"
+              color="currentColor" />
+          </svg>
+          <div class="flex flex-col px-8">
+            <span class="text-lg text-black font-bold text-center">تخلص كي توصلك السلعة</span>
+            <span class="w-full text-center">إشتري بكل ثقة وأمان</span>
+          </div>
+        </div>
+        <div class="flex flex-col items-center p-8">
+          <svg xmlns="http://www.w3.org/2000/svg" width="4rem" height="4rem" viewBox="0 0 24 24">
+            <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              color="currentColor">
+              <path d="M19.5 17.5a2.5 2.5 0 1 1-5 0a2.5 2.5 0 0 1 5 0m-10 0a2.5 2.5 0 1 1-5 0a2.5 2.5 0 0 1 5 0" />
+              <path
+                d="M14.5 17.5h-5m10 0h.763c.22 0 .33 0 .422-.012a1.5 1.5 0 0 0 1.303-1.302c.012-.093.012-.203.012-.423V13a6.5 6.5 0 0 0-6.5-6.5M2 4h10c1.414 0 2.121 0 2.56.44C15 4.878 15 5.585 15 7v8.5M2 12.75V15c0 .935 0 1.402.201 1.75a1.5 1.5 0 0 0 .549.549c.348.201.815.201 1.75.201M2 7h6m-6 3h4" />
+            </g>
+          </svg>
+          <div class="flex flex-col px-8">
+            <span class="text-lg text-black font-bold text-center">توصيل سريع</span>
+            <span class="w-full text-center">خطوات سهلة وبسيطة</span>
+          </div>
+        </div>
+        <div class="flex flex-col items-center p-8">
+          <svg xmlns="http://www.w3.org/2000/svg" width="4rem" height="4rem" viewBox="0 0 24 24">
+            <path fill="currentColor"
+              d="M3.161 4.469a6.5 6.5 0 0 1 8.84-.328a6.5 6.5 0 0 1 9.178 9.154l-7.765 7.79a2 2 0 0 1-2.719.102l-.11-.101l-7.764-7.791a6.5 6.5 0 0 1 .34-8.826m1.414 1.414a4.5 4.5 0 0 0-.146 6.21l.146.154L12 19.672l5.303-5.305l-3.535-3.534l-1.06 1.06a3 3 0 0 1-4.244-4.242l2.102-2.103a4.5 4.5 0 0 0-5.837.189zm8.486 2.828a1 1 0 0 1 1.414 0l4.242 4.242l.708-.706a4.5 4.5 0 0 0-6.211-6.51l-.153.146l-3.182 3.182a1 1 0 0 0-.078 1.327l.078.087a1 1 0 0 0 1.327.078l.087-.078z" />
+          </svg>
+          <div class="flex flex-col px-8">
+            <span class="text-lg text-black font-bold text-center">خدمة زبائن</span>
+            <span class="w-full text-center">من 9 صباحاً إلى 10 مساءاً</span>
+          </div>
+        </div>
+      </div>
+      <hr class="w-32 h-0.5 bg-pink-700 border-0 rounded">
+    </div>
+  </main>
+
+  <footer class="bg-pink-100 text-black py-4 mt-8">
+    <div class="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+      <div>
+        <h1 class="text-xl font-bold mb-2">حولنا</h1>
+        <p class="text-sm pr-4">{{ store.description }}</p>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold mb-2">الروابط السريعة</h1>
+        <ul class="text-sm pr-4">
+          <li><a href="/">الصفحة الرئيسية</a></li>
+          <li><a href="https://www.instagram.com/k.elle_collection/" target="blank">صفحة الإنستقرام</a></li>
+        </ul>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold mb-2">اتصل بنا</h1>
+        <div class="text-sm pr-4">
+          <p>الهاتف: 0673779784</p>
+        </div>
+      </div>
+    </div>
+    <div class="container mx-auto text-center mt-4">
+      <p class="text-sm">&copy; 2025 {{ store.name }} All rights reserved</p>
+    </div>
+  </footer>
+</body>
+</html>

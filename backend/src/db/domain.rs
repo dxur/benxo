@@ -9,6 +9,7 @@ use crate::models::domain::*;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DomainInDb {
     pub _id: String,
+    pub business_id: ObjectId,
     pub store_id: String,
 }
 
@@ -27,18 +28,20 @@ impl Into<DomainPublic> for DomainInDb {
     }
 }
 
-impl Into<FindInDb<String>> for &DomainDelete {
+impl Into<FindInDb<String>> for &ByBusinessId<DomainDelete> {
     fn into(self) -> FindInDb<String> {
         FindInDb {
-            _id: self.domain.clone(),
+            _id: self.body.domain.clone(),
         }
     }
 }
 
-impl From<DomainCreate> for DomainInDb {
-    fn from(body: DomainCreate) -> Self {
+impl Into<DomainInDb> for ByBusinessId<DomainCreate> {
+    fn into(self) -> DomainInDb {
+        let ByBusinessId { business_id, body } = self;
         DomainInDb {
             _id: body.domain,
+            business_id,
             store_id: body.store_id,
         }
     }
@@ -55,12 +58,12 @@ impl Into<FindInDb<String>> for &DomainFetch {
 #[model_in_db(
     find=FindInDb<String>,
     fetch=DomainFetch,
-    list=DomainList,
-    create=DomainCreate,
-    delete=DomainDelete,
+    list=ByBusinessId<DomainList>,
+    create=ByBusinessId<DomainCreate>,
+    delete=ByBusinessId<DomainDelete>,
 )]
 impl ModelInDb for Domain {
-    const COLLECTION_NAME: &'static str = "stores";
+    const COLLECTION_NAME: &'static str = "domains";
 
     type InDb = DomainInDb;
 }
