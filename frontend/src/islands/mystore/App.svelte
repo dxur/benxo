@@ -7,6 +7,7 @@
   import routes from "./routes";
   import Sidebar from "./components/Sidebar.svelte";
   import Notifications from "@/components/Notifications.svelte";
+  import FilePicker from "./components/FilePicker.svelte";
   import * as ApiRoutes from "@bindings/ApiRoutes";
   import { _, locale, locales, waitLocale } from "svelte-i18n";
   import "./i18n.ts";
@@ -66,6 +67,7 @@
 
       <div data-page>
         <Notifications />
+        <FilePicker />
         <section data-page>
           <RouterView />
         </section>

@@ -16,7 +16,7 @@
   import type { Page } from "@bindings/Page";
   import type { DomainPublic } from "@bindings/DomainPublic";
   import { isNone } from "../../lib/utils";
-  import Table from "../../components/Table.svelte";
+  import { filePicker } from "../../stores/filePicker";
 
   const { replace } = useNavigate();
   const { location } = useRoute();
@@ -37,6 +37,7 @@
     primary_color: string;
     secondary_color: string;
     background_color: string;
+    logo: string | null;
     head: string;
   };
 
@@ -57,6 +58,7 @@
       {
         page: 1,
         per_page: null,
+        next_token: null,
       },
     )
       .then((data) => {
@@ -109,6 +111,7 @@
       primary_color: store.primary_color,
       secondary_color: store.secondary_color,
       background_color: store.background_color,
+      logo: null,
       head: store.head,
     };
   }
@@ -141,6 +144,15 @@
           : fields.background_color,
       head: fields.head === store.head ? null : fields.head,
     };
+  }
+
+  async function handleLogoClick() {
+    if (!fields.edit_theme) return;
+
+    const file = await filePicker.getOne(["image/"]);
+    if (file) {
+      fields.logo = file.url;
+    }
   }
 
   $: {
@@ -261,7 +273,19 @@
               >
             </fieldset>
             <fieldset>
-              <label> Logo <input disabled={!fields.edit_theme} /></label>
+              <label>
+                Logo
+                <button
+                  type="button"
+                  class="file-input-button"
+                  disabled={!fields.edit_theme}
+                  on:click={handleLogoClick}
+                >
+                  {fields.logo
+                    ? fields.logo.split("/").pop()
+                    : "Choose file..."}
+                </button>
+              </label>
             </fieldset>
           </Card>
           <Card>
@@ -319,3 +343,27 @@
     </Editor>
   </form>
 </LoadingShow>
+
+<style>
+  .file-input-button {
+    width: 100%;
+    padding: 0.5rem;
+    text-align: left;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: inherit;
+  }
+
+  .file-input-button:disabled {
+    background: #f5f5f5;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .file-input-button:hover:not(:disabled) {
+    border-color: #999;
+  }
+</style>

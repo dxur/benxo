@@ -10,6 +10,7 @@ pub struct FileEntrySummary {
     pub name: String,
     pub preview: Option<String>,
     pub url: String,
+    pub mime: String,
     pub size: Option<usize>,
     #[ts(as = "String")]
     pub updated_at: Option<i64>,

@@ -70,7 +70,7 @@ async fn main() {
     };
 
     let app = Router::new()
-        .nest_packed(routes::Routes::make_router())
+        .nest_packed(routes::ApiRoutes::make_router())
         .layer(CookieManagerLayer::new())
         .layer(TraceLayer::new_for_http())
         .with_state(state);

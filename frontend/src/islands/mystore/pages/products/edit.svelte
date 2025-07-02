@@ -19,7 +19,6 @@
   import type { LoadingStatus } from "../../components/LoadingShow.svelte";
   import type { ProductUpdateBody } from "@bindings/ProductUpdateBody";
   import type { ProductVariant } from "@bindings/ProductVariant";
-  import { da } from "@faker-js/faker";
 
   interface OptionEntry {
     name: string;

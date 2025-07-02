@@ -36,10 +36,10 @@ use backend::utils::types::IntoContext;
 use backend::utils::types::ResultJsonExt;
 use backend::utils::types::WithContext;
 
-pub struct Routes;
+pub struct ApiRoutes;
 
 #[routes(prefix="/api", state=AppState)]
-impl Routes {
+impl ApiRoutes {
     // ---- Auth ----
     #[route(method=post, path="/auth")]
     async fn auth(_: State<AppState>, _: UserData) {}
@@ -369,6 +369,7 @@ impl Routes {
                     ),
                     size: obj.size().and_then(|v| v.try_into().ok()),
                     updated_at: obj.last_modified().map(|v| v.secs() * 1000),
+                    mime: "application/binary".to_owned(),
                 })
             })
             .collect();
