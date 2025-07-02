@@ -8,10 +8,9 @@ pub async fn create<M: CreatableInDb>(
     state: &impl WithDb,
     body: impl Into<M::CreateInDb>,
 ) -> Result<M::InDb, StatusCode> {
-    let value = M::create(&state.db(), body.into())
+    let value = M::create(&state.db(), None, body.into())
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-    M::on_create(state, &value).await;
     Ok(value)
 }
 
@@ -22,6 +21,7 @@ pub async fn get_all<M: ListableInDb>(
 ) -> Result<Page<M::InDb>, StatusCode> {
     let data = M::get_all(
         &state.db(),
+        None,
         body.into(),
         pagination.limit(),
         pagination.offset(),
@@ -30,9 +30,10 @@ pub async fn get_all<M: ListableInDb>(
     .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     Ok(Page {
         data: data.1.into_iter().map(|v| v.into()).collect(),
-        total: data.0,
-        per_page: pagination.per_page(),
-        page: pagination.page(),
+        total: Some(data.0),
+        per_page: Some(pagination.per_page()),
+        page: Some(pagination.page()),
+        next_token: None,
     })
 }
 
@@ -43,6 +44,7 @@ pub async fn get_some<M: FilterableInDb>(
 ) -> Result<Page<M::InDb>, StatusCode> {
     let data = M::get_some(
         &state.db(),
+        None,
         body.into(),
         pagination.limit(),
         pagination.offset(),
@@ -51,9 +53,10 @@ pub async fn get_some<M: FilterableInDb>(
     .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     Ok(Page {
         data: data.1.into_iter().map(|v| v.into()).collect(),
-        total: data.0,
-        per_page: pagination.per_page(),
-        page: pagination.page(),
+        total: Some(data.0),
+        per_page: Some(pagination.per_page()),
+        page: Some(pagination.page()),
+        next_token: None,
     })
 }
 
@@ -61,7 +64,7 @@ pub async fn get_one<M: FetchableInDb>(
     state: &impl WithDb,
     body: impl Into<M::FetchInDb>,
 ) -> Result<M::InDb, StatusCode> {
-    Ok(M::get_one(&state.db(), body.into())
+    Ok(M::get_one(&state.db(), None, body.into())
         .await
         .map_err(|_| StatusCode::BAD_REQUEST)?
         .ok_or(StatusCode::NOT_FOUND)?)
@@ -71,11 +74,10 @@ pub async fn update<M: UpdatableInDb>(
     state: &impl WithDb,
     body: impl Into<M::UpdateInDb>,
 ) -> Result<M::InDb, StatusCode> {
-    let value = M::update(&state.db(), body.into())
+    let value = M::update(&state.db(), None, body.into())
         .await
         .map_err(|_| StatusCode::BAD_REQUEST)?
         .ok_or(StatusCode::NOT_FOUND)?;
-    M::on_update(state, &value.0, &value.1).await;
     Ok(value.1)
 }
 
@@ -83,7 +85,7 @@ pub async fn delete<M: DeletableInDb>(
     state: &impl WithDb,
     body: impl Into<M::DeleteInDb>,
 ) -> Result<M::InDb, StatusCode> {
-    let value = M::delete(&state.db(), body.into())
+    let value = M::delete(&state.db(), None, body.into())
         .await
         .map_err(|_| StatusCode::BAD_REQUEST)?
         .ok_or(StatusCode::NOT_FOUND)?;

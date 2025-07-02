@@ -1,19 +1,30 @@
-use bson::oid::ObjectId;
-use bson::DateTime;
-use macros::Model;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 use super::*;
 
-#[derive(Debug, Serialize, Deserialize, Clone, TS)]
+#[skip_serializing_none]
+#[derive(Debug, Serialize, Clone, TS)]
 #[ts(export)]
-pub struct FileEntryPublic {
-    pub id: String,
+pub struct FileEntrySummary {
     pub name: String,
+    pub preview: Option<String>,
     pub url: String,
-    pub mime_type: String,
-    pub size: usize,
+    pub size: Option<usize>,
     #[ts(as = "String")]
-    pub created_at: DateTime,
+    pub updated_at: Option<i64>,
+}
+
+#[derive(Debug, Serialize, Clone, TS)]
+#[ts(export)]
+pub struct FileUploadAccess {
+    pub url: String,
+}
+
+#[derive(Debug, Deserialize, Clone, TS)]
+#[ts(export)]
+pub struct FileUploadRequest {
+    pub name: String,
+    pub mime: String,
+    pub size: usize,
 }

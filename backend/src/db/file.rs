@@ -11,13 +11,25 @@ use crate::{
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FileEntryInDb {
-    pub _id: String,
+    pub _id: ObjectId,
     pub business_id: ObjectId,
+    pub status: u8,
     pub name: String,
     pub url: String,
     pub mime_type: String,
     pub size: usize,
     pub created_at: DateTime,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FileEntryUpdateBodyInDb {
+    pub status: u8,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FileEntryUpdateInDb {
+    pub _id: ObjectId,
+    pub body: FileEntryUpdateBodyInDb,
 }
 
 impl Into<FileEntryPublic> for FileEntryInDb {
@@ -30,6 +42,18 @@ impl Into<FileEntryPublic> for FileEntryInDb {
             size: self.size,
             created_at: self.created_at,
         }
+    }
+}
+
+impl Into<Result<Document>> for &FileEntryUpdateInDb {
+    fn into(self) -> Result<Document> {
+        to_document(&self.body).map_err(|e| Error { msg: e.to_string() })
+    }
+}
+
+impl Into<FindInDb> for &FileEntryUpdateInDb {
+    fn into(self) -> FindInDb {
+        FindInDb { _id: self._id }
     }
 }
 
@@ -51,6 +75,10 @@ impl FetchableInDb for FileEntry {
 
 impl CreatableInDb for FileEntry {
     type CreateInDb = FileEntryInDb;
+}
+
+impl UpdatableInDb for FileEntry {
+    type UpdateInDb = ByBusinessId<FileEntryUpdateInDb>;
 }
 
 impl ListableInDb for FileEntry {

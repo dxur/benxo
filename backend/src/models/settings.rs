@@ -1,5 +1,4 @@
 use bson::oid::ObjectId;
-use macros::Model;
 use serde::{Deserialize, Serialize};
 
 use super::*;

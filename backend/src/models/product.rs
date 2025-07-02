@@ -1,7 +1,6 @@
 use bson::oid::ObjectId;
 use bson::serde_helpers::serialize_object_id_as_hex_string;
 use indexmap::{IndexMap, IndexSet};
-use macros::Model;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 use ts_rs::TS;

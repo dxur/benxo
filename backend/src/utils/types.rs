@@ -1,5 +1,8 @@
 use axum::Json;
-use hyper::StatusCode;
+use mongodb::{
+    action::{ExplicitSession, Find},
+    ClientSession,
+};
 
 use crate::models::{Page, Void};
 
@@ -99,4 +102,22 @@ where
     fn into_page(self) -> std::result::Result<Page<T>, E> {
         self.map(|v| v.into_inner())
     }
+}
+
+pub trait WithSome: Sized {
+    fn with_some<T, F: FnOnce(Self, T) -> Self>(self, f: F, arg: Option<T>) -> Self {
+        match arg {
+            Some(v) => f(self, v),
+            None => self,
+        }
+    }
+}
+
+impl<T: Sized> WithSome for T {}
+
+pub trait MongoFindExt<'a, T: Send + Sync, Session> {
+    fn some_session(
+        self,
+        session: Option<&mut ClientSession>,
+    ) -> std::result::Result<Find<'a, T, ExplicitSession>, Find<'a, T, Session>>;
 }

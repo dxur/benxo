@@ -11,6 +11,7 @@ pub mod user;
 
 pub use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 use std::fmt::Debug;
 use ts_rs::TS;
 
@@ -23,11 +24,13 @@ pub struct ById<T = ObjectId> {
     pub id: T,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, TS)]
 #[ts(export)]
 pub struct Pagination {
     pub page: Option<usize>,
     pub per_page: Option<usize>,
+    pub next_token: Option<String>,
 }
 
 impl Pagination {
@@ -49,22 +52,25 @@ impl Pagination {
     }
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Serialize, Deserialize, Clone, TS)]
 #[ts(export)]
 pub struct Page<T> {
     pub data: Vec<T>,
-    pub total: usize,
-    pub page: usize,
-    pub per_page: usize,
+    pub total: Option<usize>,
+    pub page: Option<usize>,
+    pub per_page: Option<usize>,
+    pub next_token: Option<String>,
 }
 
 impl<T> Default for Page<T> {
     fn default() -> Self {
         Self {
             data: vec![],
-            total: 0,
-            page: 1,
-            per_page: 10,
+            total: Some(0),
+            page: Some(1),
+            per_page: Some(10),
+            next_token: None,
         }
     }
 }
@@ -76,6 +82,7 @@ impl<T, U: Into<T>> IntoInner<Page<T>> for Page<U> {
             total: self.total,
             page: self.page,
             per_page: self.per_page,
+            next_token: self.next_token,
         }
     }
 }

@@ -113,6 +113,7 @@ impl<T: WithDb> FromRequestParts<T> for StoreMeta {
         } else {
             let domain = Domain::get_one(
                 &state.db(),
+                None,
                 DomainFetch {
                     domain: host.to_string(),
                 },
@@ -129,7 +130,7 @@ impl<T: WithDb> FromRequestParts<T> for StoreMeta {
         // TODO: Redirect to the Domain name if the store uses a domain instead
 
         Ok(StoreMeta(
-            Store::get_one(&state.db(), store)
+            Store::get_one(&state.db(), None, store)
                 .await
                 .map_err(|_| Self::Rejection {})?
                 .ok_or(Self::Rejection {})?,

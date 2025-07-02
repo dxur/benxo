@@ -1,5 +1,4 @@
 use hex_color::HexColor;
-use macros::Model;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 

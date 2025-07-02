@@ -1,6 +1,6 @@
 // pub mod channel;
 pub mod domain;
-pub mod file;
+// pub mod file;
 pub mod order;
 pub mod product;
 pub mod settings;
@@ -11,10 +11,11 @@ use bson::oid::ObjectId;
 use bson::to_document;
 use futures::TryStreamExt;
 use linkme::distributed_slice;
+use mongodb::action::{CountDocuments, FindOne, FindOneAndDelete, FindOneAndUpdate, InsertOne};
 use mongodb::bson::{doc, Document};
 use mongodb::options::{FindOneAndUpdateOptions, FindOptions, IndexOptions, ReturnDocument};
-use mongodb::IndexModel;
 use mongodb::{options::ClientOptions, Client, Database};
+use mongodb::{ClientSession, IndexModel};
 use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use std::future::Future;
@@ -23,24 +24,33 @@ use std::pin::Pin;
 
 use crate::models::ById;
 use crate::utils::error::*;
-use crate::utils::types::{HaveContext, RefInto, Result};
+use crate::utils::types::{HaveContext, RefInto, Result, WithSome};
 use crate::WithDb;
 
-pub struct Db(Database);
+pub struct Db {
+    client: Client,
+    db: Database,
+}
 
 impl Db {
     pub async fn new(uri: &str, name: &str) -> Self {
         let client_options = ClientOptions::parse(uri).await.unwrap();
-        let db = Db(Client::with_options(client_options).unwrap().database(name));
-        init_models(&db).await;
-        db
+        let client = Client::with_options(client_options).unwrap();
+        let db = client.database(name);
+        let db_wrapper = Db { client, db };
+        init_models(&db_wrapper).await;
+        db_wrapper
+    }
+
+    pub fn client(&self) -> &Client {
+        &self.client
     }
 }
 
 impl Deref for Db {
     type Target = Database;
     fn deref(&self) -> &Self::Target {
-        &self.0
+        &self.db
     }
 }
 
@@ -180,13 +190,16 @@ pub trait FindableInDb: ModelInDb {
 pub trait CreatableInDb: ModelInDb {
     type CreateInDb: Debug + Send + Sync + Serialize + Into<Self::InDb>;
 
-    async fn on_create(_: &impl WithDb, _: &Self::InDb) {}
-
-    async fn create(db: &Db, body: Self::CreateInDb) -> Result<Self::InDb> {
+    async fn create(
+        db: &Db,
+        session: Option<&mut ClientSession>,
+        body: Self::CreateInDb,
+    ) -> Result<Self::InDb> {
         let model: Self::InDb = body.into();
         match db
             .collection::<Self::InDb>(Self::COLLECTION_NAME)
             .insert_one(&model)
+            .with_some(InsertOne::session, session)
             .await
         {
             Ok(_) => Ok(model),
@@ -203,6 +216,7 @@ pub trait ListableInDb: ModelInDb {
 
     async fn get_all(
         db: &Db,
+        mut session: Option<&mut ClientSession>,
         body: Self::ListInDb,
         limit: usize,
         offset: usize,
@@ -215,10 +229,14 @@ pub trait ListableInDb: ModelInDb {
         let coll = db.collection::<Self::InDb>(Self::COLLECTION_NAME);
         let filter = body.into_filter()?;
 
-        let total = coll.count_documents(filter.clone()).await.map_err(|e| {
-            tracing::debug!("Failed to count {}: {}", Self::COLLECTION_NAME, e);
-            ()
-        })? as usize;
+        let total = coll
+            .count_documents(filter.clone())
+            .with_some(CountDocuments::session, session.as_deref_mut())
+            .await
+            .map_err(|e| {
+                tracing::debug!("Failed to count {}: {}", Self::COLLECTION_NAME, e);
+                ()
+            })? as usize;
 
         Ok((
             total,
@@ -243,7 +261,11 @@ pub trait ListableInDb: ModelInDb {
 pub trait FetchableInDb: FindableInDb {
     type FetchInDb: Debug + Send + Sync + RefInto<Self::FindInDb>;
 
-    async fn get_one(db: &Db, body: Self::FetchInDb) -> Result<Option<Self::InDb>> {
+    async fn get_one(
+        db: &Db,
+        session: Option<&mut ClientSession>,
+        body: Self::FetchInDb,
+    ) -> Result<Option<Self::InDb>> {
         db.collection::<Self::InDb>(Self::COLLECTION_NAME)
             .find_one(body.ref_into().into_filter().map_err(|e| {
                 tracing::debug!(
@@ -252,6 +274,7 @@ pub trait FetchableInDb: FindableInDb {
                     e
                 );
             })?)
+            .with_some(FindOne::session, session)
             .await
             .map_err(|e| {
                 tracing::debug!("Failed to find {}: {}", Self::COLLECTION_NAME, e);
@@ -263,10 +286,9 @@ pub trait FetchableInDb: FindableInDb {
 pub trait UpdatableInDb: FindableInDb {
     type UpdateInDb: Send + Debug + Sync + RefInto<Self::FindInDb> + RefInto<Result<Document>>;
 
-    async fn on_update(_: &impl WithDb, _: &Self::UpdateInDb, _: &Self::InDb) {}
-
     async fn update(
         db: &Db,
+        session: Option<&mut ClientSession>,
         body: Self::UpdateInDb,
     ) -> Result<Option<(Self::UpdateInDb, Self::InDb)>> {
         let options = FindOneAndUpdateOptions::builder()
@@ -288,6 +310,7 @@ pub trait UpdatableInDb: FindableInDb {
                 })?},
             )
             .with_options(options)
+            .with_some(FindOneAndUpdate::session, session)
             .await
             .map_err(|e| {
                 tracing::debug!("Failed to find {}: {}", Self::COLLECTION_NAME, e);
@@ -307,6 +330,7 @@ pub trait DeletableInDb: FindableInDb {
 
     async fn delete(
         db: &Db,
+        session: Option<&mut ClientSession>,
         body: Self::DeleteInDb,
     ) -> Result<Option<(Self::DeleteInDb, Self::InDb)>> {
         let res = db
@@ -319,6 +343,7 @@ pub trait DeletableInDb: FindableInDb {
                 );
                 e
             })?)
+            .with_some(FindOneAndDelete::session, session)
             .await
             .map_err(|e| {
                 tracing::debug!("Failed to find {}: {}", Self::COLLECTION_NAME, e);
@@ -333,6 +358,7 @@ pub trait FilterableInDb: ModelInDb {
 
     async fn get_some(
         db: &Db,
+        mut session: Option<&mut ClientSession>,
         body: Self::FilterInDb,
         limit: usize,
         offset: usize,
@@ -350,18 +376,38 @@ pub trait FilterableInDb: ModelInDb {
             );
             e
         })?;
+
         let coll = db.collection::<Self::InDb>(Self::COLLECTION_NAME);
 
-        let total = coll.count_documents(filter.clone()).await.map_err(|e| {
-            tracing::debug!("Failed to count {}: {}", Self::COLLECTION_NAME, e);
-            ()
-        })? as usize;
+        let total = {
+            coll.count_documents(filter.clone())
+                .with_some(CountDocuments::session, session.as_deref_mut())
+                .await
+                .map_err(|e| {
+                    tracing::debug!("Failed to count {}: {}", Self::COLLECTION_NAME, e);
+                    ()
+                })? as usize
+        };
+        let collection = db.collection::<Self::InDb>(Self::COLLECTION_NAME);
+        let op = collection.find(filter).with_options(find_options);
 
-        Ok((
-            total,
-            db.collection::<Self::InDb>(Self::COLLECTION_NAME)
-                .find(filter)
-                .with_options(find_options)
+        let result = match session {
+            Some(session_ref) => {
+                let session_mut = session_ref;
+                let mut cursor = op.session(&mut *session_mut).await.map_err(|e| {
+                    tracing::debug!("Failed to find {}: {}", Self::COLLECTION_NAME, e);
+                    ()
+                })?;
+                cursor
+                    .stream(&mut *session_mut)
+                    .try_collect()
+                    .await
+                    .map_err(|e| {
+                        tracing::debug!("Failed to collect {}: {}", Self::COLLECTION_NAME, e);
+                        ()
+                    })?
+            }
+            None => op
                 .await
                 .map_err(|e| {
                     tracing::debug!("Failed to find {}: {}", Self::COLLECTION_NAME, e);
@@ -373,6 +419,8 @@ pub trait FilterableInDb: ModelInDb {
                     tracing::debug!("Failed to collect {}: {}", Self::COLLECTION_NAME, e);
                     ()
                 })?,
-        ))
+        };
+
+        Ok((total, result))
     }
 }

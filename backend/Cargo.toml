@@ -12,7 +12,7 @@ serde_urlencoded = "0.7.1"
 serde_with = "3.12.0"
 strum = { version = "0.27", features = ["derive"] }
 
-axum = { version = "0.8.1" }
+axum = { version = "0.8.1", features = ["macros", "multipart"] }
 axum-extra = { version = "0.10.0", features = ["cookie"] }
 dotenv = { version = "0.15.0" }
 dotenv_codegen = { version = "0.15.0" }
@@ -30,15 +30,16 @@ futures = { version = "0.3.31" }
 tokio = { version = "1.44.2", features = ["fs"] }
 indexmap = { version = "2.9.0", features = ["serde"] }
 liquid = { version = "0.26.11" }
-ts-rs = { version = "10.1.0", features = ["bson", "bson-uuid-impl", "indexmap-impl"] }
+ts-rs = { version = "10.1.0", features = ["bson", "bson-uuid-impl", "indexmap-impl", "no-serde-warnings"] }
 bcrypt = "0.17.0"
 chrono = "0.4.41"
 serde_json = "1.0.140"
 async-smtp = "0.10.2"
-rust-s3 = "0.35.1"
 linkme = "0.3.33"
 static_assertions = "1.1.0"
 hex_color = { version = "3.0.0", features = ["serde"] }
 image = "0.25.6"
 infer = "0.19.0"
 webp = "0.3.0"
+aws-sdk-s3 = "1.94.0"
+aws-config = "1.8.0"

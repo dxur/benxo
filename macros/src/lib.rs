@@ -310,7 +310,7 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
                 }
             }
 
-            if let Some((method, path, route_type, res_type)) = route_info {
+            if let Some((method, path, _route_type, res_type)) = route_info {
                 // Remove the route attribute
                 if let Some(index) = route_attr_index {
                     attrs.remove(index);

@@ -4,13 +4,16 @@ tasks:
   default:
     deps: [entry, db, minio, backend, frontend]
   backend:
-    deps: [api, web]
+    deps: [api, web, gate]
   api:
     cmds:
       - cd backend && cargo watch -x 'run --bin api' &> ../logs/api
   web:
     cmds:
       - cd backend && cargo watch -x 'run --bin web' &> ../logs/web
+  gate:
+    cmds:
+      - cd backend && cargo watch -x 'run --bin gate' &> ../logs/gate
   
   minio:
     cmds:

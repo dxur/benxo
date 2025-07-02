@@ -12,6 +12,9 @@
 benxo.test, www.benxo.test {
   tls internal
 
+  @test path /test*
+  reverse_proxy @test http://127.0.0.1:3002
+
   @api path /api*
   reverse_proxy @api http://127.0.0.1:3000
 

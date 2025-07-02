@@ -25,6 +25,7 @@ impl Routes {
             Pagination {
                 page: None,
                 per_page: None,
+                next_token: None,
             },
             store.business_id.into_context(),
         )

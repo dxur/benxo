@@ -124,6 +124,7 @@ impl UpdatableInDb for Order {
 
     async fn update(
         db: &Db,
+        session: Option<&mut ClientSession>,
         body: Self::UpdateInDb,
     ) -> Result<Option<(Self::UpdateInDb, Self::InDb)>> {
         let options = FindOneAndUpdateOptions::builder()
@@ -157,6 +158,7 @@ impl UpdatableInDb for Order {
                 },
             )
             .with_options(options)
+            .with_some(FindOneAndUpdate::session, session)
             .await
             .map_err(|e| {
                 tracing::debug!("Failed to find {}: {}", Self::COLLECTION_NAME, e);
