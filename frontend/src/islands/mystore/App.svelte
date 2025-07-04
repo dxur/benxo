@@ -4,13 +4,21 @@
     RouterContext,
     RouterView,
   } from "@dvcol/svelte-simple-router/components";
-  import routes from "./routes";
-  import Sidebar from "./components/Sidebar.svelte";
+  import SunIcon from "@lucide/svelte/icons/sun";
+  import MoonIcon from "@lucide/svelte/icons/moon";
+  import routes, { AppRoutes } from "./routes";
+  import AppSidebar from "./sidebar/AppSidebar.svelte";
   import Notifications from "@/components/Notifications.svelte";
-  import FilePicker from "./components/FilePicker.svelte";
+  import FilePicker from "./lib/services/file-picker/FilePicker.svelte";
   import * as ApiRoutes from "@bindings/ApiRoutes";
   import { _, locale, locales, waitLocale } from "svelte-i18n";
   import "./i18n.ts";
+  import { ModeWatcher } from "mode-watcher";
+  import { toggleMode } from "mode-watcher";
+  import { Button } from "@/lib/components/ui/button/index.ts";
+  import * as Sidebar from "@/lib/components/ui/sidebar/index.js";
+  import * as Breadcrumb from "@/lib/components/ui/breadcrumb/index.js";
+  import { Separator } from "@/lib/components/ui/separator/index.js";
 
   const languages = new Map([
     ["en", "English"],
@@ -49,46 +57,43 @@
   } as const;
 </script>
 
+<ModeWatcher />
 {#await waitLocale() then}
   <RouterContext {options}>
-    <Sidebar />
-    <main>
-      <header>
-        <input type="text" placeholder={$_("common.actions.search")} />
-        <select bind:value={$locale}>
-          {#each $locales as locale}}
-            <option value={locale}>{languages.get(locale)}</option>
-          {/each}
-        </select>
-        <a href={undefined} on:click={() => logout()}
-          >{$_("common.actions.logout")}</a
+    <Notifications />
+    <FilePicker />
+    <Sidebar.Provider>
+      <AppSidebar />
+      <Sidebar.Inset>
+        <header
+          class="group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 flex justify-between px-4 gap-2 h-16 shrink-0 items-center transition-[width,height] ease-linear"
         >
-      </header>
-
-      <div data-page>
-        <Notifications />
-        <FilePicker />
-        <section data-page>
-          <RouterView />
-        </section>
-      </div>
-    </main>
+          <div class="flex items-center gap-2">
+            <Sidebar.Trigger class="-ml-1" />
+            <Separator
+              orientation="vertical"
+              class="mr-2 data-[orientation=vertical]:h-4"
+            />
+            <Breadcrumb.Root>
+              <Breadcrumb.List>
+                <Breadcrumb.Item>
+                  <Breadcrumb.Page>Breadcrumb</Breadcrumb.Page>
+                </Breadcrumb.Item>
+              </Breadcrumb.List>
+            </Breadcrumb.Root>
+          </div>
+          <Button onclick={toggleMode} variant="outline" size="icon">
+            <SunIcon
+              class="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 !transition-all dark:-rotate-90 dark:scale-0"
+            />
+            <MoonIcon
+              class="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 !transition-all dark:rotate-0 dark:scale-100"
+            />
+            <span class="sr-only">Toggle theme</span>
+          </Button>
+        </header>
+        <RouterView />
+      </Sidebar.Inset>
+    </Sidebar.Provider>
   </RouterContext>
 {/await}
-
-<style>
-  select {
-    width: fit-content;
-  }
-
-  .account-menu {
-    position: absolute;
-    right: 0;
-    top: 100%;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    display: none;
-  }
-  .account-menu.show {
-    display: block;
-  }
-</style>

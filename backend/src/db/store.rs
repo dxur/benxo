@@ -22,6 +22,7 @@ pub struct StoreInDb {
     pub primary_color: HexColor,
     pub secondary_color: HexColor,
     pub background_color: HexColor,
+    pub logo: String,
     pub head: String,
 }
 
@@ -34,6 +35,7 @@ impl Into<StorePublic> for StoreInDb {
             primary_color: self.primary_color,
             secondary_color: self.secondary_color,
             background_color: self.background_color,
+            logo: self.logo,
             head: self.head,
         }
     }
@@ -79,6 +81,7 @@ impl From<ByBusinessId<StoreCreate>> for StoreInDb {
             primary_color: HexColor::GRAY,
             secondary_color: HexColor::BLACK,
             background_color: HexColor::WHITE,
+            logo: "".to_owned(),
             head: "".to_owned(),
         }
     }

@@ -2,10 +2,6 @@ use aws_sdk_s3::presigning::PresigningConfigBuilder;
 use axum::extract::State;
 use axum::response::IntoResponse;
 use axum::Json;
-use backend::db::domain::Domain;
-use backend::db::order::Order;
-use backend::db::product::Product;
-use backend::db::store::Store;
 use backend::utils::types::ResultBodyExt;
 use backend::utils::types::ResultPageExt;
 use bcrypt::{hash, verify, DEFAULT_COST};
@@ -16,11 +12,17 @@ use tower_cookies::Cookie;
 use tower_cookies::Cookies;
 
 use crate::AppState;
+use backend::db::category::Category;
+use backend::db::domain::Domain;
+use backend::db::order::Order;
+use backend::db::product::Product;
+use backend::db::store::Store;
 use backend::db::CreatableInDb;
 use backend::db::FetchableInDb;
 use backend::extractors::UserData;
 use backend::models::auth::LoginCredentials;
 use backend::models::auth::RegisterCredentials;
+use backend::models::category::*;
 use backend::models::domain::*;
 use backend::models::file::*;
 use backend::models::order::*;
@@ -115,6 +117,55 @@ impl ApiRoutes {
     async fn logout(cookies: Cookies) {
         cookies.remove(Cookie::build("access_token").build());
         cookies.remove(Cookie::build("refresh_token").build());
+    }
+
+    // ---- Categories ----
+    #[route(method=get, path="/categories", type=json, res=Page<CategoryPublic>)]
+    async fn get_all_categories(
+        State(state): State<AppState>,
+        user: UserData,
+        #[query] pagination: Pagination,
+    ) -> impl IntoResponse {
+        generic::get_all::<Category>(&state, pagination, user.business_id.into_context())
+            .await
+            .into_page()
+            .into_json()
+    }
+
+    #[route(method=post, path="/categories/", type=json, res=CategoryPublic)]
+    async fn get_one_category(
+        State(state): State<AppState>,
+        user: UserData,
+        #[json] body: ById,
+    ) -> impl IntoResponse {
+        generic::get_one::<Category>(&state, body.with_context(user.business_id))
+            .await
+            .into_body()
+            .into_json()
+    }
+
+    #[route(method=post, path="/categories", type=json, res=CategoryPublic)]
+    async fn create_category(
+        State(state): State<AppState>,
+        user: UserData,
+        #[json] body: CategoryCreate,
+    ) -> impl IntoResponse {
+        generic::create::<Category>(&state, body.with_context(user.business_id))
+            .await
+            .into_body()
+            .into_json()
+    }
+
+    #[route(method=patch, path="/categories/", type=json, res=CategoryPublic)]
+    async fn update_category(
+        State(state): State<AppState>,
+        user: UserData,
+        #[json] body: CategoryUpdate,
+    ) -> impl IntoResponse {
+        generic::update::<Category>(&state, body.with_context(user.business_id))
+            .await
+            .into_body()
+            .into_json()
     }
 
     // ---- Products ----
@@ -369,7 +420,7 @@ impl ApiRoutes {
                     ),
                     size: obj.size().and_then(|v| v.try_into().ok()),
                     updated_at: obj.last_modified().map(|v| v.secs() * 1000),
-                    mime: "application/binary".to_owned(),
+                    mime: "image/png".to_owned(),
                 })
             })
             .collect();

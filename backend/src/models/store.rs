@@ -29,6 +29,7 @@ pub struct StoreUpdateBody {
     pub secondary_color: Option<HexColor>,
     #[ts(as = "Option<String>")]
     pub background_color: Option<HexColor>,
+    pub logo: Option<String>,
     pub head: Option<String>,
 }
 
@@ -57,5 +58,6 @@ pub struct StorePublic {
     pub secondary_color: HexColor,
     #[ts(as = "String")]
     pub background_color: HexColor,
+    pub logo: String,
     pub head: String,
 }

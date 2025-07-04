@@ -3,7 +3,8 @@
   "include": [
     ".astro/types.d.ts",
     "**/*",
-    "svelte.d.ts"
+    "svelte.d.ts",
+    "../.trash/generic"
   ],
   "exclude": [
     "dist"

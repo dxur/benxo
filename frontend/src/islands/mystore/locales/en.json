@@ -76,6 +76,10 @@
       "sidebar": "Products",
       "title": "All Products"
     },
+    "categories": {
+      "sidebar": "Categories",
+      "title": "All Categories"
+    },
     "editProduct": {
       "title": "Edit Product"
     },
@@ -89,6 +93,10 @@
     "conversions": {
       "sidebar": "Conversions",
       "title": "All Conversions"
+    },
+    "help": {
+      "sidebar": "Help",
+      "title": "Help"
     },
     "settings": {
       "sidebar": "Settings",

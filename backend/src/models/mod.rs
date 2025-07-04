@@ -1,6 +1,7 @@
 pub mod auth;
 pub mod channel;
 // pub mod delivery;
+pub mod category;
 pub mod domain;
 pub mod file;
 pub mod order;
