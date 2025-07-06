@@ -3,20 +3,26 @@
     import * as Sidebar from "@/lib/components/ui/sidebar/index.js";
     import ChevronRightIcon from "@lucide/svelte/icons/chevron-right";
     import LayoutDahboardIcon from "@lucide/svelte/icons/layout-dashboard";
+    import type { Component } from "svelte";
+    import {
+        active,
+        link,
+        useNavigate,
+    } from "@dvcol/svelte-simple-router/router";
+
+    const { resolve, push, replace, back, forward, go } = useNavigate();
 
     let {
         items,
     }: {
         items: {
             title: string;
-            url: string;
-            // this should be `Component` after @lucide/svelte updates types
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            icon?: any;
+            path?: string;
+            icon?: Component;
             isActive?: boolean;
             items?: {
                 title: string;
-                url: string;
+                path: string;
             }[];
         }[];
     } = $props();
@@ -25,8 +31,11 @@
         items.find((item) => item.isActive)?.title || null,
     );
 
-    function toggleItem(title: string) {
+    function toggleItem(title: string, path?: string) {
         openItemTitle = openItemTitle === title ? null : title;
+        if (path) {
+            // push({ path });
+        }
     }
 </script>
 
@@ -48,7 +57,8 @@
                                 <Sidebar.MenuButton
                                     {...props}
                                     tooltipContent={item.title}
-                                    onclick={() => toggleItem(item.title)}
+                                    onclick={() =>
+                                        toggleItem(item.title, item.path)}
                                     class={openItemTitle === item.title
                                         ? "bg-sidebar-accent text-sidebar-accent-foreground"
                                         : ""}
@@ -74,7 +84,9 @@
                                         <Sidebar.MenuSubButton>
                                             {#snippet child({ props })}
                                                 <a
-                                                    href={subItem.url}
+                                                    use:link
+                                                    use:active
+                                                    href={subItem.path}
                                                     {...props}
                                                 >
                                                     <span>{subItem.title}</span>

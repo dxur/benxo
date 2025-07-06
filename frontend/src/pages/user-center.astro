@@ -1,0 +1,16 @@
+---
+import Base from "@/layouts/Base.astro";
+import CheckAuth from "@/components/CheckAuth.svelte";
+import App from "@/islands/usercenter/App.svelte";
+---
+
+<Base title="My Store">
+    <CheckAuth
+        client:only
+        isAuth={true}
+        includeReturnUrl={true}
+        redirect="/login"
+    >
+        <App client:only />
+    </CheckAuth>
+</Base>

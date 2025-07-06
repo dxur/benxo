@@ -19,6 +19,19 @@
     import StoreIcon from "@lucide/svelte/icons/store";
     import TagIcon from "@lucide/svelte/icons/tag";
     import TruckIcon from "@lucide/svelte/icons/truck";
+    import DollarSignIcon from "@lucide/svelte/icons/dollar-sign";
+    import WarehouseIcon from "@lucide/svelte/icons/warehouse";
+    import HeartHandshakeIcon from "@lucide/svelte/icons/heart-handshake";
+    import ZapIcon from "@lucide/svelte/icons/zap";
+    import BellIcon from "@lucide/svelte/icons/bell";
+    import HelpCircleIcon from "@lucide/svelte/icons/help-circle";
+    import LayersIcon from "@lucide/svelte/icons/layers";
+    import LineChartIcon from "@lucide/svelte/icons/line-chart";
+    import TargetIcon from "@lucide/svelte/icons/target";
+    import MegaphoneIcon from "@lucide/svelte/icons/megaphone";
+    import ShieldCheckIcon from "@lucide/svelte/icons/shield-check";
+    import { sidebar as productsSidebar } from "../features/products/index";
+    import { sidebar as ordersSidebar } from "../features/orders/index";
 
     const data = {
         user: {
@@ -26,210 +39,446 @@
             email: "john@example.com",
             avatar: "/avatars/john.jpg",
         },
+
         businesses: [
             {
+                id: "biz-1",
                 name: "Coffee Shop Co",
                 logo: StoreIcon,
                 plan: "Pro",
                 industry: "Food & Beverage",
+                role: "Owner",
+                stores: [
+                    {
+                        id: "store-1",
+                        name: "Downtown Main",
+                        type: "main",
+                        region: "NYC",
+                        status: "active",
+                    },
+                    {
+                        id: "store-2",
+                        name: "Brooklyn Branch",
+                        type: "regional",
+                        region: "NYC",
+                        status: "active",
+                    },
+                    {
+                        id: "store-3",
+                        name: "Coffee Test Lab",
+                        type: "testing",
+                        region: "NYC",
+                        status: "active",
+                    },
+                    {
+                        id: "store-4",
+                        name: "Seasonal Winter",
+                        type: "seasonal",
+                        region: "NYC",
+                        status: "inactive",
+                    },
+                ],
             },
             {
+                id: "biz-2",
                 name: "Tech Gadgets Inc",
                 logo: CommandIcon,
                 plan: "Enterprise",
                 industry: "Electronics",
+                role: "Admin",
+                stores: [
+                    {
+                        id: "store-5",
+                        name: "US Main Store",
+                        type: "main",
+                        region: "US",
+                        status: "active",
+                    },
+                    {
+                        id: "store-6",
+                        name: "EU Store",
+                        type: "regional",
+                        region: "EU",
+                        status: "active",
+                    },
+                    {
+                        id: "store-7",
+                        name: "Mobile Testing",
+                        type: "testing",
+                        region: "US",
+                        status: "active",
+                    },
+                    {
+                        id: "store-8",
+                        name: "B2B Portal",
+                        type: "b2b",
+                        region: "Global",
+                        status: "active",
+                    },
+                    {
+                        id: "store-9",
+                        name: "Black Friday Store",
+                        type: "campaign",
+                        region: "US",
+                        status: "inactive",
+                    },
+                ],
             },
             {
+                id: "biz-3",
                 name: "Fashion Boutique",
                 logo: ShoppingBagIcon,
                 plan: "Starter",
                 industry: "Fashion",
+                role: "Marketing Manager",
+                stores: [
+                    {
+                        id: "store-10",
+                        name: "Main Boutique",
+                        type: "main",
+                        region: "LA",
+                        status: "active",
+                    },
+                    {
+                        id: "store-11",
+                        name: "Trend Testing",
+                        type: "testing",
+                        region: "LA",
+                        status: "active",
+                    },
+                ],
             },
         ],
+        currentBusiness: {
+            id: "biz-1",
+            name: "Coffee Shop Co",
+            role: "Owner",
+        },
+        currentStore: {
+            id: "store-1",
+            name: "Downtown Main",
+            type: "main",
+            region: "NYC",
+            business: "Coffee Shop Co",
+            status: "active",
+        },
+
         navMain: [
             {
-                title: "Dashboard",
-                url: "/dashboard",
+                title: "Business Overview",
+                path: "/business",
                 icon: SquareTerminalIcon,
                 isActive: true,
                 items: [
                     {
-                        title: "Overview",
-                        url: "/dashboard/overview",
+                        title: "Business Dashboard",
+                        path: "/business/dashboard",
                     },
                     {
-                        title: "Analytics",
-                        url: "/dashboard/analytics",
+                        title: "All Stores Performance",
+                        path: "/business/stores-overview",
                     },
                     {
-                        title: "Reports",
-                        url: "/dashboard/reports",
+                        title: "Cross-Store Analytics",
+                        path: "/business/cross-analytics",
+                    },
+                    {
+                        title: "Business Activity",
+                        path: "/business/activity",
                     },
                 ],
             },
             {
-                title: "Products",
-                url: "/products",
-                icon: PackageIcon,
+                title: "Stores",
+                path: "/stores",
+                icon: StoreIcon,
                 items: [
                     {
-                        title: "All Products",
-                        url: "/products",
+                        title: "All Stores",
+                        path: "/stores",
                     },
                     {
-                        title: "Categories",
-                        url: "/products/categories",
+                        title: "Store Templates",
+                        path: "/stores/templates",
                     },
                     {
-                        title: "Inventory",
-                        url: "/products/inventory",
+                        title: "Regional Management",
+                        path: "/stores/regional",
                     },
                     {
-                        title: "Pricing",
-                        url: "/products/pricing",
+                        title: "Testing Stores",
+                        path: "/stores/testing",
+                    },
+                    {
+                        title: "Campaign Stores",
+                        path: "/stores/campaigns",
+                    },
+                    {
+                        title: "Themes & Design",
+                        path: "/stores/themes",
+                    },
+                    {
+                        title: "Domains & SEO",
+                        path: "/stores/domains",
+                    },
+                    {
+                        title: "Store Performance",
+                        path: "/stores/analytics",
                     },
                 ],
             },
+            productsSidebar,
+            ordersSidebar,
             {
-                title: "Orders",
-                url: "/orders",
-                icon: ShoppingCartIcon,
-                items: [
-                    {
-                        title: "All Orders",
-                        url: "/orders",
-                    },
-                    {
-                        title: "Pending",
-                        url: "/orders/pending",
-                    },
-                    {
-                        title: "Completed",
-                        url: "/orders/completed",
-                    },
-                    {
-                        title: "Refunds",
-                        url: "/orders/refunds",
-                    },
-                ],
-            },
-            {
-                title: "Customers",
-                url: "/customers",
+                title: "Customer Intelligence",
+                path: "/customers",
                 icon: UsersIcon,
                 items: [
                     {
                         title: "All Customers",
-                        url: "/customers",
+                        path: "/customers",
                     },
                     {
-                        title: "Segments",
-                        url: "/customers/segments",
+                        title: "Customer Segments",
+                        path: "/customers/segments",
                     },
                     {
-                        title: "Reviews",
-                        url: "/customers/reviews",
+                        title: "Cross-Store Customers",
+                        path: "/customers/cross-store",
                     },
                     {
-                        title: "Support",
-                        url: "/customers/support",
+                        title: "Customer Journey",
+                        path: "/customers/journey",
+                    },
+                    {
+                        title: "Customer Support",
+                        path: "/customers/support",
+                    },
+                    {
+                        title: "Reviews & Feedback",
+                        path: "/customers/reviews",
+                    },
+                    {
+                        title: "Loyalty & Retention",
+                        path: "/customers/loyalty",
                     },
                 ],
             },
             {
-                title: "Marketing",
-                url: "/marketing",
-                icon: TrendingUpIcon,
+                title: "Marketing & Growth",
+                path: "/marketing",
+                icon: MegaphoneIcon,
                 items: [
                     {
-                        title: "Campaigns",
-                        url: "/marketing/campaigns",
+                        title: "Campaign Hub",
+                        path: "/marketing/campaigns",
+                    },
+                    {
+                        title: "A/B Testing",
+                        path: "/marketing/ab-testing",
                     },
                     {
                         title: "Email Marketing",
-                        url: "/marketing/email",
+                        path: "/marketing/email",
                     },
                     {
-                        title: "Promotions",
-                        url: "/marketing/promotions",
+                        title: "Social Media Ads",
+                        path: "/marketing/social",
                     },
                     {
-                        title: "SEO",
-                        url: "/marketing/seo",
+                        title: "Google Ads",
+                        path: "/marketing/google-ads",
+                    },
+                    {
+                        title: "Promotions & Coupons",
+                        path: "/marketing/promotions",
+                    },
+                    {
+                        title: "Multi-Store Campaigns",
+                        path: "/marketing/multi-store",
+                    },
+                    {
+                        title: "SEO & Content",
+                        path: "/marketing/seo",
+                    },
+                    {
+                        title: "Conversion Tracking",
+                        path: "/marketing/conversions",
                     },
                 ],
             },
             {
-                title: "Analytics",
-                url: "/analytics",
-                icon: BarChartIcon,
+                title: "Analytics & Insights",
+                path: "/analytics",
+                icon: LineChartIcon,
                 items: [
                     {
+                        title: "Business Overview",
+                        path: "/analytics/business",
+                    },
+                    {
+                        title: "Store Comparison",
+                        path: "/analytics/store-comparison",
+                    },
+                    {
                         title: "Sales Analytics",
-                        url: "/analytics/sales",
+                        path: "/analytics/sales",
                     },
                     {
-                        title: "Conversions",
-                        url: "/analytics/conversions",
+                        title: "Revenue Reports",
+                        path: "/analytics/revenue",
                     },
                     {
-                        title: "Traffic",
-                        url: "/analytics/traffic",
+                        title: "Product Performance",
+                        path: "/analytics/products",
                     },
                     {
-                        title: "Performance",
-                        url: "/analytics/performance",
+                        title: "Customer Analytics",
+                        path: "/analytics/customers",
+                    },
+                    {
+                        title: "Marketing ROI",
+                        path: "/analytics/marketing-roi",
+                    },
+                    {
+                        title: "Testing Results",
+                        path: "/analytics/testing",
+                    },
+                    {
+                        title: "Traffic & Behavior",
+                        path: "/analytics/traffic",
+                    },
+                    {
+                        title: "Conversion Funnels",
+                        path: "/analytics/funnels",
+                    },
+                    {
+                        title: "Custom Reports",
+                        path: "/analytics/custom",
+                    },
+                ],
+            },
+            {
+                title: "Financial Management",
+                path: "/finance",
+                icon: DollarSignIcon,
+                items: [
+                    {
+                        title: "Revenue Overview",
+                        path: "/finance/revenue",
+                    },
+                    {
+                        title: "Payment Methods",
+                        path: "/finance/payments",
+                    },
+                    {
+                        title: "Transactions",
+                        path: "/finance/transactions",
+                    },
+                    {
+                        title: "Taxes & Compliance",
+                        path: "/finance/taxes",
+                    },
+                    {
+                        title: "Invoicing",
+                        path: "/finance/invoicing",
+                    },
+                    {
+                        title: "Payouts",
+                        path: "/finance/payouts",
+                    },
+                ],
+            },
+            {
+                title: "Team & Permissions",
+                path: "/team",
+                icon: UsersIcon,
+                items: [
+                    {
+                        title: "Team Members",
+                        path: "/team/members",
+                    },
+                    {
+                        title: "Roles & Permissions",
+                        path: "/team/roles",
+                    },
+                    {
+                        title: "Store Access Control",
+                        path: "/team/store-access",
+                    },
+                    {
+                        title: "Activity Log",
+                        path: "/team/activity",
+                    },
+                    {
+                        title: "Invite Members",
+                        path: "/team/invite",
                     },
                 ],
             },
             {
                 title: "Settings",
-                url: "/settings",
+                path: "/settings",
                 icon: Settings2Icon,
                 items: [
                     {
-                        title: "General",
-                        url: "/settings/general",
+                        title: "General Settings",
+                        path: "/settings/general",
                     },
                     {
-                        title: "Payment Methods",
-                        url: "/settings/payments",
+                        title: "Business Profile",
+                        path: "/settings/business",
                     },
                     {
-                        title: "Shipping",
-                        url: "/settings/shipping",
+                        title: "Shipping & Delivery",
+                        path: "/settings/shipping",
                     },
                     {
-                        title: "Taxes",
-                        url: "/settings/taxes",
+                        title: "Notifications",
+                        path: "/settings/notifications",
                     },
                     {
-                        title: "Integrations",
-                        url: "/settings/integrations",
+                        title: "Security",
+                        path: "/settings/security",
+                    },
+                    {
+                        title: "Billing & Plans",
+                        path: "/settings/billing",
                     },
                 ],
             },
         ],
+
         quickActions: [
             {
                 name: "Add Product",
-                url: "/products/new",
+                path: "/products/create",
                 icon: PackageIcon,
             },
             {
                 name: "View Orders",
-                url: "/orders",
+                path: "/orders",
                 icon: ShoppingCartIcon,
             },
             {
-                name: "Customer Analytics",
-                url: "/analytics/customers",
-                icon: UsersIcon,
+                name: "Store Analytics",
+                path: "/stores/analytics",
+                icon: StoreIcon,
             },
             {
-                name: "Payment Settings",
-                url: "/settings/payments",
-                icon: CreditCardIcon,
+                name: "Sales Report",
+                path: "/analytics/sales",
+                icon: LineChartIcon,
+            },
+            {
+                name: "Customer Support",
+                path: "/customers/support",
+                icon: HeartHandshakeIcon,
+            },
+            {
+                name: "Marketing Campaign",
+                path: "/marketing/campaigns/new",
+                icon: TargetIcon,
             },
         ],
     };
@@ -258,8 +507,8 @@
         <NavMain items={data.navMain} />
         <NavQuickActions actions={data.quickActions} />
     </Sidebar.Content>
-    <Sidebar.Footer>
+    <!-- <Sidebar.Footer>
         <NavUser user={data.user} />
-    </Sidebar.Footer>
+    </Sidebar.Footer> -->
     <Sidebar.Rail />
 </Sidebar.Root>

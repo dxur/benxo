@@ -5,9 +5,8 @@
     import ChevronsUpDownIcon from "@lucide/svelte/icons/chevrons-up-down";
     import PlusIcon from "@lucide/svelte/icons/plus";
     import BuildingIcon from "@lucide/svelte/icons/building";
+    import UserIcon from "@lucide/svelte/icons/user";
 
-    // This should be `Component` after @lucide/svelte updates types
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let {
         businesses,
     }: {
@@ -92,14 +91,17 @@
                 {/each}
                 <DropdownMenu.Separator />
                 <DropdownMenu.Item class="gap-2 p-2">
-                    <div
-                        class="flex size-6 items-center justify-center rounded-md border bg-transparent"
+                    <a
+                        href="/user-center"
+                        class="flex flex-row items-center gap-2"
                     >
-                        <PlusIcon class="size-4" />
-                    </div>
-                    <div class="text-muted-foreground font-medium">
-                        Add Business
-                    </div>
+                        <div
+                            class="flex size-6 items-center justify-center rounded-md border bg-transparent text-muted-foreground"
+                        >
+                            <UserIcon class="size-4" />
+                        </div>
+                        <div class="font-medium">User Center</div>
+                    </a>
                 </DropdownMenu.Item>
             </DropdownMenu.Content>
         </DropdownMenu.Root>

@@ -40,53 +40,53 @@
 }
 
 /*
-  FIX: Final dark theme overhaul based on popular, ergonomic developer themes.
-  - HUE SHIFT: Moves from teal to a much softer, desaturated neutral/blue hue (240) for maximum eye comfort.
-  - CONTRAST: Further reduction in contrast between text and background.
-  - SATURATION: All colors are less saturated for a calmer, less harsh appearance.
+  FIX: Adwaita-Inspired Dark Theme for maximum eye comfort.
+  - BACKGROUNDS: Uses layered shades of dark gray, not black.
+  - TEXT: Uses light gray ("off-white") to eliminate glare.
+  - ACCENTS: The primary teal is muted to feel calm and integrated.
+  - CONTRAST: WCAG-compliant but soft and comfortable for long sessions.
 */
 .dark {
   --radius: 0.75rem;
-  --background: oklch(0.12 0.01 240);
-  /* A very dark, desaturated blue-gray */
-  --foreground: oklch(0.85 0.005 240);
-  /* Soft, light gray text */
-  --card: oklch(0.16 0.015 240);
-  /* Slightly lighter cards for subtle depth */
-  --card-foreground: oklch(0.85 0.005 240);
-  --popover: oklch(0.16 0.015 240);
-  --popover-foreground: oklch(0.85 0.005 240);
-  --primary: oklch(0.6 0.1 185);
-  /* A much softer, less saturated teal */
-  --primary-foreground: oklch(0.1 0.01 185);
-  --secondary: oklch(0.2 0.01 240);
-  --secondary-foreground: oklch(0.75 0.005 240);
-  --muted: oklch(0.2 0.01 240);
-  --muted-foreground: oklch(0.55 0.01 240);
-  /* Muted text is very subtle */
-  --accent: oklch(0.25 0.02 240);
-  --accent-foreground: oklch(0.9 0.01 240);
-  --destructive: oklch(0.5 0.15 20);
-  /* A less intense destructive red */
-  --border: oklch(0.2 0.015 240);
-  /* Barely-there borders */
-  --input: oklch(0.22 0.015 240);
-  --ring: oklch(0.6 0.1 190);
-  /* Ring is still visible but not overly bright */
+  --background: oklch(0.22 0.01 240);
+  /* Adwaita's characteristic dark gray background */
+  --foreground: oklch(0.92 0.005 240);
+  /* Standard light gray text for readability */
+  --card: oklch(0.25 0.015 240);
+  /* Surfaces are a slightly lighter gray for depth */
+  --card-foreground: oklch(0.92 0.005 240);
+  --popover: oklch(0.25 0.015 240);
+  --popover-foreground: oklch(0.92 0.005 240);
+  --primary: oklch(0.65 0.1 185);
+  /* A calm, desaturated teal that's easy on the eyes */
+  --primary-foreground: oklch(0.15 0.01 185);
+  --secondary: oklch(0.3 0.01 240);
+  --secondary-foreground: oklch(0.85 0.005 240);
+  --muted: oklch(0.3 0.01 240);
+  --muted-foreground: oklch(0.6 0.01 240);
+  --accent: oklch(0.35 0.02 240);
+  --accent-foreground: oklch(0.95 0.005 240);
+  --destructive: oklch(0.6 0.18 25);
+  /* A softer red for destructive actions */
+  --border: oklch(0.3 0.015 240);
+  /* Subtle borders that are a shade lighter than cards */
+  --input: oklch(0.32 0.015 240);
+  /* Inputs are clearly visible but not harsh */
+  --ring: oklch(0.65 0.1 190);
   --chart-1: oklch(0.6 0.1 140);
   --chart-2: oklch(0.55 0.08 190);
   --chart-3: oklch(0.5 0.07 220);
   --chart-4: oklch(0.65 0.1 90);
   --chart-5: oklch(0.6 0.09 60);
-  --sidebar: oklch(0.1 0.01 240);
-  /* Sidebar is even darker for a clear layout distinction */
-  --sidebar-foreground: oklch(0.85 0.005 240);
-  --sidebar-primary: oklch(0.6 0.1 185);
-  --sidebar-primary-foreground: oklch(0.1 0.01 185);
-  --sidebar-accent: oklch(0.2 0.015 240);
-  --sidebar-accent-foreground: oklch(0.85 0.005 240);
-  --sidebar-border: oklch(0.15 0.01 240);
-  --sidebar-ring: oklch(0.6 0.1 190);
+  --sidebar: oklch(0.18 0.01 240);
+  /* A very dark gray for the main sidebar, creating a strong hierarchy */
+  --sidebar-foreground: oklch(0.92 0.005 240);
+  --sidebar-primary: oklch(0.65 0.1 185);
+  --sidebar-primary-foreground: oklch(0.15 0.01 185);
+  --sidebar-accent: oklch(0.25 0.015 240);
+  --sidebar-accent-foreground: oklch(0.92 0.005 240);
+  --sidebar-border: oklch(0.22 0.01 240);
+  --sidebar-ring: oklch(0.65 0.1 190);
 }
 
 

@@ -2,7 +2,7 @@
   import { notifCenter } from "../stores/notifications";
 </script>
 
-<div data-notif>
+<!-- <div data-notif>
   {#each $notifCenter as { id, msgType, title, msg }}
     <div data-msg data-role={msgType}>
       <strong>{title}</strong>
@@ -12,4 +12,4 @@
       >
     </div>
   {/each}
-</div>
+</div> -->

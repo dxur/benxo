@@ -1,12 +1,14 @@
-import type { Route } from '@dvcol/svelte-simple-router/models';
+import { routes as ProductRoutes } from "./features/products/index"
+import { routes as OrderRoutes } from "./features/orders/index"
+
+export type Route = {
+  name: string;
+  path: string;
+  props?: { [key: string]: any };
+  component: any;
+}
 
 export namespace AppRoutes {
-  type Route = {
-    name: string;
-    path: string;
-    props?: { [key: string]: any };
-    component: any;
-  }
 
   export const HOME: Route = {
     name: "home",
@@ -74,6 +76,8 @@ export default <Route[]>[
     },
   },
   AppRoutes.HOME,
+  ...ProductRoutes,
+  ...OrderRoutes,
   // AppRoutes.ORDERS,
   // AppRoutes.ORDER,
   // AppRoutes.PRODUCTS,
