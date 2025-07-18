@@ -5,6 +5,8 @@ extern crate dotenv_codegen;
 
 mod routes;
 
+use std::sync::Arc;
+
 use aws_config::Region;
 use aws_sdk_s3::config::Credentials;
 use aws_sdk_s3::Client;
@@ -14,7 +16,6 @@ use backend::utils::log::init_tracing;
 use backend::utils::router::RoutePacked;
 use backend::State;
 use backend::WithDb;
-use std::sync::Arc;
 use tokio::net::TcpListener;
 use tower_cookies::CookieManagerLayer;
 use tower_http::trace::TraceLayer;

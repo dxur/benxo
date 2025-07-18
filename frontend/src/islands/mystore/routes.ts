@@ -1,5 +1,7 @@
 import { routes as ProductRoutes } from "./features/products/index"
 import { routes as OrderRoutes } from "./features/orders/index"
+import { routes as StoreRoutes } from "./features/online-stores/index"
+import { routes as ShippingRoutes } from "./features/shipping-and-payment/index"
 
 export type Route = {
   name: string;
@@ -78,6 +80,8 @@ export default <Route[]>[
   AppRoutes.HOME,
   ...ProductRoutes,
   ...OrderRoutes,
+  ...StoreRoutes,
+  ...ShippingRoutes,
   // AppRoutes.ORDERS,
   // AppRoutes.ORDER,
   // AppRoutes.PRODUCTS,

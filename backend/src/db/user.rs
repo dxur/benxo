@@ -1,10 +1,10 @@
-use crate::{models::user::*, register_model};
 use bson::DateTime;
 use field::field;
 use mongodb::bson::{doc, oid::ObjectId, to_document, Document};
 use serde::{Deserialize, Serialize};
 
 use super::*;
+use crate::{models::user::*, register_model};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct UserInDb {

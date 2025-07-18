@@ -21,6 +21,8 @@
     import * as Tabs from "@/lib/components/ui/tabs/index";
     import type { Pagination } from "@bindings/Pagination";
     import CellActions from "./ProductCellActions.svelte";
+    import { Input } from "lib/components/ui/input";
+    import { SearchIcon } from "@lucide/svelte";
 
     const columns: ColumnDef<ProductPublic>[] = [
         {
@@ -176,17 +178,22 @@
     let total_pages: number = 1;
     let status: LoadingStatus = undefined;
     let searchQuery: string = "";
+    let statusQuery: string = "all";
     let isSearching: boolean = false;
 
     // Debounced search function
-    const debouncedSearch = debounce((query: string) => {
-        page = 1; // Reset to first page when searching
+    const debouncedSearch = debounce((query?: string, status?: string) => {
+        page = 1;
         fetchData({ page: 1, per_page, next_token: null }, query);
-    }, 300);
+    }, 1000);
 
-    async function fetchData(pagination: Pagination, search?: string) {
+    async function fetchData(
+        pagination: Pagination,
+        searchQuery?: string,
+        statusQuery?: string,
+    ) {
         status = undefined;
-        isSearching = !!search;
+        isSearching = !!searchQuery;
 
         try {
             // You might need to modify your API to accept search parameters
@@ -205,8 +212,8 @@
     $: fetchData({ page: page, per_page, next_token: null });
 
     // Watch for search changes
-    $: if (searchQuery) {
-        debouncedSearch(searchQuery);
+    $: if (searchQuery || statusQuery) {
+        debouncedSearch(searchQuery, statusQuery);
     }
 
     $: document.title = "Products";
@@ -249,86 +256,12 @@
                 </Button>
             </a>
         </div>
-
-        <!-- Stats Cards -->
-        <!-- <div class="grid gap-4 md:grid-cols-3">
-            <Card.Root>
-                <Card.Header
-                    class="flex flex-row items-center justify-between space-y-0 pb-2"
-                >
-                    <Card.Title class="text-sm font-medium"
-                        >Total Products</Card.Title
-                    >
-                    <PackageIcon class="h-4 w-4 text-muted-foreground" />
-                </Card.Header>
-                <Card.Content>
-                    <div class="text-2xl font-bold">{stats.total}</div>
-                    <p class="text-xs text-muted-foreground">
-                        Active products in inventory
-                    </p>
-                </Card.Content>
-            </Card.Root>
-
-            <Card.Root>
-                <Card.Header
-                    class="flex flex-row items-center justify-between space-y-0 pb-2"
-                >
-                    <Card.Title class="text-sm font-medium"
-                        >Featured Products</Card.Title
-                    >
-                    <Badge variant="secondary">{stats.featured}</Badge>
-                </Card.Header>
-                <Card.Content>
-                    <div class="text-2xl font-bold">{stats.featured}</div>
-                    <p class="text-xs text-muted-foreground">
-                        Currently featured items
-                    </p>
-                </Card.Content>
-            </Card.Root>
-
-            <Card.Root>
-                <Card.Header
-                    class="flex flex-row items-center justify-between space-y-0 pb-2"
-                >
-                    <Card.Title class="text-sm font-medium"
-                        >Categories</Card.Title
-                    >
-                </Card.Header>
-                <Card.Content>
-                    <div class="text-2xl font-bold">{stats.categories}</div>
-                    <p class="text-xs text-muted-foreground">
-                        Product categories
-                    </p>
-                </Card.Content>
-            </Card.Root>
-        </div> -->
     </div>
 
     <!-- Search and Filters -->
-    <!-- <div class="px-6">
-        <div class="flex items-center gap-4">
-            <div class="relative flex-1 max-w-sm">
-                <SearchIcon
-                    class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-                />
-                <Input
-                    placeholder="Search products..."
-                    bind:value={searchQuery}
-                    class="pl-10"
-                />
-                {#if isSearching}
-                    <div class="absolute right-3 top-1/2 -translate-y-1/2">
-                        <div
-                            class="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"
-                        ></div>
-                    </div>
-                {/if}
-            </div>
-        </div>
-    </div> -->
 
-    <div class="px-6 mb-2">
-        <Tabs.Root value="all" class="w-[400px]">
+    <div class="px-6 mb-2 flex flex-row justify-between">
+        <Tabs.Root bind:value={statusQuery} class="w-[400px]">
             <Tabs.List>
                 <Tabs.Trigger value="all">All</Tabs.Trigger>
                 <Tabs.Trigger value="active">Active</Tabs.Trigger>
@@ -336,6 +269,23 @@
                 <Tabs.Trigger value="draft">Draft</Tabs.Trigger>
             </Tabs.List>
         </Tabs.Root>
+        <div class="relative flex-1 max-w-sm">
+            <SearchIcon
+                class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            />
+            <Input
+                placeholder="Search products..."
+                bind:value={searchQuery}
+                class="pl-10"
+            />
+            {#if isSearching}
+                <div class="absolute right-3 top-1/2 -translate-y-1/2">
+                    <div
+                        class="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"
+                    ></div>
+                </div>
+            {/if}
+        </div>
     </div>
 
     <!-- Data Table -->

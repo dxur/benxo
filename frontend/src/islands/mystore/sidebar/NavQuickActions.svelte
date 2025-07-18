@@ -8,7 +8,7 @@
     import PinIcon from "@lucide/svelte/icons/pin";
     import ZapIcon from "@lucide/svelte/icons/zap";
     import type { Component } from "svelte";
-    import { link } from "@dvcol/svelte-simple-router";
+    import { active, link } from "@dvcol/svelte-simple-router";
 
     let {
         actions,
@@ -32,7 +32,7 @@
             <Sidebar.MenuItem>
                 <Sidebar.MenuButton>
                     {#snippet child({ props })}
-                        <a href={action.path} {...props} use:link>
+                        <a href={action.path} {...props} use:link use:active>
                             <action.icon />
                             <span>{action.name}</span>
                         </a>

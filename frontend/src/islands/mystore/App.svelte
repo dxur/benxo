@@ -1,5 +1,4 @@
-<script lang="ts">
-  import type { RouterOptions } from "@dvcol/svelte-simple-router/models";
+<script>
   import {
     RouterContext,
     RouterView,
@@ -19,6 +18,8 @@
   import * as Sidebar from "@/lib/components/ui/sidebar/index.js";
   import * as Breadcrumb from "@/lib/components/ui/breadcrumb/index.js";
   import { Separator } from "@/lib/components/ui/separator/index.js";
+
+  import { Globals, Locale, Willow } from "wx-svelte-core";
 
   const languages = new Map([
     ["en", "English"],
@@ -48,13 +49,13 @@
     }
   });
 
-  const options: RouterOptions = {
+  const options = {
     routes,
     hash: true,
     priority: (a, b) => {
       return 0;
     },
-  } as const;
+  };
 </script>
 
 <ModeWatcher />

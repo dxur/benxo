@@ -1,5 +1,7 @@
 use bson::oid::ObjectId;
+use bson::serde_helpers::serialize_bson_datetime_as_rfc3339_string;
 use bson::serde_helpers::serialize_object_id_as_hex_string;
+use bson::DateTime;
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
@@ -144,4 +146,10 @@ pub struct OrderPublic {
     pub note: String,
     pub items: IndexMap<String, CartItem>,
     pub history: Vec<OrderHistoryEntry>,
+    #[ts(as = "String")]
+    #[serde(serialize_with = "serialize_bson_datetime_as_rfc3339_string")]
+    pub created_at: DateTime,
+    #[ts(as = "String")]
+    #[serde(serialize_with = "serialize_bson_datetime_as_rfc3339_string")]
+    pub updated_at: DateTime,
 }

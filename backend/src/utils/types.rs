@@ -4,11 +4,10 @@ use mongodb::{
     ClientSession,
 };
 
+use super::error::ApiError;
 use crate::models::{Page, Void};
 
-use super::error::Error;
-
-pub type Result<T> = std::result::Result<T, Error>;
+pub type Result<T> = std::result::Result<T, ApiError>;
 
 pub trait IntoInner<T> {
     fn into_inner(self) -> T;

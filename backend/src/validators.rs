@@ -1,8 +1,9 @@
+use std::fmt::Display;
+
 use serde::{
     de::{self, Unexpected},
     Deserialize, Deserializer,
 };
-use std::fmt::Display;
 
 pub fn non_negative<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where

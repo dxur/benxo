@@ -23,6 +23,7 @@
     import WarehouseIcon from "@lucide/svelte/icons/warehouse";
     import HeartHandshakeIcon from "@lucide/svelte/icons/heart-handshake";
     import ZapIcon from "@lucide/svelte/icons/zap";
+    import RepeatIcon from "@lucide/svelte/icons/repeat";
     import BellIcon from "@lucide/svelte/icons/bell";
     import HelpCircleIcon from "@lucide/svelte/icons/help-circle";
     import LayersIcon from "@lucide/svelte/icons/layers";
@@ -32,6 +33,11 @@
     import ShieldCheckIcon from "@lucide/svelte/icons/shield-check";
     import { sidebar as productsSidebar } from "../features/products/index";
     import { sidebar as ordersSidebar } from "../features/orders/index";
+    import { sidebar as storesSidebar } from "../features/online-stores/index";
+    import { sidebar as shippingSidebar } from "../features/shipping-and-payment/index";
+    import { Routes as productsRoutes } from "../features/products/index";
+    import { Routes as shippingRoutes } from "../features/shipping-and-payment/index";
+    import { Routes as ordersRoutes } from "../features/orders/index";
 
     const data = {
         user: {
@@ -165,284 +171,41 @@
 
         navMain: [
             {
-                title: "Business Overview",
-                path: "/business",
+                title: "Dashboard",
+                path: "/dashboard",
                 icon: SquareTerminalIcon,
-                isActive: true,
-                items: [
-                    {
-                        title: "Business Dashboard",
-                        path: "/business/dashboard",
-                    },
-                    {
-                        title: "All Stores Performance",
-                        path: "/business/stores-overview",
-                    },
-                    {
-                        title: "Cross-Store Analytics",
-                        path: "/business/cross-analytics",
-                    },
-                    {
-                        title: "Business Activity",
-                        path: "/business/activity",
-                    },
-                ],
-            },
-            {
-                title: "Stores",
-                path: "/stores",
-                icon: StoreIcon,
-                items: [
-                    {
-                        title: "All Stores",
-                        path: "/stores",
-                    },
-                    {
-                        title: "Store Templates",
-                        path: "/stores/templates",
-                    },
-                    {
-                        title: "Regional Management",
-                        path: "/stores/regional",
-                    },
-                    {
-                        title: "Testing Stores",
-                        path: "/stores/testing",
-                    },
-                    {
-                        title: "Campaign Stores",
-                        path: "/stores/campaigns",
-                    },
-                    {
-                        title: "Themes & Design",
-                        path: "/stores/themes",
-                    },
-                    {
-                        title: "Domains & SEO",
-                        path: "/stores/domains",
-                    },
-                    {
-                        title: "Store Performance",
-                        path: "/stores/analytics",
-                    },
-                ],
             },
             productsSidebar,
             ordersSidebar,
-            {
-                title: "Customer Intelligence",
-                path: "/customers",
-                icon: UsersIcon,
-                items: [
-                    {
-                        title: "All Customers",
-                        path: "/customers",
-                    },
-                    {
-                        title: "Customer Segments",
-                        path: "/customers/segments",
-                    },
-                    {
-                        title: "Cross-Store Customers",
-                        path: "/customers/cross-store",
-                    },
-                    {
-                        title: "Customer Journey",
-                        path: "/customers/journey",
-                    },
-                    {
-                        title: "Customer Support",
-                        path: "/customers/support",
-                    },
-                    {
-                        title: "Reviews & Feedback",
-                        path: "/customers/reviews",
-                    },
-                    {
-                        title: "Loyalty & Retention",
-                        path: "/customers/loyalty",
-                    },
-                ],
-            },
-            {
-                title: "Marketing & Growth",
-                path: "/marketing",
-                icon: MegaphoneIcon,
-                items: [
-                    {
-                        title: "Campaign Hub",
-                        path: "/marketing/campaigns",
-                    },
-                    {
-                        title: "A/B Testing",
-                        path: "/marketing/ab-testing",
-                    },
-                    {
-                        title: "Email Marketing",
-                        path: "/marketing/email",
-                    },
-                    {
-                        title: "Social Media Ads",
-                        path: "/marketing/social",
-                    },
-                    {
-                        title: "Google Ads",
-                        path: "/marketing/google-ads",
-                    },
-                    {
-                        title: "Promotions & Coupons",
-                        path: "/marketing/promotions",
-                    },
-                    {
-                        title: "Multi-Store Campaigns",
-                        path: "/marketing/multi-store",
-                    },
-                    {
-                        title: "SEO & Content",
-                        path: "/marketing/seo",
-                    },
-                    {
-                        title: "Conversion Tracking",
-                        path: "/marketing/conversions",
-                    },
-                ],
-            },
-            {
-                title: "Analytics & Insights",
-                path: "/analytics",
-                icon: LineChartIcon,
-                items: [
-                    {
-                        title: "Business Overview",
-                        path: "/analytics/business",
-                    },
-                    {
-                        title: "Store Comparison",
-                        path: "/analytics/store-comparison",
-                    },
-                    {
-                        title: "Sales Analytics",
-                        path: "/analytics/sales",
-                    },
-                    {
-                        title: "Revenue Reports",
-                        path: "/analytics/revenue",
-                    },
-                    {
-                        title: "Product Performance",
-                        path: "/analytics/products",
-                    },
-                    {
-                        title: "Customer Analytics",
-                        path: "/analytics/customers",
-                    },
-                    {
-                        title: "Marketing ROI",
-                        path: "/analytics/marketing-roi",
-                    },
-                    {
-                        title: "Testing Results",
-                        path: "/analytics/testing",
-                    },
-                    {
-                        title: "Traffic & Behavior",
-                        path: "/analytics/traffic",
-                    },
-                    {
-                        title: "Conversion Funnels",
-                        path: "/analytics/funnels",
-                    },
-                    {
-                        title: "Custom Reports",
-                        path: "/analytics/custom",
-                    },
-                ],
-            },
-            {
-                title: "Financial Management",
-                path: "/finance",
-                icon: DollarSignIcon,
-                items: [
-                    {
-                        title: "Revenue Overview",
-                        path: "/finance/revenue",
-                    },
-                    {
-                        title: "Payment Methods",
-                        path: "/finance/payments",
-                    },
-                    {
-                        title: "Transactions",
-                        path: "/finance/transactions",
-                    },
-                    {
-                        title: "Taxes & Compliance",
-                        path: "/finance/taxes",
-                    },
-                    {
-                        title: "Invoicing",
-                        path: "/finance/invoicing",
-                    },
-                    {
-                        title: "Payouts",
-                        path: "/finance/payouts",
-                    },
-                ],
-            },
-            {
-                title: "Team & Permissions",
-                path: "/team",
-                icon: UsersIcon,
-                items: [
-                    {
-                        title: "Team Members",
-                        path: "/team/members",
-                    },
-                    {
-                        title: "Roles & Permissions",
-                        path: "/team/roles",
-                    },
-                    {
-                        title: "Store Access Control",
-                        path: "/team/store-access",
-                    },
-                    {
-                        title: "Activity Log",
-                        path: "/team/activity",
-                    },
-                    {
-                        title: "Invite Members",
-                        path: "/team/invite",
-                    },
-                ],
-            },
+            storesSidebar,
+            shippingSidebar,
             {
                 title: "Settings",
-                path: "/settings",
+                path: "/settings/basic",
                 icon: Settings2Icon,
                 items: [
                     {
-                        title: "General Settings",
-                        path: "/settings/general",
-                    },
-                    {
-                        title: "Business Profile",
+                        title: "Business Settings",
                         path: "/settings/business",
                     },
                     {
-                        title: "Shipping & Delivery",
+                        title: "Account Settings",
+                        path: "/settings/account",
+                    },
+                    {
+                        title: "Shipping Profiles",
                         path: "/settings/shipping",
                     },
                     {
-                        title: "Notifications",
+                        title: "Notification Settings",
                         path: "/settings/notifications",
                     },
                     {
-                        title: "Security",
+                        title: "Security Settings",
                         path: "/settings/security",
                     },
                     {
-                        title: "Billing & Plans",
+                        title: "Billing Settings",
                         path: "/settings/billing",
                     },
                 ],
@@ -452,33 +215,18 @@
         quickActions: [
             {
                 name: "Add Product",
-                path: "/products/create",
+                path: productsRoutes.CREATE_PAGE.path,
                 icon: PackageIcon,
             },
             {
-                name: "View Orders",
-                path: "/orders",
+                name: "Add Order",
+                path: ordersRoutes.CREATE_PAGE.path,
                 icon: ShoppingCartIcon,
             },
             {
-                name: "Store Analytics",
-                path: "/stores/analytics",
-                icon: StoreIcon,
-            },
-            {
-                name: "Sales Report",
-                path: "/analytics/sales",
-                icon: LineChartIcon,
-            },
-            {
-                name: "Customer Support",
-                path: "/customers/support",
-                icon: HeartHandshakeIcon,
-            },
-            {
-                name: "Marketing Campaign",
-                path: "/marketing/campaigns/new",
-                icon: TargetIcon,
+                name: "Add Conversion",
+                path: "/stores/conversions/create",
+                icon: RepeatIcon,
             },
         ],
     };
@@ -505,10 +253,10 @@
     </Sidebar.Header>
     <Sidebar.Content>
         <NavMain items={data.navMain} />
-        <NavQuickActions actions={data.quickActions} />
     </Sidebar.Content>
-    <!-- <Sidebar.Footer>
-        <NavUser user={data.user} />
-    </Sidebar.Footer> -->
+    <Sidebar.Footer>
+        <NavQuickActions actions={data.quickActions} />
+        <!-- <NavUser user={data.user} /> -->
+    </Sidebar.Footer>
     <Sidebar.Rail />
 </Sidebar.Root>

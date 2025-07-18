@@ -1,7 +1,8 @@
+use core::fmt;
+
 use axum::response::{IntoResponse, Response};
 use axum::{extract::FromRequestParts, http::request::Parts};
 use bson::oid::ObjectId;
-use core::fmt;
 use hyper::header::HOST;
 use hyper::StatusCode;
 use serde::{Deserialize, Serialize};

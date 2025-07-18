@@ -10,8 +10,16 @@
     "dist"
   ],
   "compilerOptions": {
+    "allowJs": true,
+    "types": [
+      "svelte"
+    ],
     "baseUrl": ".",
     "paths": {
+      "*": [
+        "src/*",
+        "node_modules/*"
+      ],
       "@bindings/*": [
         "../backend/bindings/*"
       ],

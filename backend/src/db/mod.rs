@@ -8,6 +8,11 @@ pub mod settings;
 pub mod store;
 pub mod user;
 
+use std::fmt::Debug;
+use std::future::Future;
+use std::ops::Deref;
+use std::pin::Pin;
+
 use bson::oid::ObjectId;
 use bson::to_document;
 use futures::TryStreamExt;
@@ -18,10 +23,6 @@ use mongodb::options::{FindOneAndUpdateOptions, FindOptions, IndexOptions, Retur
 use mongodb::{options::ClientOptions, Client, Database};
 use mongodb::{ClientSession, IndexModel};
 use serde::{Deserialize, Serialize};
-use std::fmt::Debug;
-use std::future::Future;
-use std::ops::Deref;
-use std::pin::Pin;
 
 use crate::models::ById;
 use crate::utils::error::*;

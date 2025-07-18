@@ -491,7 +491,7 @@ const res = await fetch(`{}`{}, {{
                             )().await;
                             {
                                 #[inline(always)]
-                                fn __asert_type<t: backend::utils::macros::ContainsJson<#res_type>>(r: &t) {}
+                                fn __asert_type<t: crate::utils::macros::ContainsJson<#res_type>>(r: &t) {}
                                 __asert_type(&response);
                             }
                             response

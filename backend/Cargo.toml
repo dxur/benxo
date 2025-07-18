@@ -7,7 +7,7 @@ edition = "2021"
 macros = { path = "../macros" }
 field = "0.1.0"
 serde = "1.0.219"
-bson = "2.14.0"
+bson = { version = "2.14.0", features = ["chrono-0_4"] }
 serde_urlencoded = "0.7.1"
 serde_with = "3.12.0"
 strum = { version = "0.27", features = ["derive"] }
@@ -22,17 +22,21 @@ tower = { version = "0.5.2" }
 tower-cookies = "0.11.0"
 tower-http = { version = "0.6.2", features = ["trace"] }
 tracing = { version = "0.1.41" }
-tracing-subscriber = { version = "0.3.19", features = [
-    "env-filter",
-] }
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 mongodb = { version = "3.2.3" }
 futures = { version = "0.3.31" }
 tokio = { version = "1.44.2", features = ["fs"] }
 indexmap = { version = "2.9.0", features = ["serde"] }
 liquid = { version = "0.26.11" }
-ts-rs = { version = "10.1.0", features = ["bson", "bson-uuid-impl", "indexmap-impl", "no-serde-warnings"] }
+ts-rs = { version = "10.1.0", features = [
+    "bson",
+    "bson-uuid-impl",
+    "indexmap-impl",
+    "no-serde-warnings",
+    "chrono-impl",
+] }
 bcrypt = "0.17.0"
-chrono = "0.4.41"
+chrono = { version = "0.4.41", features = ["serde"] }
 serde_json = "1.0.140"
 async-smtp = "0.10.2"
 linkme = "0.3.33"
@@ -43,3 +47,14 @@ infer = "0.19.0"
 webp = "0.3.0"
 aws-sdk-s3 = "1.94.0"
 aws-config = "1.8.0"
+async-graphql = "7.0.17"
+async-graphql-axum = "7.0.17"
+o2o = { version = "0.5.4", default-features = false, features = ["syn2"] }
+thiserror = "2.0.12"
+uuid = { version = "1.17.0", features = ["serde", "v4"] }
+async-trait = "0.1.88"
+email_address = "0.2.9"
+blake3 = { version = "1.8.2", features = ["serde"] }
+rand = "0.9.1"
+tokio-test = "0.4.4"
+mockall = "0.13.1"

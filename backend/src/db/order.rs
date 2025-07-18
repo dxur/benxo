@@ -42,6 +42,8 @@ impl Into<OrderPublic> for OrderInDb {
             note: self.note,
             items: self.items,
             history: self.history,
+            created_at: self.created_at,
+            updated_at: self.updated_at,
         }
     }
 }

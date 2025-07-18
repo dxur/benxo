@@ -22,6 +22,7 @@
     import ChevronDownIcon from "@lucide/svelte/icons/chevron-down";
     import * as Select from "@/lib/components/ui/select/index";
     import { writable } from "svelte/store";
+    import type { HTMLTableAttributes } from "svelte/elements";
 
     type DataTableProps<TData, TValue> = {
         columns: ColumnDef<TData, TValue>[];
@@ -29,6 +30,7 @@
         per_page: number;
         page: number;
         total_pages: number;
+        restProps: HTMLTableAttributes;
     };
 
     let {
@@ -37,6 +39,7 @@
         per_page = $bindable(),
         page = $bindable(),
         total_pages = $bindable(),
+        ...restProps
     }: DataTableProps<TData, TValue> = $props();
 
     // Column visibility state
@@ -103,7 +106,7 @@
 
     <!-- Table Container -->
     <div class="rounded-lg border bg-card">
-        <Table.Root>
+        <Table.Root {...restProps}>
             <Table.Header>
                 {#each table.getHeaderGroups() as headerGroup (headerGroup.id)}
                     <Table.Row class="hover:bg-transparent border-b">

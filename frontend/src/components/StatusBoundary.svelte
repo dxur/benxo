@@ -3,7 +3,17 @@
 </script>
 
 <script lang="ts">
-    let { status, error, children } = $props();
+    import type { Snippet } from "svelte";
+
+    let {
+        status,
+        error,
+        children,
+    }: {
+        status: LoadingStatus;
+        error?: Snippet;
+        children: Snippet;
+    } = $props();
 </script>
 
 {#if status === undefined}

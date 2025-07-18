@@ -1,17 +1,9 @@
+use std::time::Duration;
+
 use aws_sdk_s3::presigning::PresigningConfigBuilder;
 use axum::extract::State;
 use axum::response::IntoResponse;
 use axum::Json;
-use backend::utils::types::ResultBodyExt;
-use backend::utils::types::ResultPageExt;
-use bcrypt::{hash, verify, DEFAULT_COST};
-use hyper::StatusCode;
-use macros::routes;
-use std::time::Duration;
-use tower_cookies::Cookie;
-use tower_cookies::Cookies;
-
-use crate::AppState;
 use backend::db::category::Category;
 use backend::db::domain::Domain;
 use backend::db::order::Order;
@@ -35,8 +27,17 @@ use backend::routes::generic;
 use backend::utils::auth::issue_access_tokens;
 use backend::utils::auth::issue_refresh_tokens;
 use backend::utils::types::IntoContext;
+use backend::utils::types::ResultBodyExt;
 use backend::utils::types::ResultJsonExt;
+use backend::utils::types::ResultPageExt;
 use backend::utils::types::WithContext;
+use bcrypt::{hash, verify, DEFAULT_COST};
+use hyper::StatusCode;
+use macros::routes;
+use tower_cookies::Cookie;
+use tower_cookies::Cookies;
+
+use crate::AppState;
 
 pub struct ApiRoutes;
 

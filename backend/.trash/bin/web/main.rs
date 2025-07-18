@@ -5,9 +5,10 @@ extern crate dotenv_codegen;
 
 mod routes;
 
+use std::sync::Arc;
+
 use axum::Router;
 use backend::{db::Db, utils::log::init_tracing, State, WithDb};
-use std::sync::Arc;
 use tokio::net::TcpListener;
 use tower_cookies::CookieManagerLayer;
 use tower_http::trace::TraceLayer;

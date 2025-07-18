@@ -1,6 +1,7 @@
 use axum::http::StatusCode;
-use axum::Json;
 use serde::Serialize;
+
+use crate::extractors::json::Json;
 
 #[macro_export]
 macro_rules! register_model {

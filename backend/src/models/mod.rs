@@ -10,10 +10,11 @@ pub mod settings;
 pub mod store;
 pub mod user;
 
+use std::fmt::Debug;
+
 pub use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
-use std::fmt::Debug;
 use ts_rs::TS;
 
 pub use crate::db::*;

@@ -23,6 +23,7 @@
     import EyeIcon from "@lucide/svelte/icons/eye";
     import type { LoadingStatus } from "@/components/StatusBoundary.svelte";
     import StatusBoundary from "@/components/StatusBoundary.svelte";
+    import { sidebar } from "../orders";
 
     const { replace } = useNavigate();
     const { location } = useRoute();
@@ -35,6 +36,7 @@
     let isDeleting = false;
     let hasChanges = false;
     let showDeleteDialog = false;
+    let currentTab = "general" as const;
 
     // Form data
     let formData: ProductUpdateBody = {
@@ -56,6 +58,7 @@
 
     async function loadProduct() {
         try {
+            console.log(currentTab);
             loadingStatus = undefined;
             if (!params?.id || typeof params.id !== "string") {
                 throw new Error("Missing product ID");
@@ -81,6 +84,7 @@
 
             document.title = `Edit ${product.name}`;
             loadingStatus = null;
+            console.log(currentTab);
         } catch (error) {
             notifCenter.error("Failed to load product");
             loadingStatus = error ?? new Error("Failed to load product");
@@ -115,7 +119,7 @@
 
         try {
             isDeleting = true;
-            await ApiRoutes.archive_product({ id: product.id });
+            await ApiRoutes.delete_product({ id: product.id });
 
             notifCenter.success("Product archived successfully");
 
@@ -151,16 +155,28 @@
             disabled: !hasChanges || isSaving,
             loading: isSaving,
         },
+        {
+            label: "Archive Product",
+            icon: TrashIcon,
+            variant: "destructive" as const,
+            onclick: () => {
+                showDeleteDialog = true;
+            },
+            disabled: isDeleting,
+            loading: isDeleting,
+        },
     ];
 
     // Status info
     $: statusInfo = product
         ? {
               label: product.featured ? "Featured" : "Regular",
-              variant: product.featured ? "default" : ("secondary" as const),
+              variant: product.featured
+                  ? ("default" as const)
+                  : ("secondary" as const),
               icon: PackageIcon,
           }
-        : null;
+        : undefined;
 </script>
 
 <svelte:head>
@@ -169,7 +185,6 @@
 
 <StatusBoundary status={loadingStatus}>
     <EditPageLayout
-        {breadcrumbs}
         {headerActions}
         {statusInfo}
         title={product?.name || "Loading..."}
@@ -177,42 +192,27 @@
         icon={PackageIcon}
     >
         <!-- Back Button -->
-        <div slot="back-button">
+        {#snippet back_button()}
             <a href={Routes.LIST_PAGE.path} use:link>
                 <Button variant="ghost" size="sm" class="gap-2">
                     <ArrowLeftIcon class="h-4 w-4" />
                     Back to Products
                 </Button>
             </a>
-        </div>
+        {/snippet}
 
         <!-- Additional Actions -->
-        <div slot="additional-actions">
-            <Button
-                variant="outline"
-                size="sm"
-                class="gap-2 text-destructive hover:text-destructive"
-                onclick={() => (showDeleteDialog = true)}
-                disabled={isDeleting}
-            >
-                <TrashIcon class="h-4 w-4" />
-                Archive
-            </Button>
-        </div>
 
-        <!-- Main Content -->
-        <div slot="content">
-            {#if product}
-                <ProductForm
-                    bind:data={formData}
-                    onchange={handleFormChange}
-                    {product}
-                />
-            {/if}
-        </div>
+        {#if product}
+            <ProductForm
+                bind:data={formData}
+                bind:currentTab
+                onchange={handleFormChange}
+                {product}
+            />
+        {/if}
 
-        <!-- Sidebar Content -->
-        <div slot="sidebar">
+        {#snippet sidebar()}
             {#if product}
                 <div class="space-y-6">
                     <!-- Quick Stats -->
@@ -287,7 +287,7 @@
                     {/if}
                 </div>
             {/if}
-        </div>
+        {/snippet}
     </EditPageLayout>
 
     <!-- Delete Confirmation Dialog -->

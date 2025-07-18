@@ -1,7 +1,7 @@
-use crate::models::*;
-use crate::models::{Page, Pagination};
 use axum::http::StatusCode;
 
+use crate::models::*;
+use crate::models::{Page, Pagination};
 use crate::WithDb;
 
 pub async fn create<M: CreatableInDb>(
