@@ -60,7 +60,7 @@ pub struct BusinessRecord {
     pub updated_at: DateTime,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
 pub struct BusinessSettings {}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

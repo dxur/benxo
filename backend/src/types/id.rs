@@ -5,9 +5,10 @@ use serde::{
     de::{self, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
 };
+use ts_rs::TS;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Id(ObjectId);
+#[derive(Debug, Clone, PartialEq, Eq, Hash, TS)]
+pub struct Id(#[ts(as = "String")]ObjectId);
 
 impl Id {
     pub fn new() -> Self {
