@@ -24,7 +24,7 @@ pub fn encode_jwt<T: Serialize>(payload: T, ttl: Duration) -> ApiResult<String> 
         &EncodingKey::from_secret(SECRET.as_ref()),
     )
     .map_err(|_| ApiError::InternalError {
-        message: "Can't encode the token".to_string(),
+        message: "Can't encode the token".into(),
     })
 }
 
@@ -39,8 +39,8 @@ pub fn decode_jwt<T: DeserializeOwned + Debug>(token: &str) -> ApiResult<T> {
     .map_err(|e| {
         error!("jwt decode error: {:?}", e);
         ApiError::InvalidRequestBody {
-            expected: "A valid token".to_string(),
-            message: "The Token you have Provided is invalid".to_string(),
+            expected: "A valid token".into(),
+            message: "The Token you have Provided is invalid".into(),
         }
     })
     .map(|v| {

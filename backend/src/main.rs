@@ -1,9 +1,6 @@
 #![allow(dead_code)]
 #![allow(async_fn_in_trait)]
 
-#[macro_use]
-extern crate dotenv_codegen;
-
 // pub mod db;
 pub mod events;
 pub mod extractors;
@@ -42,13 +39,16 @@ struct AppState {
 
 #[tokio::main]
 async fn main() {
+    dotenvy::dotenv().ok();
     init_tracing();
+    let db_uri = std::env::var("ATLAS_URI").unwrap();
+    let root_db = std::env::var("ROOT_DB_NAME").unwrap();
     let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
     info!("listening on {}", listener.local_addr().unwrap());
 
-    let client_options = ClientOptions::parse(dotenv!("ATLAS_URI")).await.unwrap();
+    let client_options = ClientOptions::parse(db_uri).await.unwrap();
     let client = Client::with_options(client_options).unwrap();
-    let db = client.database(dotenv!("ROOT_DB_NAME"));
+    let db = client.database(&root_db);
 
     let user_repo = MongoUserRepo::new(&db);
     let business_repo = MongoBusinessRepo::new(&db);

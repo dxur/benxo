@@ -1,0 +1,19 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.15.0/.schema/devbox.schema.json",
+  "packages": [
+    "caddy@latest",
+    "rustup@latest",
+    "overmind@latest",
+    "process-compose@latest",
+    "mailpit@latest",
+    "bun@latest",
+    "bash@latest"
+  ],
+  "shell": {
+    "scripts": {
+      "dev": [
+        "./scripts/run-dev.sh"
+      ]
+    }
+  }
+}

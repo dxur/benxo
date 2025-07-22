@@ -75,6 +75,7 @@ pub enum UserToken {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserSession {
     pub user_id: ObjectId,
+    pub email: Email,
 }
 
 impl TryFrom<UserToken> for UserSession {
@@ -83,7 +84,7 @@ impl TryFrom<UserToken> for UserSession {
     fn try_from(value: UserToken) -> Result<Self, Self::Error> {
         match value {
             UserToken::UserSession(session) => Ok(session),
-            _ => Err(ApiError::unauthorized(Option::<String>::None)),
+            _ => Err(ApiError::invalid_token()),
         }
     }
 }

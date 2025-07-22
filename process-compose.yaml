@@ -1,0 +1,17 @@
+version: "0.5"
+
+processes:
+  forwarder:
+    command: "sudo gost -L=tsp://:80/:8080 -L=tsp://:443/:8443"
+  proxy:
+    command: "./scripts/run-proxy.sh"
+  database:
+    command: "./scripts/run-db.sh"
+  minio:
+    command: "./scripts/run-minio.sh"
+  backend:
+    command: "./scripts/run-back.sh"
+  frontend:
+    command: "./scripts/run-front.sh"
+  mailbox:
+    command: "mailpit"

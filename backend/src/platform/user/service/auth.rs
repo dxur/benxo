@@ -56,7 +56,7 @@ impl<R: UserRepo> UserService<R> {
                     token_type = %token.type_name(),
                     "Invalid step/token combination"
                 );
-                Err(ApiError::unauthorized(None as Option<&str>))
+                Err(ApiError::invalid_token())
             }
         }
     }
@@ -120,7 +120,7 @@ impl<R: UserRepo> UserService<R> {
             ));
         }
 
-        let otp = generate_otp();
+        let otp = generate_otp()?;
         let otp_hash = blake3::hash(otp.as_bytes());
 
         send_verification_otp(phone.clone(), &otp)
@@ -157,7 +157,7 @@ impl<R: UserRepo> UserService<R> {
         let provided_otp_hash = blake3::hash(otp.as_bytes());
         if provided_otp_hash != otp_hash {
             warn!("Invalid OTP provided");
-            return Err(ApiError::unauthorized(Some("Invalid OTP")));
+            return Err(ApiError::unauthorized("Invalid OTP"));
         }
 
         let signup_token = UserToken::Signup { email, phone };
@@ -187,15 +187,11 @@ impl<R: UserRepo> UserService<R> {
                 .await
                 .map_err(|e| {
                     error!(error = ?e, "Join failed");
-                    ApiError::InternalError {
-                        message: "Join failed".to_string(),
-                    }
+                    ApiError::internal("Join failed")
                 })?
                 .map_err(|e| {
                     error!(error = ?e, "Failed to hash password");
-                    ApiError::InternalError {
-                        message: "Can't hash the password".to_string(),
-                    }
+                    ApiError::internal("Can't hash the password")
                 })?;
 
         let user_record = UserRecord::new(
@@ -212,7 +208,10 @@ impl<R: UserRepo> UserService<R> {
             e
         })?;
 
-        let session_token = UserToken::UserSession(UserSession { user_id: user._id });
+        let session_token = UserToken::UserSession(UserSession {
+            user_id: user._id,
+            email: user.email,
+        });
 
         info!(user_id = %user._id.to_hex(), "User created successfully");
 
@@ -272,22 +271,18 @@ impl<R: UserRepo> UserService<R> {
             .repo
             .find_by_email(token.email.as_str())
             .await?
-            .ok_or(ApiError::unauthorized(None as Option<&str>))?;
+            .ok_or(ApiError::not_found("user", "Not found"))?;
 
         let password_hash =
             task::spawn_blocking(move || bcrypt::hash(password.as_str(), bcrypt::DEFAULT_COST))
                 .await
                 .map_err(|e| {
                     error!(error = ?e, "Join failed");
-                    ApiError::InternalError {
-                        message: "Join failed".to_string(),
-                    }
+                    ApiError::internal("Join failed")
                 })?
                 .map_err(|e| {
                     error!(error = ?e, "Failed to hash password");
-                    ApiError::InternalError {
-                        message: "Can't hash the password".to_string(),
-                    }
+                    ApiError::internal("Can't hash the password")
                 })?;
 
         user.password_hash = password_hash;
@@ -318,9 +313,7 @@ impl<R: UserRepo> UserService<R> {
             .await?
             .ok_or_else(|| {
                 warn!("User not found");
-                ApiError::Unauthorized {
-                    reason: "Invalid credentials".to_string(),
-                }
+                ApiError::unauthorized("Invalid credentials")
             })?;
 
         let password_valid: bool;
@@ -331,15 +324,11 @@ impl<R: UserRepo> UserService<R> {
         .await
         .map_err(|e| {
             error!(error = ?e, "Join failed");
-            ApiError::InternalError {
-                message: "Join failed".to_string(),
-            }
+            ApiError::internal("Join failed")
         })?
         .map_err(|e| {
             error!(error = ?e, "Password verification failed");
-            ApiError::InternalError {
-                message: "Password verification failed".to_string(),
-            }
+            ApiError::internal("Password verification failed")
         })?;
 
         if !password_valid {
@@ -360,27 +349,22 @@ impl<R: UserRepo> UserService<R> {
                 );
             }
 
-            return Err(ApiError::Unauthorized {
-                reason: "Invalid credentials".to_string(),
-            });
+            return Err(ApiError::unauthorized("Invalid credentials"));
         }
 
         if user.is_locked() {
             warn!(user_id = %user._id.to_hex(), "Attempt to login to locked account");
-            return Err(ApiError::Unauthorized {
-                reason: "Account is temporarily locked".to_string(),
-            });
+            return Err(ApiError::unauthorized("Account is temporarily locked"));
         }
 
         if !user.can_login() {
             warn!(user_id = %user._id.to_hex(), "Attempt to login to inactive account");
-            return Err(ApiError::Unauthorized {
-                reason: "Account is not active".to_string(),
-            });
+            return Err(ApiError::unauthorized("Account is not active"));
         }
 
         self.repo.reset_login_attempts(user._id).await?;
         let id = user._id;
+        let email = user.email.clone();
         let mut updated_user = user;
         updated_user.last_login = bson::DateTime::now();
         let _ = self.repo.update(id, updated_user).await.map_err(|e| {
@@ -391,7 +375,7 @@ impl<R: UserRepo> UserService<R> {
         info!(user_id = %id.to_hex(), "Login successful");
 
         Ok((
-            UserToken::UserSession(UserSession { user_id: id }),
+            UserToken::UserSession(UserSession { user_id: id, email }),
             MessageResponse {
                 message: "Login successful".to_string(),
             },

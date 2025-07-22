@@ -29,10 +29,7 @@ impl<R: UserRepo> UserService<R> {
             .repo
             .find_by_id(id)
             .await?
-            .ok_or_else(|| ApiError::NotFound {
-                resource: "user".to_string(),
-                id: id.to_string(),
-            })?;
+            .ok_or_else(|| ApiError::not_found("user", id.to_hex()))?;
 
         Ok(UserView::from(user))
     }
@@ -43,17 +40,14 @@ impl<R: UserRepo> UserService<R> {
             .find_by_id(id)
             .await?
             .ok_or_else(|| ApiError::NotFound {
-                resource: "user".to_string(),
-                id: id.to_string(),
+                resource: "user".into(),
+                id: id.to_hex().into(),
             })?;
 
         if let JsonOption::Value(username) = update_req.username {
             if let Some(existing) = self.repo.find_by_username(username.as_str()).await? {
                 if existing._id != user._id {
-                    return Err(ApiError::Conflict {
-                        resource: "user".to_string(),
-                        reason: "Username already exists".to_string(),
-                    });
+                    return Err(ApiError::conflict("user", "Username already exists"));
                 }
             }
             user.username = username;

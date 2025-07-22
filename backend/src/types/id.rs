@@ -7,8 +7,8 @@ use serde::{
 };
 use ts_rs::TS;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, TS)]
-pub struct Id(#[ts(as = "String")]ObjectId);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, TS)]
+pub struct Id(#[ts(as = "String")] ObjectId);
 
 impl Id {
     pub fn new() -> Self {

@@ -352,7 +352,7 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
                                             panic!("Only one #[query] parameter allowed");
                                         }
                                         query_type = Some(ty_str);
-                                        wrapper_args.push(quote! { axum::extract::Query(#pat): axum::extract::Query<#ty> });
+                                        wrapper_args.push(quote! { Query(#pat): Query<#ty> });
                                         handler_call_args.push(quote! { #pat });
                                         // Remove the attribute from the parameter
                                         attrs.clear();
@@ -362,7 +362,7 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
                                             panic!("Only one #[json] parameter allowed");
                                         }
                                         json_type = Some(ty_str);
-                                        wrapper_args.push(quote! { axum::extract::Json(#pat): axum::extract::Json<#ty> });
+                                        wrapper_args.push(quote! { Json(#pat): Json<#ty> });
                                         handler_call_args.push(quote! { #pat });
                                         // Remove the attribute from the parameter
                                         attrs.clear();

@@ -58,3 +58,4 @@ blake3 = { version = "1.8.2", features = ["serde"] }
 rand = "0.9.1"
 tokio-test = "0.4.4"
 mockall = "0.13.1"
+dotenvy = "0.15.7"

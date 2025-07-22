@@ -74,12 +74,9 @@ impl UserRepo for MongoUserRepo {
                 mongodb::error::ErrorKind::Write(mongodb::error::WriteFailure::WriteError(w))
                     if w.code == 11000 =>
                 {
-                    ApiError::Conflict {
-                        resource: "user".to_string(),
-                        reason: "Email or Username already exists".to_string(),
-                    }
+                    ApiError::conflict("user", "Email or Username already exists")
                 }
-                _ => ApiError::DatabaseError(e.to_string()),
+                _ => ApiError::database(e.to_string()),
             })?;
 
         Ok(user)
@@ -90,7 +87,7 @@ impl UserRepo for MongoUserRepo {
         self.collection
             .find_one(filter)
             .await
-            .map_err(|e| ApiError::DatabaseError(e.to_string()))
+            .map_err(|e| ApiError::database(e.to_string()))
     }
 
     async fn find_by_email(&self, email: &str) -> ApiResult<Option<UserRecord>> {
@@ -98,7 +95,7 @@ impl UserRepo for MongoUserRepo {
         self.collection
             .find_one(filter)
             .await
-            .map_err(|e| ApiError::DatabaseError(e.to_string()))
+            .map_err(|e| ApiError::database(e.to_string()))
     }
 
     async fn find_by_username(&self, username: &str) -> ApiResult<Option<UserRecord>> {
@@ -106,7 +103,7 @@ impl UserRepo for MongoUserRepo {
         self.collection
             .find_one(filter)
             .await
-            .map_err(|e| ApiError::DatabaseError(e.to_string()))
+            .map_err(|e| ApiError::database(e.to_string()))
     }
 
     async fn find_by_email_verification_token(&self, token: &str) -> ApiResult<Option<UserRecord>> {
@@ -114,7 +111,7 @@ impl UserRepo for MongoUserRepo {
         self.collection
             .find_one(filter)
             .await
-            .map_err(|e| ApiError::DatabaseError(e.to_string()))
+            .map_err(|e| ApiError::database(e.to_string()))
     }
 
     async fn find_by_password_reset_token(&self, token: &str) -> ApiResult<Option<UserRecord>> {
@@ -125,7 +122,7 @@ impl UserRepo for MongoUserRepo {
         self.collection
             .find_one(filter)
             .await
-            .map_err(|e| ApiError::DatabaseError(e.to_string()))
+            .map_err(|e| ApiError::database(e.to_string()))
     }
 
     async fn update(&self, id: ObjectId, mut user: UserRecord) -> ApiResult<UserRecord> {
@@ -137,7 +134,7 @@ impl UserRepo for MongoUserRepo {
         self.collection
             .update_one(filter, update)
             .await
-            .map_err(|e| ApiError::DatabaseError(e.to_string()))?;
+            .map_err(|e| ApiError::database(e.to_string()))?;
 
         Ok(user)
     }
@@ -148,13 +145,10 @@ impl UserRepo for MongoUserRepo {
             .collection
             .delete_one(filter)
             .await
-            .map_err(|e| ApiError::DatabaseError(e.to_string()))?;
+            .map_err(|e| ApiError::database(e.to_string()))?;
 
         if result.deleted_count == 0 {
-            return Err(ApiError::NotFound {
-                resource: "user".to_string(),
-                id: id.to_hex(),
-            });
+            return Err(ApiError::not_found("user", id.to_hex()));
         }
 
         Ok(())
@@ -180,18 +174,18 @@ impl UserRepo for MongoUserRepo {
             .find(filter_doc.clone())
             .with_options(options)
             .await
-            .map_err(|e| ApiError::DatabaseError(e.to_string()))?;
+            .map_err(|e| ApiError::database(e.to_string()))?;
 
         let mut users = Vec::new();
         while cursor
             .advance()
             .await
-            .map_err(|e| ApiError::DatabaseError(e.to_string()))?
+            .map_err(|e| ApiError::database(e.to_string()))?
         {
             users.push(
                 cursor
                     .deserialize_current()
-                    .map_err(|e| ApiError::DatabaseError(e.to_string()))?,
+                    .map_err(|e| ApiError::database(e.to_string()))?,
             );
         }
 
@@ -199,7 +193,7 @@ impl UserRepo for MongoUserRepo {
             .collection
             .count_documents(filter_doc)
             .await
-            .map_err(|e| ApiError::DatabaseError(e.to_string()))?;
+            .map_err(|e| ApiError::database(e.to_string()))?;
 
         Ok((users, total))
     }
@@ -209,7 +203,7 @@ impl UserRepo for MongoUserRepo {
         self.collection
             .count_documents(filter_doc)
             .await
-            .map_err(|e| ApiError::DatabaseError(e.to_string()))
+            .map_err(|e| ApiError::database(e.to_string()))
     }
 
     async fn increment_login_attempts(&self, id: ObjectId) -> ApiResult<()> {
@@ -219,7 +213,7 @@ impl UserRepo for MongoUserRepo {
         self.collection
             .update_one(filter, update)
             .await
-            .map_err(|e| ApiError::DatabaseError(e.to_string()))?;
+            .map_err(|e| ApiError::database(e.to_string()))?;
 
         Ok(())
     }
@@ -234,7 +228,7 @@ impl UserRepo for MongoUserRepo {
         self.collection
             .update_one(filter, update)
             .await
-            .map_err(|e| ApiError::DatabaseError(e.to_string()))?;
+            .map_err(|e| ApiError::database(e.to_string()))?;
 
         Ok(())
     }
@@ -246,7 +240,7 @@ impl UserRepo for MongoUserRepo {
         self.collection
             .update_one(filter, update)
             .await
-            .map_err(|e| ApiError::DatabaseError(e.to_string()))?;
+            .map_err(|e| ApiError::database(e.to_string()))?;
 
         Ok(())
     }

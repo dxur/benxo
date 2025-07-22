@@ -20,7 +20,7 @@ where
     async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
         let cookies = Cookies::from_request_parts(parts, state)
             .await
-            .map_err(|_| ApiError::unauthorized(Option::<&str>::None))?;
+            .map_err(|_| ApiError::missing_token())?;
 
         let f = F::try_from(&cookies).map_err(Into::into)?;
         let t = T::try_from(f).map_err(Into::into)?;

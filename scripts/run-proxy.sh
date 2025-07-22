@@ -1,3 +1,3 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-sudo caddy run --watch --config Caddyfile.dev
+caddy run --watch --config Caddyfile

@@ -18,10 +18,7 @@ where
         <axum::Json<_> as FromRequest<S>>::from_request(req, state)
             .await
             .map(|axum::Json(v)| Json(v))
-            .map_err(|_e| ApiError::ValidationError {
-                field: "unknown".to_string(),
-                message: "Unknown validation error".to_string(),
-            })
+            .map_err(|_e| ApiError::validation("unknown", "Unknown validation error"))
     }
 }
 
@@ -36,10 +33,7 @@ where
         <axum::Json<_> as OptionalFromRequest<S>>::from_request(req, state)
             .await
             .map(|v| v.map(|axum::Json(v)| Json(v)))
-            .map_err(|_e| ApiError::ValidationError {
-                field: "unknown".to_string(),
-                message: "Unknown validation error".to_string(),
-            })
+            .map_err(|_e| ApiError::validation("unknown", "Unknown validation error"))
     }
 }
 

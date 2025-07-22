@@ -34,39 +34,29 @@ pub async fn send_verification_email(
         from, to_header, subject, content_type, blank_line, msg_body
     );
 
-    let stream =
-        TcpStream::connect("127.0.0.1:1025")
-            .await
-            .map_err(|_| ApiError::InternalError {
-                message: "Can't connect to SMTP server".to_string(),
-            })?;
+    let stream = TcpStream::connect("127.0.0.1:1025")
+        .await
+        .map_err(|_| ApiError::internal("Can't connect to SMTP server"))?;
 
     let reader = BufStream::new(stream);
     let client = SmtpClient::new();
 
-    let mut transport =
-        SmtpTransport::new(client, reader)
-            .await
-            .map_err(|_| ApiError::InternalError {
-                message: "Can't create the transport layer".to_string(),
-            })?;
+    let mut transport = SmtpTransport::new(client, reader)
+        .await
+        .map_err(|_| ApiError::internal("Can't create the transport layer"))?;
 
     let envelope = Envelope::new(
         Some("no-reply@localhost".parse().unwrap()),
         vec![to.as_str().parse().unwrap()],
     )
-    .map_err(|_| ApiError::InternalError {
-        message: "Can't create the email envelope".to_string(),
-    })?;
+    .map_err(|_| ApiError::internal("Can't create the email envelope"))?;
 
     let email = SendableEmail::new(envelope, msg);
 
     transport
         .send(email)
         .await
-        .map_err(|_| ApiError::InternalError {
-            message: "Can't send email".to_string(),
-        })?;
+        .map_err(|_| ApiError::internal("Can't send email"))?;
 
     Ok(())
 }
@@ -90,39 +80,29 @@ pub async fn send_reset_email(to: Email, token: VerificationToken, ttl: Duration
         from, to_header, subject, content_type, blank_line, msg_body
     );
 
-    let stream =
-        TcpStream::connect("127.0.0.1:1025")
-            .await
-            .map_err(|_| ApiError::InternalError {
-                message: "Can't connect to SMTP server".to_string(),
-            })?;
+    let stream = TcpStream::connect("127.0.0.1:1025")
+        .await
+        .map_err(|_| ApiError::internal("Can't connect to SMTP server"))?;
 
     let reader = BufStream::new(stream);
     let client = SmtpClient::new();
 
-    let mut transport =
-        SmtpTransport::new(client, reader)
-            .await
-            .map_err(|_| ApiError::InternalError {
-                message: "Can't create the transport layer".to_string(),
-            })?;
+    let mut transport = SmtpTransport::new(client, reader)
+        .await
+        .map_err(|_| ApiError::internal("Can't create the transport layer"))?;
 
     let envelope = Envelope::new(
         Some("no-reply@localhost".parse().unwrap()),
         vec![to.as_str().parse().unwrap()],
     )
-    .map_err(|_| ApiError::InternalError {
-        message: "Can't create the email envelope".to_string(),
-    })?;
+    .map_err(|_| ApiError::internal("Can't create the email envelope"))?;
 
     let email = SendableEmail::new(envelope, msg);
 
     transport
         .send(email)
         .await
-        .map_err(|_| ApiError::InternalError {
-            message: "Can't send email".to_string(),
-        })?;
+        .map_err(|_| ApiError::internal("Can't send email"))?;
 
     Ok(())
 }
@@ -144,39 +124,29 @@ pub async fn send_verification_otp(to: PhoneNumber, otp: &str) -> ApiResult<()> 
         from, to_header, subject, content_type, blank_line, msg_body
     );
 
-    let stream =
-        TcpStream::connect("127.0.0.1:1025")
-            .await
-            .map_err(|_| ApiError::InternalError {
-                message: "Can't connect to SMTP server".to_string(),
-            })?;
+    let stream = TcpStream::connect("127.0.0.1:1025")
+        .await
+        .map_err(|_| ApiError::internal("Can't connect to SMTP server"))?;
 
     let reader = BufStream::new(stream);
     let client = SmtpClient::new();
 
-    let mut transport =
-        SmtpTransport::new(client, reader)
-            .await
-            .map_err(|_| ApiError::InternalError {
-                message: "Can't create the transport layer".to_string(),
-            })?;
+    let mut transport = SmtpTransport::new(client, reader)
+        .await
+        .map_err(|_| ApiError::internal("Can't create the transport layer"))?;
 
     let envelope = Envelope::new(
         Some("no-reply@localhost".parse().unwrap()),
         vec![to.as_str().parse().unwrap()],
     )
-    .map_err(|_| ApiError::InternalError {
-        message: "Can't create the email envelope".to_string(),
-    })?;
+    .map_err(|_| ApiError::internal("Can't create the email envelope"))?;
 
     let email = SendableEmail::new(envelope, msg);
 
     transport
         .send(email)
         .await
-        .map_err(|_| ApiError::InternalError {
-            message: "Can't send email".to_string(),
-        })?;
+        .map_err(|_| ApiError::internal("Can't send email"))?;
 
     Ok(())
 }

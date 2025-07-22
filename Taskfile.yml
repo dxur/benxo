@@ -2,28 +2,31 @@ version: '3'
 
 tasks:
   default:
-    deps: [entry, db, minio, backend, frontend]
+    deps: [proxy, database, minio, backend, frontend]
   backend:
-    deps: [api, web, gate]
+    deps: [api]
   api:
+    silent: true
+    log: true
     cmds:
-      - cd backend && cargo watch -x 'run --bin api' &> ../logs/api
-  web:
-    cmds:
-      - cd backend && cargo watch -x 'run --bin web' &> ../logs/web
-  gate:
-    cmds:
-      - cd backend && cargo watch -x 'run --bin gate' &> ../logs/gate
-  
+      - cd backend && cargo watch -x 'run'
   minio:
+    silent: true
+    log: true
     cmds:
-      - minio server /tmp/data --console-address ":9001" &> logs/minio
-  db:
+      - minio server /tmp/data --console-address ":9001"
+  database:
+    silent: true
+    log: true
     cmds:
-      - ./scripts/run-db.sh &> logs/db
-  entry:
+      - ./scripts/run-db.sh
+  proxy:
+    silent: true
+    log: true
     cmds:
-      - ./scripts/run-proxy.sh &> logs/proxy
+      - ./scripts/run-proxy.sh
   frontend:
+    silent: true
+    log: true
     cmds:
-      - ./scripts/run-front.sh &> logs/frontend
+      - ./scripts/run-front.sh

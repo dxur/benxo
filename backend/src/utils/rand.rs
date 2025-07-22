@@ -1,8 +1,12 @@
 use rand::{rngs::OsRng, TryRngCore};
 
-pub fn generate_otp() -> String {
+use crate::utils::error::{ApiError, ApiResult};
+
+pub fn generate_otp() -> ApiResult<String> {
     let mut bytes = [0u8; 4];
-    OsRng.try_fill_bytes(&mut bytes);
+    OsRng
+        .try_fill_bytes(&mut bytes)
+        .map_err(|_| ApiError::internal("Can't generate random otp"))?;
     let num = u32::from_be_bytes(bytes) % 1_000_000;
-    format!("{:06}", num)
+    Ok(format!("{:06}", num))
 }

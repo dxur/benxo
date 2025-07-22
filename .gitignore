@@ -5,4 +5,7 @@
 /.cargo
 /.trash
 /.vscode
+/.devbox
+/devbox.d
 .env
+.run.sock
