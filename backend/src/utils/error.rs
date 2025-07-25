@@ -496,49 +496,41 @@ impl ApiError {
     pub fn to_problem_details(&self) -> ProblemDetails {
         debug!("Returning error: {:?}", self);
         match self {
-            ApiError::ValidationError { field, message } => ProblemDetails::new(
-                "https://example.com/problems/validation-error",
-                "Validation Error",
-                400,
-            )
-            .with_detail(message.as_ref())
-            .with_extension("field", serde_json::Value::String(field.to_string())),
+            ApiError::ValidationError { field, message } => {
+                ProblemDetails::new("/docs/problems/validation-error", "Validation Error", 400)
+                    .with_detail(message.as_ref())
+                    .with_extension("field", serde_json::Value::String(field.to_string()))
+            }
 
-            ApiError::NotFound { resource, id } => ProblemDetails::new(
-                "https://example.com/problems/not-found",
-                "Resource Not Found",
-                404,
-            )
-            .with_detail(&format!("{} with id '{}' was not found", resource, id))
-            .with_extension("resource", serde_json::Value::String(resource.to_string()))
-            .with_extension("id", serde_json::Value::String(id.to_string())),
+            ApiError::NotFound { resource, id } => {
+                ProblemDetails::new("/docs/problems/not-found", "Resource Not Found", 404)
+                    .with_detail(&format!("{} with id '{}' was not found", resource, id))
+                    .with_extension("resource", serde_json::Value::String(resource.to_string()))
+                    .with_extension("id", serde_json::Value::String(id.to_string()))
+            }
 
             ApiError::Unauthorized { reason } => ProblemDetails::new(
-                "https://example.com/problems/unauthorized",
+                "/docs/problems/unauthorized",
                 "Authentication Required",
                 401,
             )
             .with_detail(reason.as_ref()),
 
-            ApiError::Forbidden { resource, action } => ProblemDetails::new(
-                "https://example.com/problems/forbidden",
-                "Access Denied",
-                403,
-            )
-            .with_detail(&format!("Access denied for {} on {}", action, resource))
-            .with_extension("resource", serde_json::Value::String(resource.to_string()))
-            .with_extension("action", serde_json::Value::String(action.to_string())),
+            ApiError::Forbidden { resource, action } => {
+                ProblemDetails::new("/docs/problems/forbidden", "Access Denied", 403)
+                    .with_detail(&format!("Access denied for {} on {}", action, resource))
+                    .with_extension("resource", serde_json::Value::String(resource.to_string()))
+                    .with_extension("action", serde_json::Value::String(action.to_string()))
+            }
 
-            ApiError::Conflict { resource, reason } => ProblemDetails::new(
-                "https://example.com/problems/conflict",
-                "Resource Conflict",
-                409,
-            )
-            .with_detail(&format!("Conflict with {}: {}", resource, reason))
-            .with_extension("resource", serde_json::Value::String(resource.to_string())),
+            ApiError::Conflict { resource, reason } => {
+                ProblemDetails::new("/docs/problems/conflict", "Resource Conflict", 409)
+                    .with_detail(&format!("Conflict with {}: {}", resource, reason))
+                    .with_extension("resource", serde_json::Value::String(resource.to_string()))
+            }
 
             ApiError::RateLimitExceeded { retry_after } => ProblemDetails::new(
-                "https://example.com/problems/rate-limit-exceeded",
+                "/docs/problems/rate-limit-exceeded",
                 "Rate Limit Exceeded",
                 429,
             )
@@ -549,7 +541,7 @@ impl ApiError {
             ),
 
             ApiError::InternalError { message: _ } => ProblemDetails::new(
-                "https://example.com/problems/internal-error",
+                "/docs/problems/internal-error",
                 "Internal Server Error",
                 500,
             )
@@ -564,7 +556,7 @@ impl ApiError {
                 retry_after,
             } => {
                 let mut problem = ProblemDetails::new(
-                    "https://example.com/problems/service-unavailable",
+                    "/docs/problems/service-unavailable",
                     "Service Unavailable",
                     503,
                 )
@@ -582,19 +574,17 @@ impl ApiError {
                 problem
             }
 
-            ApiError::DatabaseError(_msg) => ProblemDetails::new(
-                "https://example.com/problems/database-error",
-                "Database Error",
-                500,
-            )
-            .with_detail("A database error occurred")
-            .with_extension(
-                "error_id",
-                serde_json::Value::String(ObjectId::new().to_hex()),
-            ),
+            ApiError::DatabaseError(_msg) => {
+                ProblemDetails::new("/docs/problems/database-error", "Database Error", 500)
+                    .with_detail("A database error occurred")
+                    .with_extension(
+                        "error_id",
+                        serde_json::Value::String(ObjectId::new().to_hex()),
+                    )
+            }
 
             ApiError::ExternalServiceError(_msg) => ProblemDetails::new(
-                "https://example.com/problems/external-service-error",
+                "/docs/problems/external-service-error",
                 "External Service Error",
                 502,
             )
@@ -609,12 +599,9 @@ impl ApiError {
                 line,
                 column,
             } => {
-                let mut problem = ProblemDetails::new(
-                    "https://example.com/problems/invalid-json",
-                    "Invalid JSON Syntax",
-                    400,
-                )
-                .with_detail(&format!("JSON parsing failed: {}", message));
+                let mut problem =
+                    ProblemDetails::new("/docs/problems/invalid-json", "Invalid JSON Syntax", 400)
+                        .with_detail(&format!("JSON parsing failed: {}", message));
 
                 if let Some(line) = line {
                     problem =
@@ -629,7 +616,7 @@ impl ApiError {
             }
 
             ApiError::InvalidRequestBody { expected, message } => ProblemDetails::new(
-                "https://example.com/problems/invalid-request-body",
+                "/docs/problems/invalid-request-body",
                 "Invalid Request Body",
                 400,
             )
@@ -640,7 +627,7 @@ impl ApiError {
             ),
 
             ApiError::MissingField { field } => ProblemDetails::new(
-                "https://example.com/problems/missing-field",
+                "/docs/problems/missing-field",
                 "Missing Required Field",
                 400,
             )
@@ -648,7 +635,7 @@ impl ApiError {
             .with_extension("field", serde_json::Value::String(field.to_string())),
 
             ApiError::InvalidContentType { expected, received } => ProblemDetails::new(
-                "https://example.com/problems/invalid-content-type",
+                "/docs/problems/invalid-content-type",
                 "Invalid Content Type",
                 415,
             )
@@ -663,7 +650,7 @@ impl ApiError {
                 max_size,
                 received_size,
             } => ProblemDetails::new(
-                "https://example.com/problems/request-too-large",
+                "/docs/problems/request-too-large",
                 "Request Entity Too Large",
                 413,
             )
@@ -678,7 +665,7 @@ impl ApiError {
             ),
 
             ApiError::InvalidQueryParam { param, message } => ProblemDetails::new(
-                "https://example.com/problems/invalid-query-param",
+                "/docs/problems/invalid-query-param",
                 "Invalid Query Parameter",
                 400,
             )
@@ -686,27 +673,23 @@ impl ApiError {
             .with_extension("parameter", serde_json::Value::String(param.to_string())),
 
             ApiError::InvalidPathParam { param, message } => ProblemDetails::new(
-                "https://example.com/problems/invalid-path-param",
+                "/docs/problems/invalid-path-param",
                 "Invalid Path Parameter",
                 400,
             )
             .with_detail(&format!("Invalid path parameter '{}': {}", param, message))
             .with_extension("parameter", serde_json::Value::String(param.to_string())),
 
-            ApiError::InvalidHeader { header, message } => ProblemDetails::new(
-                "https://example.com/problems/invalid-header",
-                "Invalid Header",
-                400,
-            )
-            .with_detail(&format!("Invalid header '{}': {}", header, message))
-            .with_extension("header", serde_json::Value::String(header.to_string())),
+            ApiError::InvalidHeader { header, message } => {
+                ProblemDetails::new("/docs/problems/invalid-header", "Invalid Header", 400)
+                    .with_detail(&format!("Invalid header '{}': {}", header, message))
+                    .with_extension("header", serde_json::Value::String(header.to_string()))
+            }
 
-            ApiError::MalformedRequest { message } => ProblemDetails::new(
-                "https://example.com/problems/malformed-request",
-                "Malformed Request",
-                400,
-            )
-            .with_detail(message.as_ref()),
+            ApiError::MalformedRequest { message } => {
+                ProblemDetails::new("/docs/problems/malformed-request", "Malformed Request", 400)
+                    .with_detail(message.as_ref())
+            }
         }
     }
 
@@ -738,7 +721,7 @@ impl axum::response::IntoResponse for ApiError {
             Ok(json) => json,
             Err(_) => {
                 // Fallback error response
-                r#"{"type":"https://example.com/problems/internal-error","title":"Internal Server Error","status":500}"#.to_string()
+                r#"{"type":"/docs/problems/internal-error","title":"Internal Server Error","status":500}"#.to_string()
             }
         };
 

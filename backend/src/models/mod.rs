@@ -80,7 +80,7 @@ impl<T> Default for Page<T> {
 impl<T, U: Into<T>> IntoInner<Page<T>> for Page<U> {
     fn into_inner(self) -> Page<T> {
         Page {
-            data: self.data.into_iter().map(|v| v.into()).collect(),
+            data: self.data.into_iter().map(Into::into).collect(),
             total: self.total,
             page: self.page,
             per_page: self.per_page,

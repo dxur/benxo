@@ -152,6 +152,12 @@ impl FromStr for Name {
     }
 }
 
+impl Default for Name {
+    fn default() -> Self {
+        Self("Unnamed".to_string())
+    }
+}
+
 impl Serialize for Name {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

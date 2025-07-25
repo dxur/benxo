@@ -16,7 +16,7 @@ impl UserRoutes {
     async fn auth(
         State(state): State<AppState>,
         cookies: Cookies,
-        FromCookies(token, _): FromCookies<UserToken>,
+        FromCookies(token): FromCookies<UserToken>,
         #[json] auth_req: AuthStep,
     ) -> ApiResult<Json<MessageResponse>> {
         let (token, msg) = state.user_service.auth(auth_req, token).await?;
@@ -27,7 +27,7 @@ impl UserRoutes {
     #[route(method = post, path = "/me", res = UserView)]
     async fn me(
         State(state): State<AppState>,
-        FromCookies(token, _): FromCookies<UserSession, UserToken>,
+        FromCookies(token): FromCookies<UserSession>,
     ) -> ApiResult<Json<UserView>> {
         state.user_service.me(token.user_id).await.map(Json)
     }

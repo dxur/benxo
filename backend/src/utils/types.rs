@@ -86,7 +86,7 @@ where
     U: Into<T>,
 {
     fn into_body(self) -> std::result::Result<T, E> {
-        self.map(|v| v.into())
+        self.map(Into::into)
     }
 }
 
@@ -99,7 +99,7 @@ where
     Page<U>: IntoInner<Page<T>>,
 {
     fn into_page(self) -> std::result::Result<Page<T>, E> {
-        self.map(|v| v.into_inner())
+        self.map(IntoInner::into_inner)
     }
 }
 

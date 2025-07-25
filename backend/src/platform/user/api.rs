@@ -78,17 +78,6 @@ pub struct UserSession {
     pub email: Email,
 }
 
-impl TryFrom<UserToken> for UserSession {
-    type Error = ApiError;
-
-    fn try_from(value: UserToken) -> Result<Self, Self::Error> {
-        match value {
-            UserToken::UserSession(session) => Ok(session),
-            _ => Err(ApiError::invalid_token()),
-        }
-    }
-}
-
 impl UserToken {
     pub fn type_name(&self) -> &'static str {
         match self {
@@ -117,6 +106,18 @@ impl<'c> TryInto<Cookie<'c>> for UserToken {
     fn try_into(self) -> Result<Cookie<'c>, ApiError> {
         let token = encode_jwt(self, Duration::days(7))?;
         Ok(Cookie::build(("user_token", token)).path("/").build())
+    }
+}
+
+impl TryFrom<&Cookies> for UserSession {
+    type Error = ApiError;
+
+    fn try_from(cookies: &Cookies) -> Result<Self, Self::Error> {
+        let value = UserToken::try_from(cookies)?;
+        match value {
+            UserToken::UserSession(session) => Ok(session),
+            _ => Err(ApiError::invalid_token()),
+        }
     }
 }
 

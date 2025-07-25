@@ -29,7 +29,7 @@ pub async fn get_all<M: ListableInDb>(
     .await
     .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     Ok(Page {
-        data: data.1.into_iter().map(|v| v.into()).collect(),
+        data: data.1.into_iter().map(Into::into).collect(),
         total: Some(data.0),
         per_page: Some(pagination.per_page()),
         page: Some(pagination.page()),
@@ -52,7 +52,7 @@ pub async fn get_some<M: FilterableInDb>(
     .await
     .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     Ok(Page {
-        data: data.1.into_iter().map(|v| v.into()).collect(),
+        data: data.1.into_iter().map(Into::into).collect(),
         total: Some(data.0),
         per_page: Some(pagination.per_page()),
         page: Some(pagination.page()),

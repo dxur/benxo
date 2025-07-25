@@ -21,6 +21,15 @@ impl<T> JsonOption<T> {
     pub const fn undefined() -> Self {
         JsonOption::Undefined
     }
+
+    pub fn map<U, F: FnOnce(T) -> U>(self, f: F) -> JsonOption<U> {
+        match self {
+            Self::Undefined => JsonOption::<_>::Undefined,
+            Self::Null => JsonOption::<_>::Null,
+            Self::Value(x) => JsonOption::<_>::Value(f(x)),
+        }
+    }
+
     pub fn to_option(self) -> Option<T> {
         match self {
             JsonOption::Value(v) => Option::Some(v),

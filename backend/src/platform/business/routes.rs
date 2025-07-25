@@ -6,7 +6,7 @@ use tower_cookies::Cookies;
 use crate::extractors::cookies::FromCookies;
 use crate::extractors::json::Json;
 use crate::platform::business::domain::BusinessSettings;
-use crate::platform::user::api::{MessageResponse, UserSession, UserToken};
+use crate::platform::user::api::{MessageResponse, UserSession};
 use crate::utils::error::ApiResult;
 use crate::AppState;
 
@@ -20,7 +20,7 @@ impl BusinessRoutes {
     #[route(method = post, path = "/create", res = BusinessView)]
     async fn create(
         State(state): State<AppState>,
-        FromCookies(user_token, _): FromCookies<UserSession, UserToken>,
+        FromCookies(user_token): FromCookies<UserSession>,
         #[json] create_req: BusinessCreate,
     ) -> ApiResult<Json<BusinessView>> {
         state
@@ -34,7 +34,7 @@ impl BusinessRoutes {
     #[route(method = post, path = "/list", res = BusinessListResponse)]
     async fn list(
         State(state): State<AppState>,
-        FromCookies(user_token, _): FromCookies<UserSession, UserToken>,
+        FromCookies(user_token): FromCookies<UserSession>,
         Query(query): Query<BusinessListQuery>,
     ) -> ApiResult<Json<BusinessListResponse>> {
         let (businesses, total) = state
@@ -54,7 +54,7 @@ impl BusinessRoutes {
     #[route(method = post, path = "/switch", res = MessageResponse)]
     async fn switch(
         State(state): State<AppState>,
-        FromCookies(user_token, _): FromCookies<UserSession, UserToken>,
+        FromCookies(user_token): FromCookies<UserSession>,
         cookies: Cookies,
         #[json] switch_req: BusinessSwitch,
     ) -> ApiResult<Json<MessageResponse>> {
@@ -75,7 +75,7 @@ impl BusinessRoutes {
     #[route(method = post, path = "/current", res = BusinessView)]
     async fn current(
         State(state): State<AppState>,
-        FromCookies(business_token, _): FromCookies<BusinessSession, BusinessToken>,
+        FromCookies(business_token): FromCookies<BusinessSession>,
     ) -> ApiResult<Json<BusinessView>> {
         state
             .business_service
@@ -88,8 +88,8 @@ impl BusinessRoutes {
     #[route(method = post, path = "/statistics", res = BusinessStatistics)]
     async fn statistics(
         State(state): State<AppState>,
-        FromCookies(business_token, _): FromCookies<BusinessSession, BusinessToken>,
-        FromCookies(user_token, _): FromCookies<UserSession, UserToken>,
+        FromCookies(business_token): FromCookies<BusinessSession>,
+        FromCookies(user_token): FromCookies<UserSession>,
     ) -> ApiResult<Json<BusinessStatistics>> {
         state
             .business_service
@@ -102,8 +102,8 @@ impl BusinessRoutes {
     #[route(method = put, path = "/settings", res = BusinessView)]
     async fn update_settings(
         State(state): State<AppState>,
-        FromCookies(business_token, _): FromCookies<BusinessSession, BusinessToken>,
-        FromCookies(user_token, _): FromCookies<UserSession, UserToken>,
+        FromCookies(business_token): FromCookies<BusinessSession>,
+        FromCookies(user_token): FromCookies<UserSession>,
         #[json] settings: BusinessSettings,
     ) -> ApiResult<Json<BusinessView>> {
         state
@@ -117,8 +117,8 @@ impl BusinessRoutes {
     #[route(method = post, path = "/invitations", res = InvitationView)]
     async fn create_invitation(
         State(state): State<AppState>,
-        FromCookies(business_token, _): FromCookies<BusinessSession, BusinessToken>,
-        FromCookies(user_token, _): FromCookies<UserSession, UserToken>,
+        FromCookies(business_token): FromCookies<BusinessSession>,
+        FromCookies(user_token): FromCookies<UserSession>,
         #[json] invitation: InvitationCreate,
     ) -> ApiResult<Json<InvitationView>> {
         state
@@ -132,7 +132,7 @@ impl BusinessRoutes {
     #[route(method = post, path = "/invitations/accept", res = BusinessView)]
     async fn accept_invitation(
         State(state): State<AppState>,
-        FromCookies(user_token, _): FromCookies<UserSession, UserToken>,
+        FromCookies(user_token): FromCookies<UserSession>,
         #[json] accept_req: InvitationAccept,
     ) -> ApiResult<Json<BusinessView>> {
         state
@@ -146,8 +146,8 @@ impl BusinessRoutes {
     #[route(method = post, path = "/invitations/resend", res = InvitationView)]
     async fn resend_invitation(
         State(state): State<AppState>,
-        FromCookies(business_token, _): FromCookies<BusinessSession, BusinessToken>,
-        FromCookies(user_token, _): FromCookies<UserSession, UserToken>,
+        FromCookies(business_token): FromCookies<BusinessSession>,
+        FromCookies(user_token): FromCookies<UserSession>,
         #[json] resend_req: InvitationResend,
     ) -> ApiResult<Json<InvitationView>> {
         state
@@ -161,7 +161,7 @@ impl BusinessRoutes {
     #[route(method = post, path = "/invitations/pending", res = PendingInvitationsResponse)]
     async fn get_pending_invitations(
         State(state): State<AppState>,
-        FromCookies(user_token, _): FromCookies<UserSession, UserToken>,
+        FromCookies(user_token): FromCookies<UserSession>,
     ) -> ApiResult<Json<PendingInvitationsResponse>> {
         let invitations = state
             .business_service
@@ -175,8 +175,8 @@ impl BusinessRoutes {
     #[route(method = post, path = "/members/list", res = Vec<BusinessMemberView>)]
     async fn get_members(
         State(state): State<AppState>,
-        FromCookies(business_token, _): FromCookies<BusinessSession, BusinessToken>,
-        FromCookies(user_token, _): FromCookies<UserSession, UserToken>,
+        FromCookies(business_token): FromCookies<BusinessSession>,
+        FromCookies(user_token): FromCookies<UserSession>,
     ) -> ApiResult<Json<Vec<BusinessMemberView>>> {
         state
             .business_service
@@ -189,8 +189,8 @@ impl BusinessRoutes {
     #[route(method = put, path = "/members/edit", res = BusinessMemberView)]
     async fn update_member(
         State(state): State<AppState>,
-        FromCookies(business_token, _): FromCookies<BusinessSession, BusinessToken>,
-        FromCookies(user_token, _): FromCookies<UserSession, UserToken>,
+        FromCookies(business_token): FromCookies<BusinessSession>,
+        FromCookies(user_token): FromCookies<UserSession>,
         #[json] update_req: MemberUpdate,
     ) -> ApiResult<Json<BusinessMemberView>> {
         state
@@ -204,8 +204,8 @@ impl BusinessRoutes {
     #[route(method = delete, path = "/members", res = MessageResponse)]
     async fn remove_member(
         State(state): State<AppState>,
-        FromCookies(business_token, _): FromCookies<BusinessSession, BusinessToken>,
-        FromCookies(user_token, _): FromCookies<UserSession, UserToken>,
+        FromCookies(business_token): FromCookies<BusinessSession>,
+        FromCookies(user_token): FromCookies<UserSession>,
         #[json] remove_req: MemberRemove,
     ) -> ApiResult<Json<MessageResponse>> {
         state
@@ -222,8 +222,8 @@ impl BusinessRoutes {
     #[route(method = post, path = "/permissions/check", res = PermissionCheckResponse)]
     async fn check_permission(
         State(state): State<AppState>,
-        FromCookies(business_token, _): FromCookies<BusinessSession, BusinessToken>,
-        FromCookies(user_token, _): FromCookies<UserSession, UserToken>,
+        FromCookies(business_token): FromCookies<BusinessSession>,
+        FromCookies(user_token): FromCookies<UserSession>,
         #[json] permission_check: PermissionCheck,
     ) -> ApiResult<Json<PermissionCheckResponse>> {
         state

@@ -99,10 +99,11 @@ pub enum BusinessToken {
     BusinessSession(BusinessSession),
 }
 
-impl TryFrom<BusinessToken> for BusinessSession {
+impl TryFrom<&Cookies> for BusinessSession {
     type Error = ApiError;
 
-    fn try_from(value: BusinessToken) -> Result<Self, Self::Error> {
+    fn try_from(cookies: &Cookies) -> Result<Self, Self::Error> {
+        let value = BusinessToken::try_from(cookies)?;
         match value {
             BusinessToken::BusinessSession(session) => Ok(session),
             _ => Err(ApiError::invalid_token()),
