@@ -2,6 +2,7 @@ use super::api::{ProductListQuery, ProductListResponse, ProductUpdate, ProductVi
 use super::domain::ProductFilter;
 use super::repo::ProductRepo;
 use crate::platform::business::api::BusinessSession;
+use crate::tenant::product::domain::ProductVariant;
 use crate::types::id::Id;
 use crate::utils::error::{ApiError, ApiResult};
 
@@ -43,12 +44,18 @@ impl<R: ProductRepo> ProductService<R> {
         update_req.slug.map(|v| record.slug = v);
         update_req.images.map(|v| record.images = v);
         update_req.featured.map(|v| record.featured = v);
-        update_req.status.map(|v| record.status = v);
+        update_req.status.map(|v| record.status = v.into());
 
         self.repo
             .update(business_id, id, record)
             .await
             .map(Into::into)
+    }
+
+    pub async fn delete_product(&self, business: BusinessSession, product_id: Id) -> ApiResult<()> {
+        self.repo
+            .delete(business.business_id.into_inner(), product_id.into_inner())
+            .await
     }
 
     pub async fn get_product(
@@ -62,6 +69,14 @@ impl<R: ProductRepo> ProductService<R> {
             .await?
             .ok_or(ApiError::not_found("product", id.to_hex()))
             .map(Into::into)
+    }
+
+    pub async fn get_variant_by_sku(
+        &self,
+        business: BusinessSession,
+        variant_sku: String,
+    ) -> ApiResult<ProductVariant> {
+        todo!()
     }
 
     pub async fn list_products(
@@ -79,7 +94,7 @@ impl<R: ProductRepo> ProductService<R> {
         } = query;
 
         let filter = ProductFilter {
-            status,
+            status: status.map(Into::into),
             category,
             featured,
             search,

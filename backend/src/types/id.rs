@@ -26,6 +26,12 @@ impl From<ObjectId> for Id {
     }
 }
 
+impl Into<ObjectId> for Id {
+    fn into(self) -> ObjectId {
+        self.0
+    }
+}
+
 impl AsRef<ObjectId> for Id {
     fn as_ref(&self) -> &ObjectId {
         &self.0

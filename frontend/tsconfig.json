@@ -2,24 +2,13 @@
   "extends": "astro/tsconfigs/strict",
   "include": [
     ".astro/types.d.ts",
-    "**/*",
-    "svelte.d.ts",
-    "../.trash/generic"
+    "**/*"
   ],
   "exclude": [
     "dist"
   ],
   "compilerOptions": {
-    "allowJs": true,
-    "types": [
-      "svelte"
-    ],
-    "baseUrl": ".",
     "paths": {
-      "*": [
-        "src/*",
-        "node_modules/*"
-      ],
       "@bindings/*": [
         "../backend/bindings/*"
       ],

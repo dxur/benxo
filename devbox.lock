@@ -418,6 +418,90 @@
           "store_path": "/nix/store/rnf8wb305f8508hnkjgi0i3vy2522b5w-rustup-1.28.2"
         }
       }
+    },
+    "varnish@latest": {
+      "last_modified": "2025-07-13T22:45:35Z",
+      "resolved": "github:NixOS/nixpkgs/a421ac6595024edcfbb1ef950a3712b89161c359#varnish",
+      "source": "devbox-search",
+      "version": "7.7.1",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/vzywvcz9xzh8ak463a4j6680wsprd1zf-varnish-7.7.1",
+              "default": true
+            },
+            {
+              "name": "man",
+              "path": "/nix/store/mrawwpy28gf0s44l81wm3lprw2lh2377-varnish-7.7.1-man",
+              "default": true
+            },
+            {
+              "name": "dev",
+              "path": "/nix/store/zyqlvbpsapcqs9x559b65b441dwd88ji-varnish-7.7.1-dev"
+            }
+          ],
+          "store_path": "/nix/store/vzywvcz9xzh8ak463a4j6680wsprd1zf-varnish-7.7.1"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/9pxfw0hb3frqhszv84cgzhhhwdrqrz4n-varnish-7.7.1",
+              "default": true
+            },
+            {
+              "name": "man",
+              "path": "/nix/store/79p10v2icr1379diafkwp1zpw6p067z1-varnish-7.7.1-man",
+              "default": true
+            },
+            {
+              "name": "dev",
+              "path": "/nix/store/gwzwpi7bq747n1c8ypvsr8kn6hrfvamk-varnish-7.7.1-dev"
+            }
+          ],
+          "store_path": "/nix/store/9pxfw0hb3frqhszv84cgzhhhwdrqrz4n-varnish-7.7.1"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/n8zn4g3iw711pkn15mvz3vww3hi62m8g-varnish-7.7.1",
+              "default": true
+            },
+            {
+              "name": "man",
+              "path": "/nix/store/j77jmn36amjmdryxgq74q547yw47p3k1-varnish-7.7.1-man",
+              "default": true
+            },
+            {
+              "name": "dev",
+              "path": "/nix/store/mvapxqlispndjgdqjnw09k9izfz41mzc-varnish-7.7.1-dev"
+            }
+          ],
+          "store_path": "/nix/store/n8zn4g3iw711pkn15mvz3vww3hi62m8g-varnish-7.7.1"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/xdx23d2p2z4f9bpcq3wfzg4mdl23sdzq-varnish-7.7.1",
+              "default": true
+            },
+            {
+              "name": "man",
+              "path": "/nix/store/33hxzq8h6drmnh1ijza45acyn4qkic0l-varnish-7.7.1-man",
+              "default": true
+            },
+            {
+              "name": "dev",
+              "path": "/nix/store/4vqmcm48pdwb5i0jzv2i3w2vsqg3vxrj-varnish-7.7.1-dev"
+            }
+          ],
+          "store_path": "/nix/store/xdx23d2p2z4f9bpcq3wfzg4mdl23sdzq-varnish-7.7.1"
+        }
+      }
     }
   }
 }

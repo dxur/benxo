@@ -3,7 +3,7 @@ import { defineConfig } from 'astro/config';
 
 import svelte from '@astrojs/svelte';
 
-// import tailwindcss from '@tailwindcss/vite';
+import tailwindcss from '@tailwindcss/vite';
 
 // https://astro.build/config
 export default defineConfig({
@@ -22,7 +22,7 @@ export default defineConfig({
       },
     },
 
-    // plugins: [tailwindcss()]
+    plugins: [tailwindcss()]
   },
   integrations: [svelte()]
 });

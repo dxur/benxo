@@ -35,9 +35,14 @@ mail.dev.{$DOMAIN} {
 	reverse_proxy http://localhost:8025
 }
 
-*.mystore.{$DOMAIN} {
+*.{$STORE_SUFFIX} {
 	tls internal
-	reverse_proxy http://localhost:3001
+
+	@api path /api*
+	reverse_proxy @api http://localhost:3000
+
+	@www not path /api*
+	reverse_proxy @www http://localhost:3001
 }
 
 *.{$DOMAIN} {
@@ -49,5 +54,10 @@ https:// {
 	tls internal {
 		on_demand
 	}
-	reverse_proxy http://localhost:3001
+
+	@api path /api*
+	reverse_proxy @api http://localhost:3000
+
+	@www not path /api*
+	reverse_proxy @www http://localhost:3001
 }

@@ -4,6 +4,7 @@ use macros::routes;
 use crate::extractors::cookies::FromCookies;
 use crate::extractors::json::Json;
 use crate::platform::business::api::BusinessSession;
+use crate::platform::user::api::MessageResponse;
 use crate::types::id::Id;
 use crate::utils::error::ApiResult;
 use crate::AppState;
@@ -48,7 +49,7 @@ impl ProductRoutes {
             .map(Json)
     }
 
-    #[route(method=put, path="/{id}", res=ProductView)]
+    #[route(method=patch, path="/{id}", res=ProductView)]
     async fn edit_product(
         State(state): State<AppState>,
         FromCookies(business): FromCookies<BusinessSession>,
@@ -59,6 +60,22 @@ impl ProductRoutes {
             .product_service
             .update_product(business, product_id, update_req)
             .await
+            .map(Json)
+    }
+
+    #[route(method=delete, path="/{id}", res=MessageResponse)]
+    async fn delete_product(
+        State(state): State<AppState>,
+        FromCookies(business): FromCookies<BusinessSession>,
+        Path(product_id): Path<Id>,
+    ) -> ApiResult<Json<MessageResponse>> {
+        state
+            .product_service
+            .delete_product(business, product_id)
+            .await
+            .map(|_| MessageResponse {
+                message: "Product deleted successfully".to_string(),
+            })
             .map(Json)
     }
 }

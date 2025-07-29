@@ -1,3 +1,4 @@
+use bigdecimal::BigDecimal;
 use bson::{oid::ObjectId, DateTime, Decimal128};
 use indexmap::{IndexMap, IndexSet};
 use serde::{Deserialize, Serialize};
@@ -5,9 +6,8 @@ use ts_rs::TS;
 
 use crate::types::name::Name;
 
-#[derive(Debug, Clone, Default, Deserialize, Serialize, TS)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
-#[ts(export)]
 pub enum ProductStatus {
     #[default]
     Draft,
@@ -21,9 +21,9 @@ pub enum ProductStatus {
 pub struct ProductVariant {
     pub sku: String,
     #[ts(as = "String")]
-    pub price: Decimal128,
+    pub price: BigDecimal,
     #[ts(as = "Option<String>")]
-    pub compare_at: Option<Decimal128>,
+    pub compare_at: Option<BigDecimal>,
     pub stocks: usize,
     pub images: Vec<String>,
     pub options: IndexMap<String, String>,

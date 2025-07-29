@@ -231,19 +231,6 @@ impl ApiError {
         }
     }
 
-    /// Create a not found error for a specific resource type
-    pub fn user_not_found(id: impl Into<Cow<'static, str>>) -> Self {
-        Self::not_found("User", id)
-    }
-
-    pub fn post_not_found(id: impl Into<Cow<'static, str>>) -> Self {
-        Self::not_found("Post", id)
-    }
-
-    pub fn comment_not_found(id: impl Into<Cow<'static, str>>) -> Self {
-        Self::not_found("Comment", id)
-    }
-
     // === Authentication & Authorization ===
 
     /// Create an unauthorized error

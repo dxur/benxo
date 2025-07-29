@@ -1,4 +1,4 @@
-use bson::Decimal128;
+use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc};
 use indexmap::{IndexMap, IndexSet};
 use o2o::o2o;
@@ -11,14 +11,25 @@ use crate::{
     utils::serde_helpers::JsonOption,
 };
 
+#[derive(Debug, Clone, Deserialize, Serialize, o2o, TS)]
+#[serde(rename_all = "snake_case")]
+#[map_owned(ProductStatus)]
+#[ghosts(Deleted: Self::Archived)]
+#[ts(export)]
+pub enum ProductStatusView {
+    Draft,
+    Active,
+    Archived,
+}
+
 #[derive(Debug, Deserialize, TS)]
 #[ts(export)]
 pub struct ProductVariantCreate {
     pub sku: String,
     #[ts(as = "String")]
-    pub price: Decimal128,
+    pub price: BigDecimal,
     #[ts(as = "Option<String>")]
-    pub compare_at: Option<Decimal128>,
+    pub compare_at: Option<BigDecimal>,
     pub stocks: usize,
     pub images: Vec<String>,
     pub options: IndexMap<String, String>,
@@ -32,7 +43,8 @@ pub struct ProductView {
     pub id: Id,
     pub title: Name,
     pub description: String,
-    pub status: ProductStatus,
+    #[from(~.into())]
+    pub status: ProductStatusView,
     pub featured: bool,
     pub category: String,
     pub images: Vec<String>,
@@ -50,7 +62,7 @@ pub struct ProductView {
 pub struct ProductListQuery {
     pub page: Option<u32>,
     pub limit: Option<u32>,
-    pub status: Option<ProductStatus>,
+    pub status: Option<ProductStatusView>,
     pub category: Option<String>,
     pub featured: Option<bool>,
     pub search: Option<String>,
@@ -64,7 +76,7 @@ pub struct ProductUpdate {
     pub category: JsonOption<String>,
     pub images: JsonOption<Vec<String>>,
     pub featured: JsonOption<bool>,
-    pub status: JsonOption<ProductStatus>,
+    pub status: JsonOption<ProductStatusView>,
     pub options: JsonOption<IndexMap<String, IndexSet<String>>>,
     pub variants: JsonOption<Vec<ProductVariant>>,
     pub slug: JsonOption<String>,
