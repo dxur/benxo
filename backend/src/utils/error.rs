@@ -1,5 +1,6 @@
 use std::{borrow::Cow, collections::HashMap, convert::Infallible};
 
+use axum::http::StatusCode;
 use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
@@ -721,6 +722,12 @@ impl axum::response::IntoResponse for ApiError {
             json,
         )
             .into_response()
+    }
+}
+
+impl Into<StatusCode> for ApiError {
+    fn into(self) -> StatusCode {
+        todo!()
     }
 }
 

@@ -8,7 +8,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
-  <title>{{ store.name }}</title>
+  <title>{{ store }}</title>
   <style>
     * {
       font-family: "Cairo", sans-serif;
@@ -16,33 +16,7 @@
       font-style: normal;
       font-variation-settings: "slnt" 0;
     }
-    
-    :root {
-      --primary-color: {{ store.primary_color }};
-      --secondary-color: {{ store.secondary_color }};
-      --background-color: {{ store.background_color }};
-    }
-    
-    .bg-pink-100 {
-      background-color: {{ store.primary_color }}20;
-    }
-    
-    .text-pink-700, .border-pink-700, .bg-pink-700 {
-      color: {{ store.primary_color }};
-    }
-    
-    .bg-pink-700 {
-      background-color: {{ store.primary_color }};
-    }
-    
-    .border-pink-700 {
-      border-color: {{ store.primary_color }};
-    }
-    
-    .stroke-pink-700 {
-      stroke: {{ store.primary_color }};
-    }
-  </style>
+    </style>
 </head>
 
 <body class="bg-gray-50">
@@ -51,7 +25,7 @@
       <input id="menu" class="sr-only peer/menu" type="checkbox" name="status" />
       <label for="menu" class="peer-checked/menu:hidden cursor-pointer">
         <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 24 24">
-          <path fill="none" stroke="{{ store.primary_color }}" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+          <path fill="none" stroke="store.primary_color" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
             d="M4 6h16M4 12h16M4 18h16M4" />
         </svg>
       </label>
@@ -60,7 +34,7 @@
           <g fill="none" fill-rule="evenodd">
             <path
               d="M24 0v24H0V0zM12.593 23.258l-.011.002l-.071.035l-.02.004l-.014-.004l-.071-.035q-.016-.005-.024.005l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.017-.018m.265-.113l-.013.002l-.185.093l-.01.01l-.003.011l.018.43l.005.012l.008.007l.201.093q.019.005.029-.008l.004-.014l-.034-.614q-.005-.019-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.004-.011l.017-.43l-.003-.012l-.01-.01z" />
-            <path fill="{{ store.primary_color }}"
+            <path fill="store.primary_color"
               d="m12 14.122l5.303 5.303a1.5 1.5 0 0 0 2.122-2.122L14.12 12l5.304-5.303a1.5 1.5 0 1 0-2.122-2.121L12 9.879L6.697 4.576a1.5 1.5 0 1 0-2.122 2.12L9.88 12l-5.304 5.304a1.5 1.5 0 1 0 2.122 2.12z" />
           </g>
         </svg>
@@ -78,10 +52,10 @@
       </div>
     </div>
     <a href="/" class="block">
-      <img src="{{ store.logo }}" alt="Logo" class="h-10 w-auto">
+      <img src="/logo" alt="Logo" class="h-10 w-auto">
     </a>
     <a href="/cart" class="block" style="position: relative;">
-      <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 24 24" fill="none" stroke="{{ store.primary_color }}"
+      <svg xmlns="http://www.w3.org/2000/svg" width="2em" height="2em" viewBox="0 0 24 24" fill="none" stroke="store.primary_color"
         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-shopping-bag">
         <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
         <path d="M3 6h18" />
@@ -97,61 +71,15 @@
   <main>
     <div class="my-16 p-4 px-6 flex flex-col items-center justify-center gap-6">
       <span class="text-3xl font-extrabold text-pink-700">حبيبتيِ الجميلة🩷</span>
-      <span class="text-lg text-center">{{ store.description }}</span>
+      <span class="text-lg text-center">{{ store }}</span>
       <hr class="w-32 h-0.5 bg-pink-700 border-0 rounded">
     </div>
 
     <div class="p-4 my-8 flex flex-col items-center justify-center">
       <span class="text-2xl font-bold text-pink-700 text-center mb-4">منتجاتنا</span>
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 items-center justify-center py-8">
-        {% for product in products.data %}
-          {% if product.variants.size > 0 %}
-            {% for variant in product.variants %}
-              <a href="/products/{{ variant.sku }}">
-                <div class="w-full flex items-center justify-center">
-                  <div class="w-48 shadow-md flex flex-col rounded-lg">
-                    {% if variant.images.size > 0 %}
-                      <img class="h-44 object-cover rounded-t-lg" src="{{ variant.images[0] }}" alt="{{ product.name }}">
-                    {% elsif product.base_images.size > 0 %}
-                      <img class="h-44 object-cover rounded-t-lg" src="{{ product.base_images[0] }}" alt="{{ product.name }}">
-                    {% endif %}
-                    <div class="px-4 py-2 flex flex-col">
-                      <span class="text-gray-500">{{ product.name }}</span>
-                      {% if variant.compare_price and variant.compare_price > variant.price %}
-                        <div class="flex flex-col items-start justify-start">
-                          <span class="line-through text-sm font-bold text-red-600">{{ variant.compare_price }} د.ج</span>
-                          <span class="text-green-800 font-bold">{{ variant.price }} د.ج</span>
-                        </div>
-                      {% else %}
-                        <span class="text-green-800 font-bold">{{ variant.price }} د.ج</span>
-                      {% endif %}
-                    </div>
-                  </div>
-                </div>
-              </a>
-            {% endfor %}
-          {% else %}
-            <a href="/products/{{ product.slug }}">
-              <div class="w-full flex items-center justify-center">
-                <div class="w-48 shadow-md flex flex-col rounded-lg">
-                  {% if product.base_images.size > 0 %}
-                    <img class="h-44 object-cover rounded-t-lg" src="{{ product.base_images[0] }}" alt="{{ product.name }}">
-                  {% endif %}
-                  <div class="px-4 py-2 flex flex-col">
-                    <span class="text-gray-500">{{ product.name }}</span>
-                    {% if product.base_compare_price and product.base_compare_price > product.base_price %}
-                      <div class="flex flex-col items-start justify-start">
-                        <span class="line-through text-sm font-bold text-red-600">{{ product.base_compare_price }} د.ج</span>
-                        <span class="text-green-800 font-bold">{{ product.base_price }} د.ج</span>
-                      </div>
-                    {% else %}
-                      <span class="text-green-800 font-bold">{{ product.base_price }} د.ج</span>
-                    {% endif %}
-                  </div>
-                </div>
-              </div>
-            </a>
-          {% endif %}
+        {% for product in products.products %}
+            <a href="/products/{{ product.slug }}">{{ product.title }}</a>
         {% endfor %}
       </div>
 
@@ -205,7 +133,7 @@
     <div class="container mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
       <div>
         <h1 class="text-xl font-bold mb-2">حولنا</h1>
-        <p class="text-sm pr-4">{{ store.description }}</p>
+        <p class="text-sm pr-4">{{ store }}</p>
       </div>
       <div>
         <h1 class="text-xl font-bold mb-2">الروابط السريعة</h1>
@@ -222,7 +150,7 @@
       </div>
     </div>
     <div class="container mx-auto text-center mt-4">
-      <p class="text-sm">&copy; 2025 {{ store.name }} All rights reserved</p>
+      <p class="text-sm">&copy; 2025 {{ store }} All rights reserved</p>
     </div>
   </footer>
 </body>

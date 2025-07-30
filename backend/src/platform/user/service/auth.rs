@@ -18,34 +18,37 @@ impl<R: UserRepo> UserService<R> {
     ) -> ApiResult<(UserToken, MessageResponse)> {
         match (step, token) {
             (AuthStep::SignupEmail { email }, _) => self.handle_email_step(email).await,
-            (AuthStep::SignupPhone { token, phone }, _) => {
-                self.handle_phone_step(token, phone).await
+            (AuthStep::SignupPhone { otp, phone }, UserToken::SignupEmail {
+                email,
+                otp_hash,
+            }) => {
+                self.handle_phone_step(email, phone, otp, otp_hash).await
             }
             (
-                AuthStep::SignupOtp { otp },
-                UserToken::SignupPhone {
-                    email,
-                    phone,
-                    otp_hash,
-                },
-            ) => self.handle_otp_step(otp, email, phone, otp_hash).await,
-            (
                 AuthStep::SignupFinalize {
+                    otp,
                     first_name,
                     last_name,
                     username,
                     password,
                 },
-                UserToken::Signup { email, phone },
+                UserToken::SignupPhone {
+                    email,
+                    phone,
+                    otp_hash,
+                },
             ) => {
-                self.handle_finalize_step(first_name, last_name, username, password, email, phone)
+                self.handle_finalize_step(email, phone, otp, otp_hash, first_name, last_name, username, password)
                     .await
             }
             (AuthStep::ResetPassword { email }, _) => {
                 self.handle_req_reset_password_step(email).await
             }
-            (AuthStep::ResetPasswordFinalize { token, password }, _) => {
-                self.handle_reset_password_step(token, password).await
+            (AuthStep::ResetPasswordFinalize { otp, password }, UserToken::ResetPassword {
+                email,
+                otp_hash,
+            }) => {
+                self.handle_reset_password_step(email, otp, otp_hash, password).await
             }
             (AuthStep::Login { email, password }, _) => {
                 self.handle_login_step(email, password).await
@@ -63,6 +66,9 @@ impl<R: UserRepo> UserService<R> {
 
     #[instrument(skip(self), fields(email = %email))]
     async fn handle_email_step(&self, email: Email) -> ApiResult<(UserToken, MessageResponse)> {
+        let otp = generate_otp()?;
+        let otp_hash = blake3::hash(otp.as_bytes());
+
         let count = self
             .repo
             .count(UserFilter {
@@ -74,11 +80,7 @@ impl<R: UserRepo> UserService<R> {
         if count > 0 {
             warn!("Email already exists");
         } else {
-            let token = VerificationToken {
-                email: email.clone(),
-            };
-
-            send_verification_email(email.clone(), token, Duration::hours(1))
+            send_verification_email(&email, &otp, Duration::hours(1))
                 .await
                 .map_err(|e| {
                     error!(error = ?e, "Failed to send verification email");
@@ -88,20 +90,33 @@ impl<R: UserRepo> UserService<R> {
         }
 
         Ok((
-            UserToken::None,
+            UserToken::SignupEmail {
+                email,
+                otp_hash,
+            },
             MessageResponse {
                 message: "We sent you a verification email".to_string(),
             },
         ))
     }
 
-    #[instrument(skip(self), fields(token = %token, phone = %phone))]
+    #[instrument(skip(self), fields(email = %email, phone = %phone))]
     async fn handle_phone_step(
         &self,
-        token: String,
+        email: Email,
         phone: PhoneNumber,
+        otp: String,
+        otp_hash: blake3::Hash,
     ) -> ApiResult<(UserToken, MessageResponse)> {
-        let token: VerificationToken = decode_jwt(&token)?;
+        let provided_otp_hash = blake3::hash(otp.as_bytes());
+        if provided_otp_hash != otp_hash {
+            warn!("Invalid OTP provided");
+            return Err(ApiError::unauthorized("Invalid OTP"));
+        }
+
+        let otp = generate_otp()?;
+        let otp_hash = blake3::hash(otp.as_bytes());
+
         let count = self
             .repo
             .count(UserFilter {
@@ -110,33 +125,24 @@ impl<R: UserRepo> UserService<R> {
             })
             .await?;
 
-        if count > 0 {
+        if count == 0 {
+            send_verification_otp(&phone, &otp)
+                .await
+                .map_err(|e| {
+                    error!(error = ?e, "Failed to send verification OTP");
+                    e
+                })?;
+
+            info!("Verification code sent");
+        } else {
             warn!("Phone already exists");
-            return Ok((
-                UserToken::None,
-                MessageResponse {
-                    message: "We sent you a verification code".to_string(),
-                },
-            ));
         }
 
-        let otp = generate_otp()?;
-        let otp_hash = blake3::hash(otp.as_bytes());
-
-        send_verification_otp(phone.clone(), &otp)
-            .await
-            .map_err(|e| {
-                error!(error = ?e, "Failed to send verification OTP");
-                e
-            })?;
-
         let phone_token = UserToken::SignupPhone {
-            email: token.email,
+            email,
             phone,
             otp_hash,
         };
-
-        info!("Verification code sent");
 
         Ok((
             phone_token,
@@ -146,13 +152,17 @@ impl<R: UserRepo> UserService<R> {
         ))
     }
 
-    #[instrument(skip(self, otp, otp_hash), fields(email = %email, phone = %phone))]
-    async fn handle_otp_step(
+    #[instrument(skip(self, password), fields(email = %email, username = %username))]
+    async fn handle_finalize_step(
         &self,
-        otp: String,
         email: Email,
         phone: PhoneNumber,
+        otp: String,
         otp_hash: blake3::Hash,
+        first_name: Name,
+        last_name: Name,
+        username: Username,
+        password: Password,
     ) -> ApiResult<(UserToken, MessageResponse)> {
         let provided_otp_hash = blake3::hash(otp.as_bytes());
         if provided_otp_hash != otp_hash {
@@ -160,28 +170,6 @@ impl<R: UserRepo> UserService<R> {
             return Err(ApiError::unauthorized("Invalid OTP"));
         }
 
-        let signup_token = UserToken::Signup { email, phone };
-
-        info!("OTP verification successful");
-
-        Ok((
-            signup_token,
-            MessageResponse {
-                message: "You have successfully verified your phone".to_string(),
-            },
-        ))
-    }
-
-    #[instrument(skip(self, password), fields(email = %email, username = %username))]
-    async fn handle_finalize_step(
-        &self,
-        first_name: Name,
-        last_name: Name,
-        username: Username,
-        password: Password,
-        email: Email,
-        phone: PhoneNumber,
-    ) -> ApiResult<(UserToken, MessageResponse)> {
         let password_hash =
             task::spawn_blocking(move || bcrypt::hash(password.as_str(), bcrypt::DEFAULT_COST))
                 .await
@@ -208,15 +196,13 @@ impl<R: UserRepo> UserService<R> {
             e
         })?;
 
-        let session_token = UserToken::UserSession(UserSession {
-            user_id: user._id,
-            email: user.email,
-        });
-
         info!(user_id = %user._id.to_hex(), "User created successfully");
 
         Ok((
-            session_token,
+            UserToken::UserSession(UserSession {
+                user_id: user._id,
+                email: user.email,
+            }),
             MessageResponse {
                 message: "You have successfully signed up".to_string(),
             },
@@ -228,6 +214,9 @@ impl<R: UserRepo> UserService<R> {
         &self,
         email: Email,
     ) -> ApiResult<(UserToken, MessageResponse)> {
+        let otp = generate_otp()?;
+        let otp_hash = blake3::hash(otp.as_bytes());
+
         let count = self
             .repo
             .count(UserFilter {
@@ -239,11 +228,7 @@ impl<R: UserRepo> UserService<R> {
         if count == 0 {
             warn!("Email does not exists");
         } else {
-            let token = VerificationToken {
-                email: email.clone(),
-            };
-
-            send_reset_email(email, token, Duration::minutes(15))
+            send_reset_email(&email, &otp, Duration::minutes(15))
                 .await
                 .map_err(|e| {
                     error!(error = ?e, "Failed to send reset email");
@@ -253,23 +238,27 @@ impl<R: UserRepo> UserService<R> {
         }
 
         Ok((
-            UserToken::None,
+            UserToken::ResetPassword {
+                email,
+                otp_hash
+            },
             MessageResponse {
                 message: "We sent you a reset email".to_string(),
             },
         ))
     }
 
-    #[instrument(skip(self, password), fields(token = %token))]
+    #[instrument(skip(self, password), fields(email = %email))]
     async fn handle_reset_password_step(
         &self,
-        token: String,
+        email: Email,
+        otp: String,
+        otp_hash: blake3::Hash,
         password: Password,
     ) -> ApiResult<(UserToken, MessageResponse)> {
-        let token: VerificationToken = decode_jwt(&token)?;
         let mut user = self
             .repo
-            .find_by_email(token.email.as_str())
+            .find_by_email(email.as_str())
             .await?
             .ok_or(ApiError::not_found("user", "Not found"))?;
 

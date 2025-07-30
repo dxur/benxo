@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+#![allow(unused)]
 #![allow(async_fn_in_trait)]
 
 // pub mod db;
@@ -54,25 +55,25 @@ async fn main() {
     init_tracing();
     let db_uri = std::env::var("ATLAS_URI").unwrap();
     let root_db = std::env::var("ROOT_DB_NAME").unwrap();
-    let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
-    info!("listening on {}", listener.local_addr().unwrap());
+    let api_listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    info!("api listening on {}", api_listener.local_addr().unwrap());
+    let www_listener = TcpListener::bind("0.0.0.0:3001").await.unwrap();
+    info!("www listening on {}", www_listener.local_addr().unwrap());
 
     let client_options = ClientOptions::parse(db_uri).await.unwrap();
     let client = Client::with_options(client_options).unwrap();
     let db = client.database(&root_db);
-    let admin_db = client.database("admin");
 
-    tokio::task::spawn(async move {
+    // TODO: dev only
+    {
+        let admin_db = client.database("admin");
         let res = admin_db
         .run_command(doc! {
-            "replSetInitiate": {
-                "_id": "rs0",
-            }
+            "replSetInitiate": {}
         })
         .await;
-
         debug!("replset initialization result: {:?}", res);
-    });
+    }
 
     let user_repo = MongoUserRepo::new(&db);
     let business_repo = MongoBusinessRepo::new(&db);
@@ -83,23 +84,29 @@ async fn main() {
     let business_service = BusinessService::new(business_repo);
     let product_service = ProductService::new(product_repo);
     let order_service = OrderService::new(order_repo);
-    let state = State {
+    let state = Arc::new(State {
         user_service,
         business_service,
         product_service,
         order_service,
-    };
+    });
 
-    let app = Router::new()
+    let api = Router::new()
         .nest_packed(UserRoutes::make_router())
         .nest_packed(BusinessRoutes::make_router())
         .nest_packed(ProductRoutes::make_router())
         .nest_packed(OrderRoutes::make_router())
         .nest_packed(StoreRoutes::make_router())
-        .merge(PubStoreRoutes::make_router().1)
         .layer(CookieManagerLayer::new())
         .layer(TraceLayer::new_for_http())
-        .with_state(Arc::new(state));
+        .with_state(state.clone());
+    
+    let www = Router::new()
+        .merge(PubStoreRoutes::make_router().1)
+        .with_state(state);
 
-    axum::serve(listener, app).await.unwrap();
+    tokio::select!(
+        r = axum::serve(www_listener, www) => {r}
+        r = axum::serve(api_listener, api) => {r}
+    ).unwrap();
 }

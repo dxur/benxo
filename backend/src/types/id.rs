@@ -72,7 +72,7 @@ impl<'de> Deserialize<'de> for Id {
                 E: de::Error,
             {
                 ObjectId::from_str(v)
-                    .map(|v| Id(v))
+                    .map(Id)
                     .map_err(de::Error::custom)
             }
         }

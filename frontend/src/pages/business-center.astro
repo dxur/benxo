@@ -1,0 +1,11 @@
+---
+import Layout from "@/layouts/index.astro";
+import App from "@/islands/business-center/app.svelte";
+import BusinessAuth from "@/components/business-auth.svelte";
+---
+
+<Layout>
+    <BusinessAuth client:load>
+        <App client:only />
+    </BusinessAuth>
+</Layout>

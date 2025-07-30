@@ -115,4 +115,42 @@ impl<R: ProductRepo> ProductService<R> {
             limit,
         })
     }
+
+
+    pub async fn pub_list_products(
+        &self,
+        business_id: Id,
+        query: ProductListQuery,
+    ) -> ApiResult<ProductListResponse> {
+        let ProductListQuery {
+            page,
+            limit,
+            status,
+            category,
+            featured,
+            search,
+        } = query;
+
+        let filter = ProductFilter {
+            status: status.map(Into::into),
+            category,
+            featured,
+            search,
+        };
+        let page = page.unwrap_or(1);
+        let limit = limit.unwrap_or(10);
+
+        let (products, total) = self
+            .repo
+            .list(business_id.into_inner(), filter, page, limit)
+            .await?;
+
+        let views: Vec<_> = products.into_iter().map(Into::into).collect();
+        Ok(ProductListResponse {
+            products: views,
+            total,
+            page,
+            limit,
+        })
+    }
 }

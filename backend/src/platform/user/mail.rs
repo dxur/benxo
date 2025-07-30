@@ -3,21 +3,17 @@ use chrono::Duration;
 use tokio::{io::BufStream, net::TcpStream};
 
 use crate::{
-    platform::user::api::VerificationToken,
     types::{email::Email, phone::PhoneNumber},
     utils::{
         error::{ApiError, ApiResult},
-        jwt::encode_jwt,
     },
 };
 
 pub async fn send_verification_email(
-    to: Email,
-    token: VerificationToken,
+    to: &Email,
+    otp: &str,
     ttl: Duration,
 ) -> ApiResult<()> {
-    let token = encode_jwt(token, ttl)?;
-
     let subject = "Subject: Verify your email\n";
     let from = "From: no-reply@localhost\n";
     let to_header = format!("To: {}\n", to.as_str());
@@ -25,8 +21,8 @@ pub async fn send_verification_email(
     let blank_line = "\n";
 
     let msg_body = format!(
-        "Your verification token is: {}\nPlease don't share it with anyone",
-        token
+        "Your email verification OTP is: {}\nPlease don't share it with anyone.",
+        otp
     );
 
     let msg = format!(
@@ -61,9 +57,7 @@ pub async fn send_verification_email(
     Ok(())
 }
 
-pub async fn send_reset_email(to: Email, token: VerificationToken, ttl: Duration) -> ApiResult<()> {
-    let token = encode_jwt(token, ttl)?;
-
+pub async fn send_reset_email(to: &Email, otp: &str, ttl: Duration) -> ApiResult<()> {
     let subject = "Subject: Reset your password\n";
     let from = "From: no-reply@localhost\n";
     let to_header = format!("To: {}\n", to.as_str());
@@ -71,8 +65,8 @@ pub async fn send_reset_email(to: Email, token: VerificationToken, ttl: Duration
     let blank_line = "\n";
 
     let msg_body = format!(
-        "Your reset token is: {}\nPlease don't share it with anyone",
-        token
+        "Your password reset OTP is: {}\nPlease don't share it with anyone.",
+        otp
     );
 
     let msg = format!(
@@ -107,7 +101,7 @@ pub async fn send_reset_email(to: Email, token: VerificationToken, ttl: Duration
     Ok(())
 }
 
-pub async fn send_verification_otp(to: PhoneNumber, otp: &str) -> ApiResult<()> {
+pub async fn send_verification_otp(to: &PhoneNumber, otp: &str) -> ApiResult<()> {
     let subject = "Subject: Verify your phone\n";
     let from = "From: no-reply@localhost\n";
     let to_header = format!("To: {}@sms.localhost\n", to.as_str());

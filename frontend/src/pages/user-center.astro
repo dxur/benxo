@@ -1,0 +1,11 @@
+---
+import Layout from "@/layouts/index.astro";
+import App from "@/islands/user-center/app.svelte";
+import UserAuth from "@/components/user-auth.svelte";
+---
+
+<Layout>
+    <UserAuth client:load>
+        <App client:only />
+    </UserAuth>
+</Layout>

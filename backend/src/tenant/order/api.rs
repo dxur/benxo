@@ -174,7 +174,7 @@ pub struct BulkOrderStatusUpdate {
 #[derive(Debug, Serialize, TS)]
 #[ts(export)]
 pub struct BulkUpdateResponse {
-    pub updated_count: u32,
+    pub updated_count: u64,
     pub failed_ids: Vec<Id>,
 }
 

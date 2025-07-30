@@ -168,32 +168,6 @@ impl<B: BusinessRepo> BusinessService<B> {
         Ok(BusinessView::from(updated_business))
     }
 
-    pub async fn get_members(
-        &self,
-        business_session: BusinessSession,
-        user: UserSession,
-    ) -> ApiResult<Vec<BusinessMemberView>> {
-        let business = self
-            .business_repo
-            .find_by_id(business_session.business_id.into_inner())
-            .await?
-            .ok_or_else(|| ApiError::not_found("business", "Business not found"))?;
-
-        // Verify user is a member
-        business
-            .find_member_by_user_id(&user.user_id)
-            .ok_or_else(|| ApiError::forbidden("business", "Not a member of this business"))?;
-
-        let member_views: Vec<BusinessMemberView> = business
-            .members
-            .into_iter()
-            .filter(|m| !matches!(m.status, MembershipStatus::Removed))
-            .map(BusinessMemberView::from)
-            .collect();
-
-        Ok(member_views)
-    }
-
     pub async fn update_member(
         &self,
         business_session: BusinessSession,

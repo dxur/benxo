@@ -23,13 +23,11 @@ pub enum AuthStep {
         email: Email,
     },
     SignupPhone {
-        token: String,
+        otp: String,
         phone: PhoneNumber,
     },
-    SignupOtp {
-        otp: String,
-    },
     SignupFinalize {
+        otp: String,
         first_name: Name,
         last_name: Name,
         username: Username,
@@ -43,14 +41,9 @@ pub enum AuthStep {
         email: Email,
     },
     ResetPasswordFinalize {
-        token: String,
+        otp: String,
         password: Password,
     },
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct VerificationToken {
-    pub email: Email,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -59,15 +52,16 @@ pub enum UserToken {
     None,
     SignupEmail {
         email: Email,
+        otp_hash: Hash,
     },
     SignupPhone {
         email: Email,
         phone: PhoneNumber,
         otp_hash: Hash,
     },
-    Signup {
+    ResetPassword {
         email: Email,
-        phone: PhoneNumber,
+        otp_hash: Hash,
     },
     UserSession(UserSession),
 }
@@ -84,7 +78,7 @@ impl UserToken {
             UserToken::None => "None",
             UserToken::SignupEmail { .. } => "Signup Email",
             UserToken::SignupPhone { .. } => "Signup Phone",
-            UserToken::Signup { .. } => "Signup",
+            UserToken::ResetPassword { .. } => "Reset Password",
             UserToken::UserSession { .. } => "User Session",
         }
     }

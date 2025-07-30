@@ -222,6 +222,54 @@
         }
       }
     },
+    "cargo-watch@latest": {
+      "last_modified": "2025-07-13T22:45:35Z",
+      "resolved": "github:NixOS/nixpkgs/a421ac6595024edcfbb1ef950a3712b89161c359#cargo-watch",
+      "source": "devbox-search",
+      "version": "8.5.3",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/5byji2wwanr1jl6i9jz36ykrkxx2knhb-cargo-watch-8.5.3",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/5byji2wwanr1jl6i9jz36ykrkxx2knhb-cargo-watch-8.5.3"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/n0h9p387vmqazr186sjbf2ky61mihcg4-cargo-watch-8.5.3",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/n0h9p387vmqazr186sjbf2ky61mihcg4-cargo-watch-8.5.3"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/lx458vnfy610kgyn6r0nznlwvp3mk4qv-cargo-watch-8.5.3",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/lx458vnfy610kgyn6r0nznlwvp3mk4qv-cargo-watch-8.5.3"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/vbdgdzhr3h6blzn67qykcac705gpnlpp-cargo-watch-8.5.3",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/vbdgdzhr3h6blzn67qykcac705gpnlpp-cargo-watch-8.5.3"
+        }
+      }
+    },
     "github:NixOS/nixpkgs/nixpkgs-unstable": {
       "last_modified": "2025-07-18T12:29:53Z",
       "resolved": "github:NixOS/nixpkgs/8131c0ea9df6293a247be743a387ff725e464db7?lastModified=1752841793&narHash=sha256-pGvcN%2FyiJ4e3%2FhgvTwkyZvl6c3HuLLCY%2FhjEzDuQB54%3D"

@@ -4,7 +4,7 @@ import std;
 
 backend default {
     .host = "localhost";
-    .port = "3000";
+    .port = "3001";
 }
 
 // TODO: setup proper caching

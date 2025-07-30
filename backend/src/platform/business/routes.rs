@@ -52,7 +52,7 @@ impl BusinessRoutes {
 
     /// Switch to a different business context
     #[route(method = post, path = "/switch", res = MessageResponse)]
-    async fn switch(
+    async fn switch_business(
         State(state): State<AppState>,
         FromCookies(user_token): FromCookies<UserSession>,
         cookies: Cookies,
@@ -169,20 +169,6 @@ impl BusinessRoutes {
             .await?;
 
         Ok(Json(PendingInvitationsResponse { invitations }))
-    }
-
-    /// Get all members of the current business
-    #[route(method = post, path = "/members/list", res = Vec<BusinessMemberView>)]
-    async fn get_members(
-        State(state): State<AppState>,
-        FromCookies(business_token): FromCookies<BusinessSession>,
-        FromCookies(user_token): FromCookies<UserSession>,
-    ) -> ApiResult<Json<Vec<BusinessMemberView>>> {
-        state
-            .business_service
-            .get_members(business_token, user_token)
-            .await
-            .map(Json)
     }
 
     /// Update a member's role and permissions
