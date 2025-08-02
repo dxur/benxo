@@ -13,9 +13,12 @@
     import * as Sidebar from "$lib/components/ui/sidebar/index";
     import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index";
     import { useSidebar } from "$lib/components/ui/sidebar/index.js";
-
     import { active, link } from "@dvcol/svelte-simple-router";
-    import { ChevronsUpDownIcon, PlusIcon } from "@lucide/svelte";
+    import {
+        ChevronsUpDownIcon,
+        LogOut,
+        GalleryVerticalEnd,
+    } from "@lucide/svelte";
 
     let { items }: { items: SidebarItem[] } = $props();
     let sidebar = useSidebar();
@@ -34,7 +37,7 @@
                         <div
                             class="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg"
                         >
-                            activeTeam.logo
+                            <GalleryVerticalEnd class="size-4" />
                         </div>
                         <div
                             class="grid flex-1 text-left text-sm leading-tight"
@@ -45,7 +48,7 @@
                             <span class="truncate text-xs">activeTeam.plan</span
                             >
                         </div>
-                        <ChevronsUpDownIcon class="ml-auto" />
+                        <ChevronsUpDownIcon />
                     </Sidebar.MenuButton>
                 {/snippet}
             </DropdownMenu.Trigger>
@@ -56,27 +59,20 @@
                 sideOffset={4}
             >
                 <DropdownMenu.Label class="text-muted-foreground text-xs"
-                    >Teams</DropdownMenu.Label
+                    >Businesses</DropdownMenu.Label
                 >
                 <DropdownMenu.Item class="gap-2 p-2">
-                    <div
-                        class="flex size-6 items-center justify-center rounded-md border"
-                    >
-                        team.logo
-                    </div>
                     team.name
-                    <DropdownMenu.Shortcut>⌘</DropdownMenu.Shortcut>
                 </DropdownMenu.Item>
                 <DropdownMenu.Separator />
                 <DropdownMenu.Item class="gap-2 p-2">
-                    <div
-                        class="flex size-6 items-center justify-center rounded-md border bg-transparent"
+                    <LogOut class="size-4" />
+                    <a
+                        href="/user-center"
+                        class="text-muted-foreground font-medium"
                     >
-                        <PlusIcon class="size-4" />
-                    </div>
-                    <div class="text-muted-foreground font-medium">
-                        Add team
-                    </div>
+                        User center
+                    </a>
                 </DropdownMenu.Item>
             </DropdownMenu.Content>
         </DropdownMenu.Root>

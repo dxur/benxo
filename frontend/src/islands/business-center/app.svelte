@@ -4,9 +4,10 @@
         RouterView,
     } from "@dvcol/svelte-simple-router/components";
     import Sidebar from "./lib/components/sidebar.svelte";
+    import Breadcrumb from "./lib/components/breadcrumb.svelte";
     import { routes, sidebarItems } from "./index";
     import type { RouterOptions } from "@dvcol/svelte-simple-router";
-    import AppLayout from "./lib/components/app-layout.svelte";
+    import AppLayout from "./lib/components/layout/app-layout.svelte";
 
     const options: RouterOptions = {
         routes,
@@ -18,7 +19,7 @@
 </script>
 
 <RouterContext {options}>
-    <AppLayout>
+    <AppLayout breadcrumb={Breadcrumb}>
         {#snippet sidebar()}
             <Sidebar items={sidebarItems} />
         {/snippet}

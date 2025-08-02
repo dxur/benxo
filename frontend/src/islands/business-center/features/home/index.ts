@@ -1,10 +1,10 @@
-import type { Route } from "@dvcol/svelte-simple-router";
+import type { AppRoute } from "../..";
 import type { SidebarItem } from "../../lib/components/sidebar.svelte";
 import { Home } from "@lucide/svelte";
 
 export namespace Routes {
-    export const HOME: Route = {
-        name: "home",
+    export const HOME: AppRoute = {
+        name: "Home",
         path: "/home",
         component: () => import("./home.svelte"),
     };
