@@ -57,7 +57,6 @@ pub struct StoreFilter {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct StoreRegRecord {
-    pub _id: ObjectId,
     pub slug: String,
     pub domain: Option<String>,
     pub business_id: ObjectId,
@@ -75,7 +74,6 @@ impl StoreRegRecord {
     ) -> Self {
         let now = DateTime::now();
         Self {
-            _id: Default::default(),
             slug,
             domain,
             business_id,

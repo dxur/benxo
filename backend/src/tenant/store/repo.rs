@@ -197,17 +197,20 @@ impl StoreRepo for MongoStoreRepo {
 #[async_trait]
 pub trait StoreRegRepo: Send + Sync {
     async fn create(&self, store: StoreRegRecord) -> ApiResult<StoreRegRecord>;
-    async fn find_by_id(&self, id: ObjectId) -> ApiResult<Option<StoreRegRecord>>;
+    async fn find_by_store(
+        &self,
+        business_id: ObjectId,
+        store_id: ObjectId,
+    ) -> ApiResult<Option<StoreRegRecord>>;
     async fn find_by_slug(&self, slug: &str) -> ApiResult<Option<StoreRegRecord>>;
     async fn find_by_domain(&self, domain: &str) -> ApiResult<Option<StoreRegRecord>>;
-    async fn update(&self, id: ObjectId, store: StoreRegRecord) -> ApiResult<StoreRegRecord>;
-    async fn delete(&self, id: ObjectId) -> ApiResult<()>;
-    async fn list(
+    async fn update(
         &self,
-        filter: StoreRegFilter,
-        page: u32,
-        limit: u32,
-    ) -> ApiResult<(Vec<StoreRegRecord>, u64)>;
+        business_id: ObjectId,
+        store_id: ObjectId,
+        store: StoreRegRecord,
+    ) -> ApiResult<StoreRegRecord>;
+    async fn delete(&self, business_id: ObjectId, store_id: ObjectId) -> ApiResult<()>;
 }
 
 pub struct MongoStoreRegRepo {
@@ -246,12 +249,18 @@ impl StoreRegRepo for MongoStoreRegRepo {
 
         Ok(store_reg)
     }
-    async fn find_by_id(&self, id: ObjectId) -> ApiResult<Option<StoreRegRecord>> {
+
+    async fn find_by_store(
+        &self,
+        business_id: ObjectId,
+        store_id: ObjectId,
+    ) -> ApiResult<Option<StoreRegRecord>> {
         let store_reg = self
             .collection
-            .find_one(doc! { "_id": id })
+            .find_one(doc! { "business_id": business_id, "store_id": store_id })
             .await
             .map_err(|e| ApiError::internal(format!("Database query failed: {}", e)))?;
+
         Ok(store_reg)
     }
 
@@ -277,14 +286,18 @@ impl StoreRegRepo for MongoStoreRegRepo {
 
     async fn update(
         &self,
-        id: ObjectId,
+        business_id: ObjectId,
+        store_id: ObjectId,
         mut store_reg: StoreRegRecord,
     ) -> ApiResult<StoreRegRecord> {
         store_reg.updated_at = DateTime::now();
 
         let result = self
             .collection
-            .replace_one(doc! { "_id": id }, &store_reg)
+            .replace_one(
+                doc! { "business_id": business_id, "store_id": store_id },
+                &store_reg,
+            )
             .await
             .map_err(|e| ApiError::internal(format!("Failed to update store: {}", e)))?;
 
@@ -295,10 +308,10 @@ impl StoreRegRepo for MongoStoreRegRepo {
         Ok(store_reg)
     }
 
-    async fn delete(&self, id: ObjectId) -> ApiResult<()> {
+    async fn delete(&self, business_id: ObjectId, store_id: ObjectId) -> ApiResult<()> {
         let result = self
             .collection
-            .delete_one(doc! { "_id": id })
+            .delete_one(doc! { "business_id": business_id, "store_id": store_id })
             .await
             .map_err(|e| ApiError::internal(format!("Failed to delete store: {}", e)))?;
 
@@ -307,46 +320,5 @@ impl StoreRegRepo for MongoStoreRegRepo {
         }
 
         Ok(())
-    }
-
-    async fn list(
-        &self,
-        filter: StoreRegFilter,
-        page: u32,
-        limit: u32,
-    ) -> ApiResult<(Vec<StoreRegRecord>, u64)> {
-        let query = self.build_filter_query(&filter);
-
-        let total = self
-            .collection
-            .count_documents(query.clone())
-            .await
-            .map_err(|e| ApiError::internal(format!("Failed to count stores: {}", e)))?;
-
-        let skip = ((page.max(1) - 1) * limit) as u64;
-
-        let find_options = FindOptions::builder()
-            .skip(skip)
-            .limit(limit as i64)
-            .sort(doc! { "created_at": -1 })
-            .build();
-
-        let mut cursor = self
-            .collection
-            .find(query)
-            .with_options(find_options)
-            .await
-            .map_err(|e| ApiError::internal(format!("Database query failed: {}", e)))?;
-
-        let mut stores = Vec::new();
-        while let Some(store) = cursor
-            .try_next()
-            .await
-            .map_err(|e| ApiError::internal(format!("Failed to read cursor: {}", e)))?
-        {
-            stores.push(store);
-        }
-
-        Ok((stores, total))
     }
 }

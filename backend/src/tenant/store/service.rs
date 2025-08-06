@@ -4,6 +4,7 @@ use super::repo::{StoreRegRepo, StoreRepo};
 use crate::platform::business::api::BusinessSession;
 use crate::types::id::Id;
 use crate::utils::error::{ApiError, ApiResult};
+use crate::utils::serde_helpers::JsonOption;
 
 pub struct StoreService<R: StoreRepo, Reg: StoreRegRepo> {
     repo: R,
@@ -83,31 +84,45 @@ impl<R: StoreRepo, Reg: StoreRegRepo> StoreService<R, Reg> {
         store_id: Id,
         update_req: StoreRegUpdate,
     ) -> ApiResult<StoreRegDto> {
-        // FIXME: make a proper implementaion this is a leaky one
         let business_id = business.business_id.into_inner();
         let store_id = store_id.into_inner();
 
-        if let Some(ref _domain) = update_req.domain {
+        if let JsonOption::Value(ref _domain) = update_req.domain {
             // TODO: confirms that the domain is owned by this user
         }
 
         if let Some(this) = self.repo.find_by_id(business_id, store_id).await? {
-            if let Some(ref domain) = update_req.domain {
+            if let JsonOption::Value(ref domain) = update_req.domain {
                 if let Some(mut other) = self.reg.find_by_domain(&domain).await? {
-                    other.domain = None;
-                    self.reg.update(other._id, other).await?;
+                    if other.store_id != store_id {
+                        other.domain = None;
+                        self.reg
+                            .update(other.business_id, other.store_id, other)
+                            .await?;
+                    }
                 }
             }
 
-            self.reg
-                .create(StoreRegRecord::new(
-                    business_id,
-                    this._id,
-                    update_req.slug,
-                    update_req.domain,
-                ))
-                .await
-                .map(Into::into)
+            if let Some(mut store_reg) = self.reg.find_by_store(business_id, this._id).await? {
+                store_reg.slug = update_req.slug;
+                update_req
+                    .domain
+                    .ok_then(|domain| store_reg.domain = domain);
+                self.reg
+                    .update(store_reg.business_id, store_reg.store_id, store_reg)
+                    .await
+                    .map(Into::into)
+            } else {
+                self.reg
+                    .create(StoreRegRecord::new(
+                        business_id,
+                        this._id,
+                        update_req.slug,
+                        update_req.domain.to_option(),
+                    ))
+                    .await
+                    .map(Into::into)
+            }
         } else {
             Err(ApiError::not_found("store", store_id.to_hex()))
         }

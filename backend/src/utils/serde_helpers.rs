@@ -30,6 +30,13 @@ impl<T> JsonOption<T> {
         }
     }
 
+    pub fn ok_then<U, F: FnOnce(Option<T>) -> U>(self, f: F) -> Option<U> {
+        match self {
+            Self::Undefined => None,
+            _ => Some(f(self.to_option())),
+        }
+    }
+
     pub fn to_option(self) -> Option<T> {
         match self {
             JsonOption::Value(v) => Option::Some(v),

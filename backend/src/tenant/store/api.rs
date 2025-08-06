@@ -70,8 +70,6 @@ pub struct StoreListResponse {
 #[ts(export)]
 #[from_owned(StoreRegRecord)]
 pub struct StoreRegDto {
-    #[from(@._id.into())]
-    pub id: Id,
     #[from(~.into())]
     pub business_id: Id,
     #[from(~.into())]
@@ -88,5 +86,5 @@ pub struct StoreRegDto {
 #[ts(export)]
 pub struct StoreRegUpdate {
     pub slug: String,
-    pub domain: Option<String>,
+    pub domain: JsonOption<String>,
 }
