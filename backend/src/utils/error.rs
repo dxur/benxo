@@ -727,7 +727,27 @@ impl axum::response::IntoResponse for ApiError {
 
 impl Into<StatusCode> for ApiError {
     fn into(self) -> StatusCode {
-        todo!()
+        match self {
+            ApiError::ValidationError { .. } => StatusCode::BAD_REQUEST,
+            ApiError::NotFound { .. } => StatusCode::NOT_FOUND,
+            ApiError::Unauthorized { .. } => StatusCode::UNAUTHORIZED,
+            ApiError::Forbidden { .. } => StatusCode::FORBIDDEN,
+            ApiError::Conflict { .. } => StatusCode::CONFLICT,
+            ApiError::RateLimitExceeded { .. } => StatusCode::TOO_MANY_REQUESTS,
+            ApiError::InternalError { .. } => StatusCode::INTERNAL_SERVER_ERROR,
+            ApiError::ServiceUnavailable { .. } => StatusCode::SERVICE_UNAVAILABLE,
+            ApiError::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            ApiError::ExternalServiceError(_) => StatusCode::BAD_GATEWAY,
+            ApiError::InvalidJson { .. } => StatusCode::BAD_REQUEST,
+            ApiError::InvalidRequestBody { .. } => StatusCode::BAD_REQUEST,
+            ApiError::MissingField { .. } => StatusCode::BAD_REQUEST,
+            ApiError::InvalidContentType { .. } => StatusCode::UNSUPPORTED_MEDIA_TYPE,
+            ApiError::RequestTooLarge { .. } => StatusCode::PAYLOAD_TOO_LARGE,
+            ApiError::InvalidQueryParam { .. } => StatusCode::BAD_REQUEST,
+            ApiError::InvalidPathParam { .. } => StatusCode::BAD_REQUEST,
+            ApiError::InvalidHeader { .. } => StatusCode::BAD_REQUEST,
+            ApiError::MalformedRequest { .. } => StatusCode::BAD_REQUEST,
+        }
     }
 }
 

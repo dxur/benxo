@@ -1,4 +1,5 @@
 <script lang="ts">
+    import type { Snippet } from "svelte";
     import {
         ImageIcon,
         PackageIcon,
@@ -30,21 +31,25 @@
     import SearchBar from "../../lib/components/search-bar.svelte";
     import { toast } from "svelte-sonner";
     import { create_product, list_products } from "@bindings/ProductRoutes";
-    import type { ProductView } from "@bindings/ProductView";
+    import type { ProductDto } from "@bindings/ProductDto";
     import type { ProductListResponse } from "@bindings/ProductListResponse";
+    import type { ProductListQuery } from "@bindings/ProductListQuery";
     import { untrack } from "svelte";
     import { useLink } from "@dvcol/svelte-simple-router";
     import { Routes } from ".";
+    import { useNavigate } from "@dvcol/svelte-simple-router/router";
+
+    const { push } = useNavigate();
 
     let data: ProductListResponse | undefined = $state(undefined);
 
-    const columns = <ColumnDef<ProductView>[]>[
+    const columns = <ColumnDef<ProductDto>[]>[
         {
             accessorKey: "preview",
             header: "Preview",
             cell: ({ row }) => {
                 return renderSnippet(
-                    productPreview,
+                    productPreview as Snippet,
                     row.original.images[0] || null,
                 );
             },
@@ -57,7 +62,7 @@
             accessorKey: "slug",
             header: "Slug",
             cell: ({ row }) => {
-                return renderSnippet(withDefault, {
+                return renderSnippet(withDefault as Snippet, {
                     value: row.getValue("slug"),
                 });
             },
@@ -66,21 +71,27 @@
             accessorKey: "status",
             header: "Status",
             cell: ({ row }) => {
-                return renderSnippet(statusView, row.getValue("status"));
+                return renderSnippet(
+                    statusView as Snippet,
+                    row.getValue("status"),
+                );
             },
         },
         {
             accessorKey: "featured",
             header: "Featured",
             cell: ({ row }) => {
-                return renderSnippet(booleanCell, row.getValue("featured"));
+                return renderSnippet(
+                    booleanCell as Snippet,
+                    row.getValue("featured"),
+                );
             },
         },
         {
             accessorKey: "category",
             header: "Category",
             cell: ({ row }) => {
-                return renderSnippet(withDefault, {
+                return renderSnippet(withDefault as Snippet, {
                     value: row.getValue("category"),
                 });
             },
@@ -89,7 +100,10 @@
             accessorKey: "updated_at",
             header: "Last Update",
             cell: ({ row }) => {
-                return renderSnippet(dateView, row.getValue("updated_at"));
+                return renderSnippet(
+                    dateView as Snippet,
+                    row.getValue("updated_at"),
+                );
             },
         },
     ];
@@ -130,6 +144,16 @@
         },
     });
 
+    let searchQuery = $state("");
+    let query = $state<ProductListQuery>({
+        page: null,
+        limit: null,
+        status: "active",
+        category: null,
+        featured: null,
+        search: null,
+    });
+
     $effect(() => {
         const tab = activeTab === "all" ? "" : activeTab;
         untrack(() => table.getColumn("status")?.setFilterValue(tab));
@@ -141,8 +165,9 @@
 
     async function createProduct() {
         await create_product()
-            .then((_) => {
+            .then((data) => {
                 toast.success("Product has been created");
+                push({ path: Routes.EDIT_PAGE.path, params: { id: data.id } });
             })
             .catch((e) => console.error(e));
     }
@@ -152,7 +177,7 @@
 
 {#snippet productPreview(image: string | null)}
     <div
-        class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10"
+        class="aspect-square rounded-lg bg-muted flex items-center justify-center text-muted-foreground border-2 border-dashed border-border h-12 w-12"
     >
         {#if image}
             <img src={image} alt="preview" />
@@ -189,18 +214,14 @@
             title="Products"
             description="Manage your products and pricing"
         />
-        <ActionButton icon={PlusIcon} onclick={createProduct}>
+        <ActionButton onclick={createProduct}>
+            <PlusIcon />
             Add Product</ActionButton
         >
     </Group>
 
     <Group>
-        <SearchBar
-            value={table.getColumn("title")?.getFilterValue() ?? ""}
-            oninput={(e: any) => {
-                table.getColumn("title")?.setFilterValue(e.currentTarget.value);
-            }}
-        />
+        <SearchBar bind:value={searchQuery} placeholder="Search products..." />
         <Tabs.Root bind:value={activeTab}>
             <Tabs.List>
                 <Tabs.Trigger value="active">Active</Tabs.Trigger>
@@ -211,78 +232,80 @@
         </Tabs.Root>
     </Group>
 
-    {#await loadProducts()}
-        <TableSkeleton />
-    {:then}
-        <div class="rounded-md border">
-            <Table.Root>
-                <Table.Header>
-                    {#each table.getHeaderGroups() as headerGroup (headerGroup.id)}
-                        <Table.Row>
-                            {#each headerGroup.headers as header (header.id)}
-                                <Table.Head colspan={header.colSpan}>
-                                    {#if !header.isPlaceholder}
-                                        <FlexRender
-                                            content={header.column.columnDef
-                                                .header}
-                                            context={header.getContext()}
-                                        />
-                                    {/if}
-                                </Table.Head>
-                            {/each}
-                        </Table.Row>
-                    {/each}
-                </Table.Header>
-                <Table.Body>
-                    {#each table.getRowModel().rows as row (row.id)}
-                        <Table.Row
-                            data-state={row.getIsSelected() && "selected"}
-                            {@attach useLink({
-                                path: Routes.EDIT_PAGE.path,
-                                params: { id: row.original.id },
-                            })}
-                        >
-                            {#each row.getVisibleCells() as cell (cell.id)}
-                                <Table.Cell>
-                                    <FlexRender
-                                        content={cell.column.columnDef.cell}
-                                        context={cell.getContext()}
-                                    />
-                                </Table.Cell>
-                            {/each}
-                        </Table.Row>
-                    {:else}
-                        <Table.Row>
-                            <Table.Cell
-                                colspan={columns.length}
-                                class="h-24 text-center"
+    {#key query}
+        {#await loadProducts()}
+            <TableSkeleton />
+        {:then}
+            <div class="rounded-md border">
+                <Table.Root>
+                    <Table.Header>
+                        {#each table.getHeaderGroups() as headerGroup (headerGroup.id)}
+                            <Table.Row>
+                                {#each headerGroup.headers as header (header.id)}
+                                    <Table.Head colspan={header.colSpan}>
+                                        {#if !header.isPlaceholder}
+                                            <FlexRender
+                                                content={header.column.columnDef
+                                                    .header}
+                                                context={header.getContext()}
+                                            />
+                                        {/if}
+                                    </Table.Head>
+                                {/each}
+                            </Table.Row>
+                        {/each}
+                    </Table.Header>
+                    <Table.Body>
+                        {#each table.getRowModel().rows as row (row.id)}
+                            <Table.Row
+                                data-state={row.getIsSelected() && "selected"}
+                                {@attach useLink({
+                                    path: Routes.EDIT_PAGE.path,
+                                    params: { id: row.original.id },
+                                })}
                             >
-                                No results.
-                            </Table.Cell>
-                        </Table.Row>
-                    {/each}
-                </Table.Body>
-            </Table.Root>
-        </div>
-        <div class="flex items-center justify-end space-x-2 py-4">
-            <Button
-                variant="outline"
-                size="sm"
-                onclick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-            >
-                Previous
-            </Button>
-            <Button
-                variant="outline"
-                size="sm"
-                onclick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-            >
-                Next
-            </Button>
-        </div>
-    {:catch error}
-        {error}
-    {/await}
+                                {#each row.getVisibleCells() as cell (cell.id)}
+                                    <Table.Cell>
+                                        <FlexRender
+                                            content={cell.column.columnDef.cell}
+                                            context={cell.getContext()}
+                                        />
+                                    </Table.Cell>
+                                {/each}
+                            </Table.Row>
+                        {:else}
+                            <Table.Row>
+                                <Table.Cell
+                                    colspan={columns.length}
+                                    class="h-24 text-center"
+                                >
+                                    No results.
+                                </Table.Cell>
+                            </Table.Row>
+                        {/each}
+                    </Table.Body>
+                </Table.Root>
+            </div>
+            <div class="flex items-center justify-end space-x-2 py-4">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onclick={() => table.previousPage()}
+                    disabled={!table.getCanPreviousPage()}
+                >
+                    Previous
+                </Button>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onclick={() => table.nextPage()}
+                    disabled={!table.getCanNextPage()}
+                >
+                    Next
+                </Button>
+            </div>
+        {:catch error}
+            {error}
+        {/await}
+    {/key}
 </Column>

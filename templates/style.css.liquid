@@ -1,0 +1,225 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI'
+        , Roboto, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #fff;
+}
+
+.announcement-bar {
+    background: #333;
+    color: white;
+    text-align: center;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    gap: 0.5rem;
+    padding: 0.8rem 2rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.announcement-bar a {
+    color: #ffce3b;
+    text-decoration: none;
+    margin-left: 8px;
+}
+
+input#mobile-menu-toggle:checked~aside {
+    left: 0;
+}
+
+aside {
+    position: fixed;
+    top: 48px;
+    left: -100%;
+    width: 260px;
+    height: 100vh;
+    background: #fff;
+    z-index: 1001;
+    transition: left 0.3s ease;
+    overflow-y: auto;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+}
+
+.mobile-close {
+    display: inline-block;
+    margin-left: auto;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.mobile-nav {
+    list-style: none;
+    margin-top: 1rem;
+}
+
+.mobile-nav-item {
+    margin: 0.5rem 0;
+}
+
+.mobile-nav-link {
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    font-size: 1.1rem;
+}
+
+.navbar {
+    border-bottom: 1px solid #f0f0f0;
+    background: #ffd23d;
+    color: white;
+    height: 56px;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: sticky;
+    box-shadow: inset;
+    top: 0;
+    z-index: 1000;
+}
+
+.navbar-content {
+    width: 100%;
+    max-width: 64rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    flex: 1;
+}
+
+.logo img {
+    right: 0%;
+    height: 48px;
+    transition: scale 0.2s ease-in-out;
+}
+
+.logo img:hover {
+    scale: 112%;
+}
+
+.navbar-items nav {
+    display: flex;
+    gap: 1rem;
+    margin: 1rem;
+}
+
+.navbar-items a {
+    text-decoration: none;
+    font-weight: 600;
+    color: #ffffff;
+    font-size: 0.95rem;
+    /* TODO transition for the underline */
+    transition: text-decoration 0.2s ease;
+}
+
+.navbar-items a:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.4rem;
+
+}
+
+.navbar-icons {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    justify-self: end;
+}
+
+.nav-icon-btn {
+    background: none;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    transition: scale 0.2s ease;
+}
+
+.nav-icon-btn:hover {
+    scale: 105%;
+}
+
+.icon {
+    width: 24px;
+    height: 24px;
+    stroke: currentColor;
+    color: #ffffff;
+}
+
+.cart-icon {
+    position: relative;
+}
+
+.cart-count {
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    background-color: #ff3b30;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 0 6px;
+    min-width: 16px;
+    aspect-ratio: 1/1;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.navbar-drawer {
+    display: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    justify-self: start;
+}
+
+main {
+    padding: 1rem;
+    max-width: 1200px;
+    margin: auto;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .navbar-content {
+        display: grid;
+        grid-template-columns: 1fr 2fr 1fr;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .navbar-items {
+        display: none;
+    }
+
+    .navbar-drawer {
+        display: flex;
+        align-items: center;
+    }
+
+    .logo {
+        justify-content: center;
+    }
+}

@@ -5,6 +5,7 @@ use super::api::*;
 use super::domain::*;
 use super::repo::BusinessRepo;
 use crate::platform::user::api::UserSession;
+use crate::types::id::Id;
 use crate::utils::error::{ApiError, ApiResult};
 
 pub struct BusinessService<B: BusinessRepo> {
@@ -20,7 +21,7 @@ impl<B: BusinessRepo> BusinessService<B> {
         &self,
         user: UserSession,
         create_req: BusinessCreate,
-    ) -> ApiResult<BusinessView> {
+    ) -> ApiResult<BusinessDto> {
         // Check if user already owns a business with this name
         if let Some(_existing) = self
             .business_repo
@@ -41,24 +42,24 @@ impl<B: BusinessRepo> BusinessService<B> {
         );
 
         let created = self.business_repo.create(business).await?;
-        Ok(BusinessView::from(created))
+        Ok(BusinessDto::from(created))
     }
 
-    pub async fn current(&self, business_session: BusinessSession) -> ApiResult<BusinessView> {
+    pub async fn get(&self, business_id: Id) -> ApiResult<BusinessDto> {
         let business = self
             .business_repo
-            .find_by_id(business_session.business_id.into_inner())
+            .find_by_id(business_id.into_inner())
             .await?
             .ok_or_else(|| ApiError::not_found("business", "Business not found"))?;
 
-        Ok(BusinessView::from(business))
+        Ok(BusinessDto::from(business))
     }
 
     pub async fn list_user_businesses(
         &self,
         user: UserSession,
         query: BusinessListQuery,
-    ) -> ApiResult<(Vec<BusinessView>, u64)> {
+    ) -> ApiResult<(Vec<BusinessDto>, u64)> {
         let filter = BusinessFilter {
             member_email: Some(user.email.to_string()),
             status: query.status,
@@ -70,8 +71,8 @@ impl<B: BusinessRepo> BusinessService<B> {
             .list(filter, query.page.unwrap_or(1), query.limit.unwrap_or(10))
             .await?;
 
-        let views: Vec<BusinessView> = businesses.into_iter().map(BusinessView::from).collect();
-        Ok((views, total))
+        let data: Vec<BusinessDto> = businesses.into_iter().map(BusinessDto::from).collect();
+        Ok((data, total))
     }
 
     pub async fn invite_member(
@@ -79,7 +80,7 @@ impl<B: BusinessRepo> BusinessService<B> {
         business_session: BusinessSession,
         inviter: UserSession,
         invitation: InvitationCreate,
-    ) -> ApiResult<InvitationView> {
+    ) -> ApiResult<InvitationDto> {
         let mut business = self
             .business_repo
             .find_by_id(business_session.business_id.into_inner())
@@ -126,7 +127,7 @@ impl<B: BusinessRepo> BusinessService<B> {
             .find_member_by_email(invitation.email.as_str())
             .ok_or_else(|| ApiError::internal("Failed to create invitation"))?;
 
-        Ok(InvitationView {
+        Ok(InvitationDto {
             email: invitation_member.email.clone(),
             role: invitation_member.role.clone(),
             token,
@@ -138,7 +139,7 @@ impl<B: BusinessRepo> BusinessService<B> {
         &self,
         user: UserSession,
         accept_req: InvitationAccept,
-    ) -> ApiResult<BusinessView> {
+    ) -> ApiResult<BusinessDto> {
         let businesses = self
             .business_repo
             .list(
@@ -165,7 +166,7 @@ impl<B: BusinessRepo> BusinessService<B> {
             .map_err(|_| ApiError::invalid_token())?;
 
         let updated_business = self.business_repo.update(business._id, business).await?;
-        Ok(BusinessView::from(updated_business))
+        Ok(BusinessDto::from(updated_business))
     }
 
     pub async fn update_member(
@@ -173,7 +174,7 @@ impl<B: BusinessRepo> BusinessService<B> {
         business_session: BusinessSession,
         user: UserSession,
         update_req: MemberUpdate,
-    ) -> ApiResult<BusinessMemberView> {
+    ) -> ApiResult<BusinessMemberDto> {
         let mut business = self
             .business_repo
             .find_by_id(business_session.business_id.into_inner())
@@ -220,7 +221,7 @@ impl<B: BusinessRepo> BusinessService<B> {
             .find_member_by_email(update_req.email.as_str())
             .ok_or_else(|| ApiError::internal("Failed to update member"))?;
 
-        Ok(BusinessMemberView::from(updated_member.clone()))
+        Ok(BusinessMemberDto::from(updated_member.clone()))
     }
 
     pub async fn remove_member(
@@ -283,7 +284,7 @@ impl<B: BusinessRepo> BusinessService<B> {
     pub async fn get_pending_invitations_by_email(
         &self,
         email: String,
-    ) -> ApiResult<Vec<(BusinessView, InvitationView)>> {
+    ) -> ApiResult<Vec<(BusinessDto, InvitationDto)>> {
         let businesses = self
             .business_repo
             .list(
@@ -304,13 +305,13 @@ impl<B: BusinessRepo> BusinessService<B> {
                 if matches!(member.status, MembershipStatus::Pending)
                     && !member.is_invitation_expired()
                 {
-                    let invitation = InvitationView {
+                    let invitation = InvitationDto {
                         email: member.email.clone(),
                         role: member.role.clone(),
                         token: member.invitation_token.clone().unwrap(),
                         expires_at: member.invitation_expires_at.unwrap().to_chrono(),
                     };
-                    results.push((BusinessView::from(business), invitation));
+                    results.push((BusinessDto::from(business), invitation));
                 }
             }
         }
@@ -388,7 +389,7 @@ impl<B: BusinessRepo> BusinessService<B> {
         business_session: BusinessSession,
         user: UserSession,
         settings: BusinessSettings,
-    ) -> ApiResult<BusinessView> {
+    ) -> ApiResult<BusinessDto> {
         let mut business = self
             .business_repo
             .find_by_id(business_session.business_id.into_inner())
@@ -415,7 +416,7 @@ impl<B: BusinessRepo> BusinessService<B> {
             .update(business_session.business_id.into_inner(), business)
             .await?;
 
-        Ok(BusinessView::from(updated_business))
+        Ok(BusinessDto::from(updated_business))
     }
 
     pub async fn resend_invitation(
@@ -423,7 +424,7 @@ impl<B: BusinessRepo> BusinessService<B> {
         business_session: BusinessSession,
         user: UserSession,
         member_email: String,
-    ) -> ApiResult<InvitationView> {
+    ) -> ApiResult<InvitationDto> {
         let mut business = self
             .business_repo
             .find_by_id(business_session.business_id.into_inner())
@@ -472,7 +473,7 @@ impl<B: BusinessRepo> BusinessService<B> {
             .find_member_by_email(&member_email)
             .ok_or_else(|| ApiError::internal("Failed to update invitation"))?;
 
-        Ok(InvitationView {
+        Ok(InvitationDto {
             email: updated_member.email.clone(),
             role: updated_member.role.clone(),
             token: new_token,

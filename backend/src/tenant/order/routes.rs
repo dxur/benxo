@@ -14,12 +14,12 @@ pub struct OrderRoutes;
 
 #[routes(prefix = "/api/v1/orders", state = AppState)]
 impl OrderRoutes {
-    #[route(method=post, path="/create", res=OrderView)]
+    #[route(method=post, path="/create", res=OrderDto)]
     async fn create_order(
         State(state): State<AppState>,
         FromCookies(business): FromCookies<BusinessSession>,
         #[json] create_req: OrderCreate,
-    ) -> ApiResult<Json<OrderView>> {
+    ) -> ApiResult<Json<OrderDto>> {
         state
             .order_service
             .create_order(&state.product_service, business, create_req)
@@ -27,12 +27,12 @@ impl OrderRoutes {
             .map(Json)
     }
 
-    #[route(method=get, path="/{id}", res=OrderView)]
+    #[route(method=get, path="/{id}", res=OrderDto)]
     async fn get_order(
         State(state): State<AppState>,
         FromCookies(business): FromCookies<BusinessSession>,
         Path(order_id): Path<Id>,
-    ) -> ApiResult<Json<OrderView>> {
+    ) -> ApiResult<Json<OrderDto>> {
         state
             .order_service
             .get_order(business, order_id)
@@ -40,12 +40,12 @@ impl OrderRoutes {
             .map(Json)
     }
 
-    #[route(method=get, path="/number/{order_number}", res=OrderView)]
+    #[route(method=get, path="/number/{order_number}", res=OrderDto)]
     async fn get_order_by_number(
         State(state): State<AppState>,
         FromCookies(business): FromCookies<BusinessSession>,
         Path(order_id): Path<Id>,
-    ) -> ApiResult<Json<OrderView>> {
+    ) -> ApiResult<Json<OrderDto>> {
         state
             .order_service
             .get_order(business, order_id)
@@ -66,13 +66,13 @@ impl OrderRoutes {
             .map(Json)
     }
 
-    #[route(method=patch, path="/{id}", res=OrderView)]
+    #[route(method=patch, path="/{id}", res=OrderDto)]
     async fn update_order(
         State(state): State<AppState>,
         FromCookies(business): FromCookies<BusinessSession>,
         Path(order_id): Path<Id>,
         #[json] update_req: OrderUpdate,
-    ) -> ApiResult<Json<OrderView>> {
+    ) -> ApiResult<Json<OrderDto>> {
         state
             .order_service
             .update_order(business, order_id, update_req)
@@ -80,13 +80,13 @@ impl OrderRoutes {
             .map(Json)
     }
 
-    #[route(method=patch, path="/{id}/status", res=OrderView)]
+    #[route(method=patch, path="/{id}/status", res=OrderDto)]
     async fn update_order_status(
         State(state): State<AppState>,
         FromCookies(business): FromCookies<BusinessSession>,
         Path(order_id): Path<Id>,
         #[json] status_update: OrderStatusUpdate,
-    ) -> ApiResult<Json<OrderView>> {
+    ) -> ApiResult<Json<OrderDto>> {
         state
             .order_service
             .update_order_status(business, order_id, status_update)

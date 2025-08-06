@@ -1,6 +1,6 @@
-import type { BusinessView } from "@bindings/BusinessView";
+import type { BusinessDto } from "@bindings/BusinessDto";
 
 
 // TODO: Lazy business state store
-export default <BusinessView | undefined>$state(undefined);
+export default <BusinessDto | undefined>$state(undefined);
 

@@ -3,7 +3,7 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::json;
 use ts_rs::TS;
 
-#[derive(Debug, Clone, TS)]
+#[derive(Debug, Clone)]
 pub enum JsonOption<T> {
     Undefined,
     Null,
@@ -101,6 +101,42 @@ where
         D: Deserializer<'de>,
     {
         T::deserialize(deserializer).map(JsonOption::Value)
+    }
+}
+
+impl<T: TS> TS for JsonOption<T> {
+    type WithoutGenerics = JsonOption<ts_rs::Dummy>;
+    fn decl() -> String {
+        todo!()
+    }
+    fn decl_concrete() -> String {
+        todo!()
+    }
+    fn name() -> String {
+        format!(
+            "undefined | null | {0}",
+            <[_]>::into_vec(Box::new([<T as ::ts_rs::TS>::name()]),).join(", "),
+        )
+    }
+    fn inline() -> String {
+        todo!()
+    }
+    fn inline_flattened() -> String {
+        todo!()
+    }
+    fn visit_generics(v: &mut impl ::ts_rs::TypeVisitor)
+    where
+        Self: 'static,
+    {
+        v.visit::<T>();
+        <T as ::ts_rs::TS>::visit_generics(v);
+    }
+    fn visit_dependencies(v: &mut impl ::ts_rs::TypeVisitor)
+    where
+        Self: 'static,
+    {
+        <T as ::ts_rs::TS>::visit_generics(v);
+        v.visit::<T>();
     }
 }
 

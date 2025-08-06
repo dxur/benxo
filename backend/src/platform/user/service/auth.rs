@@ -18,10 +18,7 @@ impl<R: UserRepo> UserService<R> {
     ) -> ApiResult<(UserToken, MessageResponse)> {
         match (step, token) {
             (AuthStep::SignupEmail { email }, _) => self.handle_email_step(email).await,
-            (AuthStep::SignupPhone { otp, phone }, UserToken::SignupEmail {
-                email,
-                otp_hash,
-            }) => {
+            (AuthStep::SignupPhone { otp, phone }, UserToken::SignupEmail { email, otp_hash }) => {
                 self.handle_phone_step(email, phone, otp, otp_hash).await
             }
             (
@@ -38,17 +35,20 @@ impl<R: UserRepo> UserService<R> {
                     otp_hash,
                 },
             ) => {
-                self.handle_finalize_step(email, phone, otp, otp_hash, first_name, last_name, username, password)
-                    .await
+                self.handle_finalize_step(
+                    email, phone, otp, otp_hash, first_name, last_name, username, password,
+                )
+                .await
             }
             (AuthStep::ResetPassword { email }, _) => {
                 self.handle_req_reset_password_step(email).await
             }
-            (AuthStep::ResetPasswordFinalize { otp, password }, UserToken::ResetPassword {
-                email,
-                otp_hash,
-            }) => {
-                self.handle_reset_password_step(email, otp, otp_hash, password).await
+            (
+                AuthStep::ResetPasswordFinalize { otp, password },
+                UserToken::ResetPassword { email, otp_hash },
+            ) => {
+                self.handle_reset_password_step(email, otp, otp_hash, password)
+                    .await
             }
             (AuthStep::Login { email, password }, _) => {
                 self.handle_login_step(email, password).await
@@ -90,10 +90,7 @@ impl<R: UserRepo> UserService<R> {
         }
 
         Ok((
-            UserToken::SignupEmail {
-                email,
-                otp_hash,
-            },
+            UserToken::SignupEmail { email, otp_hash },
             MessageResponse {
                 message: "We sent you a verification email".to_string(),
             },
@@ -126,12 +123,10 @@ impl<R: UserRepo> UserService<R> {
             .await?;
 
         if count == 0 {
-            send_verification_otp(&phone, &otp)
-                .await
-                .map_err(|e| {
-                    error!(error = ?e, "Failed to send verification OTP");
-                    e
-                })?;
+            send_verification_otp(&phone, &otp).await.map_err(|e| {
+                error!(error = ?e, "Failed to send verification OTP");
+                e
+            })?;
 
             info!("Verification code sent");
         } else {
@@ -238,10 +233,7 @@ impl<R: UserRepo> UserService<R> {
         }
 
         Ok((
-            UserToken::ResetPassword {
-                email,
-                otp_hash
-            },
+            UserToken::ResetPassword { email, otp_hash },
             MessageResponse {
                 message: "We sent you a reset email".to_string(),
             },

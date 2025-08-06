@@ -12,7 +12,7 @@ use crate::{types::id::Id, utils::serde_helpers::JsonOption};
 #[map_owned(OrderStatus)]
 #[ghosts(Deleted: Self::Archived)]
 #[ts(export)]
-pub enum OrderStatusView {
+pub enum OrderStatusDto {
     Pending,
     Confirmed,
     Processing,
@@ -27,7 +27,7 @@ pub enum OrderStatusView {
 #[serde(rename_all = "snake_case")]
 #[map_owned(PaymentStatus)]
 #[ts(export)]
-pub enum PaymentStatusView {
+pub enum PaymentStatusDto {
     Pending,
     Paid,
     Failed,
@@ -63,9 +63,9 @@ pub struct OrderCreate {
 #[derive(Debug, Serialize, o2o, TS)]
 #[ts(export)]
 #[from_owned(OrderHistory)]
-pub struct OrderHistoryView {
+pub struct OrderHistoryDto {
     #[from(~.into())]
-    pub status: OrderStatusView,
+    pub status: OrderStatusDto,
     pub note: Option<String>,
     #[from(~.map(From::from))]
     pub created_by: Option<Id>,
@@ -76,7 +76,7 @@ pub struct OrderHistoryView {
 #[derive(Debug, Serialize, o2o, TS)]
 #[ts(export)]
 #[from_owned(OrderRecord)]
-pub struct OrderView {
+pub struct OrderDto {
     #[from(@._id.into())]
     pub id: Id,
     pub customer_email: String,
@@ -86,9 +86,9 @@ pub struct OrderView {
     pub shipping_address: ShippingAddress,
     pub billing_address: Option<ShippingAddress>,
     #[from(~.into())]
-    pub status: OrderStatusView,
+    pub status: OrderStatusDto,
     #[from(~.into())]
-    pub payment_status: PaymentStatusView,
+    pub payment_status: PaymentStatusDto,
     #[ts(as = "String")]
     pub subtotal: BigDecimal,
     #[ts(as = "String")]
@@ -101,7 +101,7 @@ pub struct OrderView {
     pub notes: Option<String>,
     pub tracking_number: Option<String>,
     #[from(~.into_iter().map(Into::into).collect())]
-    pub history: Vec<OrderHistoryView>,
+    pub history: Vec<OrderHistoryDto>,
     #[from(~.to_chrono())]
     pub created_at: DateTime<Utc>,
     #[from(~.to_chrono())]
@@ -113,8 +113,8 @@ pub struct OrderView {
 pub struct OrderListQuery {
     pub page: Option<u32>,
     pub limit: Option<u32>,
-    pub status: Option<OrderStatusView>,
-    pub payment_status: Option<PaymentStatusView>,
+    pub status: Option<OrderStatusDto>,
+    pub payment_status: Option<PaymentStatusDto>,
     pub customer_email: Option<String>,
     pub search: Option<String>,
     pub date_from: Option<DateTime<Utc>>,
@@ -124,8 +124,8 @@ pub struct OrderListQuery {
 #[derive(Debug, Deserialize, TS)]
 #[ts(export)]
 pub struct OrderUpdate {
-    pub status: JsonOption<OrderStatusView>,
-    pub payment_status: JsonOption<PaymentStatusView>,
+    pub status: JsonOption<OrderStatusDto>,
+    pub payment_status: JsonOption<PaymentStatusDto>,
     pub tracking_number: JsonOption<String>,
     pub notes: JsonOption<String>,
     pub shipping_address: JsonOption<ShippingAddress>,
@@ -135,7 +135,7 @@ pub struct OrderUpdate {
 #[derive(Debug, Deserialize, TS)]
 #[ts(export)]
 pub struct OrderStatusUpdate {
-    pub status: OrderStatusView,
+    pub status: OrderStatusDto,
     pub note: Option<String>,
     pub created_by: Option<Id>,
 }
@@ -143,7 +143,7 @@ pub struct OrderStatusUpdate {
 #[derive(Debug, Serialize, TS)]
 #[ts(export)]
 pub struct OrderListResponse {
-    pub orders: Vec<OrderView>,
+    pub orders: Vec<OrderDto>,
     pub total: u64,
     pub page: u32,
     pub limit: u32,
@@ -166,7 +166,7 @@ pub struct OrderAnalytics {
 #[ts(export)]
 pub struct BulkOrderStatusUpdate {
     pub order_ids: Vec<Id>,
-    pub status: OrderStatusView,
+    pub status: OrderStatusDto,
     pub note: Option<String>,
     pub created_by: Option<String>,
 }

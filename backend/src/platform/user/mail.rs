@@ -4,16 +4,10 @@ use tokio::{io::BufStream, net::TcpStream};
 
 use crate::{
     types::{email::Email, phone::PhoneNumber},
-    utils::{
-        error::{ApiError, ApiResult},
-    },
+    utils::error::{ApiError, ApiResult},
 };
 
-pub async fn send_verification_email(
-    to: &Email,
-    otp: &str,
-    ttl: Duration,
-) -> ApiResult<()> {
+pub async fn send_verification_email(to: &Email, otp: &str, ttl: Duration) -> ApiResult<()> {
     let subject = "Subject: Verify your email\n";
     let from = "From: no-reply@localhost\n";
     let to_header = format!("To: {}\n", to.as_str());

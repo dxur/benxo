@@ -26,7 +26,7 @@ impl<R: OrderRepo> OrderService<R> {
         product_service: &ProductService<P>,
         business: BusinessSession,
         create_req: OrderCreate,
-    ) -> ApiResult<OrderView> {
+    ) -> ApiResult<OrderDto> {
         let mut order_items = Vec::new();
         let mut subtotal = BigDecimal::from(0);
 
@@ -90,7 +90,7 @@ impl<R: OrderRepo> OrderService<R> {
             .map(Into::into)
     }
 
-    pub async fn get_order(&self, business: BusinessSession, order_id: Id) -> ApiResult<OrderView> {
+    pub async fn get_order(&self, business: BusinessSession, order_id: Id) -> ApiResult<OrderDto> {
         let id = order_id.into_inner();
         self.repo
             .find_by_id(business.business_id.into_inner(), id)
@@ -104,7 +104,7 @@ impl<R: OrderRepo> OrderService<R> {
         business: BusinessSession,
         order_id: Id,
         update_req: OrderUpdate,
-    ) -> ApiResult<OrderView> {
+    ) -> ApiResult<OrderDto> {
         let id = order_id.into_inner();
         let business_id = business.business_id.into_inner();
 
@@ -143,7 +143,7 @@ impl<R: OrderRepo> OrderService<R> {
         business: BusinessSession,
         order_id: Id,
         status_update: OrderStatusUpdate,
-    ) -> ApiResult<OrderView> {
+    ) -> ApiResult<OrderDto> {
         let id = order_id.into_inner();
         let business_id = business.business_id.into_inner();
 

@@ -159,7 +159,7 @@ pub struct EmailVerification {
 #[derive(Debug, Clone, Serialize, TS, o2o)]
 #[from_owned(UserRecord)]
 #[ts(export)]
-pub struct UserView {
+pub struct UserDto {
     #[from(@._id.to_hex())]
     pub id: String,
     pub email: Email,
@@ -178,7 +178,7 @@ pub struct UserView {
 
 #[derive(Debug, Clone)]
 pub struct LoginResponse {
-    pub user: UserView,
+    pub user: UserDto,
     pub token: String,
     pub expires_at: DateTime<Utc>,
 }
@@ -201,7 +201,7 @@ pub struct UserListQuery {
 #[derive(Debug, Clone, Serialize, TS)]
 #[ts(export)]
 pub struct UserListResponse {
-    pub users: Vec<UserView>,
+    pub users: Vec<UserDto>,
     pub total: u64,
     pub page: u32,
     pub limit: u32,

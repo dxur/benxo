@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use bson::{doc, oid::ObjectId, to_bson, DateTime};
 use futures::stream::TryStreamExt;
-use mongodb::{options::FindOptions, Collection, Client};
+use mongodb::{options::FindOptions, Client, Collection};
 
 use super::domain::*;
 use crate::utils::error::{ApiError, ApiResult};
@@ -53,7 +53,6 @@ impl MongoOrderRepo {
     pub fn new(client: Client) -> Self {
         Self { client }
     }
-
 
     fn get_collection(&self, business_id: ObjectId) -> Collection<OrderRecord> {
         self.client

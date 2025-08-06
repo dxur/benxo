@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Haboob Kids - Premium Children's Clothing & Toys</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #fff;
+        }
+
+        /* Announcement Bar */
+        .announcement-bar {
+            height: 48px;
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 0.75rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .announcement-bar a {
+            color: #FFEB3B;
+            text-decoration: none;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-bottom: 1px solid #f0f0f0;
+            background: #ffcd3e;
+            color: white;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo {
+            font-size: 2rem;
+            display: flex;
+            justify-self: center;
+            font-weight: 800;
+            position: relative;
+            background: linear-gradient(45deg, #4FC3F7, #FD5CE0, #FFA629, #FE4C4B, #FFEB3B);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+
+        .header-center {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+        }
+
+        .main-nav {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .main-nav a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: color 0.2s;
+            position: relative;
+        }
+
+        .main-nav a:hover {
+            color: #4FC3F7;
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .search-icon, .account-icon, .cart-icon {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .search-icon:hover, .account-icon:hover, .cart-icon:hover {
+            color: #4FC3F7;
+        }
+
+        .cart-icon {
+            position: relative;
+        }
+
+        .cart-count {
+            background: #FE4C4B;
+            color: white;
+            border-radius: 50%;
+            padding: 0.2rem 0.4rem;
+            font-size: 0.75rem;
+            position: absolute;
+            top: 0;
+            right: 0;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Mobile Menu */
+        .mobile-menu-checkbox {
+            display: none;
+        }
+
+        .mobile-menu {
+            position: fixed;
+            top: 48px;
+            left: -100%;
+            width: 300px;
+            height: 100vh;
+            background: white;
+            z-index: 1001;
+            transition: left 0.3s ease;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .mobile-menu-checkbox:checked ~ .mobile-menu {
+            left: 0;
+        }
+
+        .mobile-header {
+            height: 55px;
+            display: flex;
+            align-items: center;
+            padding: 0 1.5rem;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mobile-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .mobile-nav {
+            padding: 1rem 0;
+        }
+
+        .mobile-nav-item {
+            list-style: none;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .mobile-nav-link {
+            display: block;
+            padding: 1rem 1.5rem;
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .mobile-overlay {
+            position: fixed;
+            top: 48px;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .mobile-menu-checkbox:checked ~ .mobile-overlay {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 4rem 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .hero-badge {
+            background: linear-gradient(135deg, #4FC3F7, #FD5CE0);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #333;
+            margin-bottom: 1rem;
+            line-height: 1.1;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-button {
+            background: #333;
+            color: white;
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .cta-button:hover {
+            background: #4FC3F7;
+            transform: translateY(-2px);
+        }
+
+        /* Content Sections */
+        .content-section {
+            margin: 4rem 0;
+            display: flex;
+            align-items: center;
+            gap: 3rem;
+        }
+
+        .content-section:nth-child(even) {
+            flex-direction: row-reverse;
+        }
+
+        .content-text {
+            flex: 1;
+        }
+
+        .content-emoji {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .content-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .content-description {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .content-image {
+            flex: 1;
+            height: 300px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: #ddd;
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 4rem 0;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-text {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        /* Footer */
+        .footer {
+            background: #f8f9fa;
+            padding: 3rem 0 2rem;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-section h4 {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-links a {
+            color: #666;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: #4FC3F7;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #e0e0e0;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            text-align: center;
+            color: #999;
+            font-size: 0.9rem;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .mobile-toggle {
+                display: block;
+            }
+
+            .header-center, .header-icons .search-icon {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2.2rem;
+            }
+
+            .content-section {
+                flex-direction: column !important;
+                text-align: center;
+                gap: 2rem;
+            }
+
+            .content-section:nth-child(even) {
+                flex-direction: column !important;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .main-content {
+                padding: 0 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero {
+                padding: 2rem 1rem;
+            }
+
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+
+            .content-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Checkbox -->
+    <input type="checkbox" id="mobile-menu-toggle" class="mobile-menu-checkbox">
+    
+    <!-- Mobile Menu -->
+    <nav class="mobile-menu">
+        <div class="mobile-header">
+            <img src="http://localhost:44507/api/v1/download-shared-object/aHR0cDovLzEyNy4wLjAuMTo5MDAwL3RleHQvZzE0LnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPTc5VllXVkJPVExMTzQzUUVaTjlUJTJGMjAyNTA4MDQlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjUwODA0VDIxMzY0MVomWC1BbXotRXhwaXJlcz00MzE5OSZYLUFtei1TZWN1cml0eS1Ub2tlbj1leUpoYkdjaU9pSklVelV4TWlJc0luUjVjQ0k2SWtwWFZDSjkuZXlKaFkyTmxjM05MWlhraU9pSTNPVlpaVjFaQ1QxUk1URTgwTTFGRldrNDVWQ0lzSW1WNGNDSTZNVGMxTkRNNE5qTXlOeXdpY0dGeVpXNTBJam9pYldsdWFXOWhaRzFwYmlKOS5KQ2hnTkplTG4tNC1oVkJKMkFwMzY4dzRUS3hVVFhiTnM4cmNzcml3ZXVYb1E2R09aZi1qTmZnS2JRSFUwd01Qb2RuZGxMbndGMXE1TEUzTERkLXJfdyZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmdmVyc2lvbklkPW51bGwmWC1BbXotU2lnbmF0dXJlPWY5ZjQ0Yzk0MjZhOTYyNTc4OGZmYjU1ZTJhYzMyNzNmYzFmNmQxZDUwOGUwMjQ2NDFkNjFlMGYxMjcwNGQzOTE" alt="logo" height="36px">
+            <label for="mobile-menu-toggle" class="mobile-close">✕</label>
+        </div>
+        <ul class="mobile-nav">
+            <li class="mobile-nav-item"><a href="#" class="mobile-nav-link">New Arrivals</a></li>
+            <li class="mobile-nav-item"><a href="#" class="mobile-nav-link">Clothing</a></li>
+            <li class="mobile-nav-item"><a href="#" class="mobile-nav-link">Toys</a></li>
+            <li class="mobile-nav-item"><a href="#" class="mobile-nav-link">Sale</a></li>
+            <li class="mobile-nav-item"><a href="#" class="mobile-nav-link">About</a></li>
+            <li class="mobile-nav-item"><a href="#" class="mobile-nav-link">Contact</a></li>
+        </ul>
+    </nav>
+
+    <!-- Mobile Overlay -->
+    <label for="mobile-menu-toggle" class="mobile-overlay"></label>
+
+    <!-- Announcement Bar -->
+    <div class="announcement-bar">
+        Free shipping on orders over $50! <a href="#">Shop now →</a>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <label for="mobile-menu-toggle" class="mobile-toggle">☰</label>
+            <a href="#" class="logo">
+              <img src="http://localhost:44507/api/v1/download-shared-object/aHR0cDovLzEyNy4wLjAuMTo5MDAwL3RleHQvZzE0LnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPTc5VllXVkJPVExMTzQzUUVaTjlUJTJGMjAyNTA4MDQlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjUwODA0VDIxMzY0MVomWC1BbXotRXhwaXJlcz00MzE5OSZYLUFtei1TZWN1cml0eS1Ub2tlbj1leUpoYkdjaU9pSklVelV4TWlJc0luUjVjQ0k2SWtwWFZDSjkuZXlKaFkyTmxjM05MWlhraU9pSTNPVlpaVjFaQ1QxUk1URTgwTTFGRldrNDVWQ0lzSW1WNGNDSTZNVGMxTkRNNE5qTXlOeXdpY0dGeVpXNTBJam9pYldsdWFXOWhaRzFwYmlKOS5KQ2hnTkplTG4tNC1oVkJKMkFwMzY4dzRUS3hVVFhiTnM4cmNzcml3ZXVYb1E2R09aZi1qTmZnS2JRSFUwd01Qb2RuZGxMbndGMXE1TEUzTERkLXJfdyZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmdmVyc2lvbklkPW51bGwmWC1BbXotU2lnbmF0dXJlPWY5ZjQ0Yzk0MjZhOTYyNTc4OGZmYjU1ZTJhYzMyNzNmYzFmNmQxZDUwOGUwMjQ2NDFkNjFlMGYxMjcwNGQzOTE" alt="logo" height="36px">
+            </a>
+            <div class="header-center">
+                <nav class="main-nav">
+                    <a href="#">New Arrivals</a>
+                    <a href="#">Clothing</a>
+                    <a href="#">Toys</a>
+                    <a href="#">Sale</a>
+                    <a href="#">About</a>
+                    <a href="#">Contact</a>
+                </nav>
+            </div>
+            <div class="header-icons">
+                <button class="search-icon">🔍</button>
+                <button class="account-icon">👤</button>
+                <button class="cart-icon">
+                    🛒
+                    <span class="cart-count">2</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-badge">New Collection Available!</div>
+            <h1>Keeping track of your kid's style is easy</h1>
+            <p>We all know that kids grow fast and need comfortable, stylish clothes. Our premium collection is designed to keep up with their adventures while looking great.</p>
+            <a href="#" class="cta-button">Shop Now</a>
+        </section>
+
+        <!-- Content Sections -->
+        <section class="content-section">
+            <div class="content-text">
+                <div class="content-emoji">🎨</div>
+                <h2 class="content-title">Style more, worry less.</h2>
+                <p class="content-description">As a parent, there's a long list of things you need to worry about. Don't add finding the perfect outfit to that list. Our curated collection makes dressing your kids effortless and fun.</p>
+                <a href="#" class="cta-button">Shop Collection</a>
+            </div>
+            <div class="content-image">👕</div>
+        </section>
+
+        <section class="content-section">
+            <div class="content-text">
+                <div class="content-emoji">🏆</div>
+                <h2 class="content-title">Nothing but the best.</h2>
+                <p class="content-description">You work hard to buy the best stuff for your kids. Our clothes are made from premium materials that are designed to withstand whatever your kids can throw at them while staying comfortable and stylish.</p>
+                <a href="#" class="cta-button">Explore Quality</a>
+            </div>
+            <div class="content-image">🧸</div>
+        </section>
+
+        <section class="content-section">
+            <div class="content-text">
+                <div class="content-emoji">🪄</div>
+                <h2 class="content-title">Shopping is a breeze.</h2>
+                <p class="content-description">Our curated collections make finding the perfect outfit super easy. Browse by age, occasion, or style preference and find exactly what you're looking for in minutes.</p>
+                <a href="#" class="cta-button">Start Shopping</a>
+            </div>
+            <div class="content-image">🛍️</div>
+        </section>
+
+        <!-- Features Grid -->
+        <section class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🇺🇸</div>
+                <h3 class="feature-title">Made with love in USA</h3>
+                <p class="feature-text">Haboob Kids are made with care. We are a family business and do everything in-house from designing to shipping.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🚚</div>
+                <h3 class="feature-title">Free shipping — on orders over $50</h3>
+                <p class="feature-text">Who doesn't love free? Buy $50 or more and we'll cover the shipping with tracking included.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">😊</div>
+                <h3 class="feature-title">30 Days — Happy guarantee</h3>
+                <p class="feature-text">If you don't love your purchase for any reason, return it within 30 days for a full refund. No questions asked!</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Shop</h4>
+                <ul class="footer-links">
+                    <li><a href="#">New Arrivals</a></li>
+                    <li><a href="#">Clothing</a></li>
+                    <li><a href="#">Toys</a></li>
+                    <li><a href="#">Sale</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Help</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Contact Us</a></li>
+                    <li><a href="#">Size Guide</a></li>
+                    <li><a href="#">Shipping Info</a></li>
+                    <li><a href="#">Returns</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Company</h4>
+                <ul class="footer-links">
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Connect</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Instagram</a></li>
+                    <li><a href="#">Facebook</a></li>
+                    <li><a href="#">Twitter</a></li>
+                    <li><a href="#">Newsletter</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Haboob Kids. All rights reserved.</p>
+        </div>
+    </footer>
+</body>
+</html>

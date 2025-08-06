@@ -7,7 +7,7 @@ use serde::{
 };
 use ts_rs::TS;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, TS)]
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, TS)]
 pub struct Id(#[ts(as = "String")] ObjectId);
 
 impl Id {
@@ -71,9 +71,7 @@ impl<'de> Deserialize<'de> for Id {
             where
                 E: de::Error,
             {
-                ObjectId::from_str(v)
-                    .map(Id)
-                    .map_err(de::Error::custom)
+                ObjectId::from_str(v).map(Id).map_err(de::Error::custom)
             }
         }
 

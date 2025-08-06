@@ -24,17 +24,17 @@ impl<R: UserRepo> UserService<R> {
         Self { repo }
     }
 
-    pub async fn me(&self, id: ObjectId) -> ApiResult<UserView> {
+    pub async fn me(&self, id: ObjectId) -> ApiResult<UserDto> {
         let user = self
             .repo
             .find_by_id(id)
             .await?
             .ok_or_else(|| ApiError::not_found("user", id.to_hex()))?;
 
-        Ok(UserView::from(user))
+        Ok(UserDto::from(user))
     }
 
-    pub async fn update_user(&self, id: ObjectId, update_req: UserUpdate) -> ApiResult<UserView> {
+    pub async fn update_user(&self, id: ObjectId, update_req: UserUpdate) -> ApiResult<UserDto> {
         let mut user = self
             .repo
             .find_by_id(id)
@@ -62,6 +62,6 @@ impl<R: UserRepo> UserService<R> {
         }
 
         let updated_user = self.repo.update(id, user).await?;
-        Ok(UserView::from(updated_user))
+        Ok(UserDto::from(updated_user))
     }
 }

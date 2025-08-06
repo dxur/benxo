@@ -12,6 +12,7 @@ pub enum ProductStatus {
     #[default]
     Draft,
     Active,
+    InActive,
     Archived,
     Deleted,
 }

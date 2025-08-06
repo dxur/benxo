@@ -24,11 +24,11 @@ impl UserRoutes {
         Ok(Json(msg))
     }
 
-    #[route(method = post, path = "/me", res = UserView)]
+    #[route(method = post, path = "/me", res = UserDto)]
     async fn me(
         State(state): State<AppState>,
         FromCookies(token): FromCookies<UserSession>,
-    ) -> ApiResult<Json<UserView>> {
+    ) -> ApiResult<Json<UserDto>> {
         state.user_service.me(token.user_id).await.map(Json)
     }
 }

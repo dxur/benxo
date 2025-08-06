@@ -24,7 +24,7 @@ pub struct BusinessCreate {
 #[derive(Debug, Serialize, o2o, TS)]
 #[ts(export)]
 #[from_owned(BusinessRecord)]
-pub struct BusinessView {
+pub struct BusinessDto {
     #[from(@._id.into())]
     pub id: Id,
     pub name: Name,
@@ -47,7 +47,7 @@ pub struct BusinessView {
 #[derive(Debug, Serialize, o2o, TS)]
 #[ts(export)]
 #[from_owned(BusinessMember)]
-pub struct BusinessMemberView {
+pub struct BusinessMemberDto {
     pub email: Email,
     #[from(~.map(|id| id.into()))]
     pub user_id: Option<Id>,
@@ -180,7 +180,7 @@ pub struct InvitationResend {
 
 #[derive(Debug, Serialize, TS)]
 #[ts(export)]
-pub struct InvitationView {
+pub struct InvitationDto {
     pub email: Email,
     pub role: MemberRole,
     pub token: String,
@@ -207,7 +207,7 @@ pub struct PermissionCheckResponse {
 #[derive(Debug, Serialize, TS)]
 #[ts(export)]
 pub struct BusinessListResponse {
-    pub businesses: Vec<BusinessView>,
+    pub businesses: Vec<BusinessDto>,
     pub total: u64,
     pub page: u32,
     pub limit: u32,
@@ -216,5 +216,5 @@ pub struct BusinessListResponse {
 #[derive(Debug, Serialize, TS)]
 #[ts(export)]
 pub struct PendingInvitationsResponse {
-    pub invitations: Vec<(BusinessView, InvitationView)>,
+    pub invitations: Vec<(BusinessDto, InvitationDto)>,
 }

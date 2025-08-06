@@ -1,6 +1,6 @@
 import type { AppRoute } from "../..";
 import type { SidebarItem } from "../../lib/components/sidebar.svelte";
-import { Home } from "@lucide/svelte";
+import { HomeIcon } from "@lucide/svelte";
 
 export namespace Routes {
     export const HOME: AppRoute = {
@@ -15,5 +15,5 @@ export const homeRoutes = [
 ];
 
 export const homeSidebarItems = <SidebarItem[]>[
-    { id: "home", name: "Home", path: Routes.HOME.path, icon: Home },
+    { id: "home", name: "Home", path: Routes.HOME.path, icon: HomeIcon },
 ]

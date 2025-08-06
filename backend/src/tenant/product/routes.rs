@@ -15,20 +15,20 @@ pub struct ProductRoutes;
 
 #[routes(prefix = "/api/v1/products", state = AppState)]
 impl ProductRoutes {
-    #[route(method=post, path="/create", res=ProductView)]
+    #[route(method=post, path="/create", res=ProductDto)]
     async fn create_product(
         State(state): State<AppState>,
         FromCookies(business): FromCookies<BusinessSession>,
-    ) -> ApiResult<Json<ProductView>> {
+    ) -> ApiResult<Json<ProductDto>> {
         state.product_service.create(business).await.map(Json)
     }
 
-    #[route(method=post, path="/{id}", res=ProductView)]
+    #[route(method=post, path="/{product_id}", res=ProductDto)]
     async fn get_product(
         State(state): State<AppState>,
         FromCookies(business): FromCookies<BusinessSession>,
-        Path(product_id): Path<Id>,
-    ) -> ApiResult<Json<ProductView>> {
+        #[path] product_id: Id,
+    ) -> ApiResult<Json<ProductDto>> {
         state
             .product_service
             .get_product(business, product_id)
@@ -49,13 +49,13 @@ impl ProductRoutes {
             .map(Json)
     }
 
-    #[route(method=patch, path="/{id}", res=ProductView)]
+    #[route(method=patch, path="/{product_id}", res=ProductDto)]
     async fn edit_product(
         State(state): State<AppState>,
         FromCookies(business): FromCookies<BusinessSession>,
-        Path(product_id): Path<Id>,
+        #[path] product_id: Id,
         #[json] update_req: ProductUpdate,
-    ) -> ApiResult<Json<ProductView>> {
+    ) -> ApiResult<Json<ProductDto>> {
         state
             .product_service
             .update_product(business, product_id, update_req)
@@ -63,11 +63,11 @@ impl ProductRoutes {
             .map(Json)
     }
 
-    #[route(method=delete, path="/{id}", res=MessageResponse)]
+    #[route(method=delete, path="/{product_id}", res=MessageResponse)]
     async fn delete_product(
         State(state): State<AppState>,
         FromCookies(business): FromCookies<BusinessSession>,
-        Path(product_id): Path<Id>,
+        #[path] product_id: Id,
     ) -> ApiResult<Json<MessageResponse>> {
         state
             .product_service

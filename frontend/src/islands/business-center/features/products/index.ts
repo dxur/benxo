@@ -1,6 +1,6 @@
 import type { AppRoute } from "../..";
 import type { SidebarItem } from "../../lib/components/sidebar.svelte";
-import { Package, TrendingUp } from "@lucide/svelte";
+import { PackageIcon, TrendingUpIcon } from "@lucide/svelte";
 
 export namespace Routes {
     export const LIST_PAGE: AppRoute = {
@@ -32,12 +32,12 @@ export const productsSidebarItems = <SidebarItem[]>[
         id: "products",
         name: "Products",
         path: Routes.LIST_PAGE.path,
-        icon: Package
+        icon: PackageIcon
     },
     {
         id: "stocks",
         name: "Stocks",
         path: Routes.STOCKS_PAGE.path,
-        icon: TrendingUp
+        icon: TrendingUpIcon
     },
 ];

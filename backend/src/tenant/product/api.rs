@@ -16,9 +16,10 @@ use crate::{
 #[map_owned(ProductStatus)]
 #[ghosts(Deleted: Self::Archived)]
 #[ts(export)]
-pub enum ProductStatusView {
+pub enum ProductStatusDto {
     Draft,
     Active,
+    InActive,
     Archived,
 }
 
@@ -38,13 +39,13 @@ pub struct ProductVariantCreate {
 #[derive(Debug, Serialize, o2o, TS)]
 #[ts(export)]
 #[from_owned(ProductRecord)]
-pub struct ProductView {
+pub struct ProductDto {
     #[from(@._id.into())]
     pub id: Id,
     pub title: Name,
     pub description: String,
     #[from(~.into())]
-    pub status: ProductStatusView,
+    pub status: ProductStatusDto,
     pub featured: bool,
     pub category: String,
     pub images: Vec<String>,
@@ -62,7 +63,7 @@ pub struct ProductView {
 pub struct ProductListQuery {
     pub page: Option<u32>,
     pub limit: Option<u32>,
-    pub status: Option<ProductStatusView>,
+    pub status: Option<ProductStatusDto>,
     pub category: Option<String>,
     pub featured: Option<bool>,
     pub search: Option<String>,
@@ -76,7 +77,7 @@ pub struct ProductUpdate {
     pub category: JsonOption<String>,
     pub images: JsonOption<Vec<String>>,
     pub featured: JsonOption<bool>,
-    pub status: JsonOption<ProductStatusView>,
+    pub status: JsonOption<ProductStatusDto>,
     pub options: JsonOption<IndexMap<String, IndexSet<String>>>,
     pub variants: JsonOption<Vec<ProductVariant>>,
     pub slug: JsonOption<String>,
@@ -85,7 +86,7 @@ pub struct ProductUpdate {
 #[derive(Debug, Serialize, TS)]
 #[ts(export)]
 pub struct ProductListResponse {
-    pub products: Vec<ProductView>,
+    pub products: Vec<ProductDto>,
     pub total: u64,
     pub page: u32,
     pub limit: u32,

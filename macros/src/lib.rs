@@ -328,19 +328,20 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
                 let fn_name = &sig.ident;
                 let method_ident = Ident::new(&method.to_string().to_lowercase(), method.span());
 
-                // Transform function parameters to handle #[json] and #[query] attributes
+                // Transform function parameters to handle #[json], #[query] and #[path] attributes
                 let mut wrapper_args = vec![];
                 let mut handler_call_args = vec![];
                 let mut json_type = None;
                 let mut query_type = None;
+                let mut path_types = Vec::new();
 
                 for input in &mut sig.inputs {
                     if let FnArg::Typed(PatType { attrs, pat, ty, .. }) = input {
                         let ty_str = ty.to_token_stream().to_string().replace(' ', "");
+                        let pat_str = pat.to_token_stream().to_string().replace(' ', "");
 
                         match attrs.len() {
                             0 => {
-                                // No attributes, keep as is
                                 wrapper_args.push(quote! { #pat: #ty });
                                 handler_call_args.push(quote! { #pat });
                             }
@@ -354,7 +355,6 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
                                         query_type = Some(ty_str);
                                         wrapper_args.push(quote! { Query(#pat): Query<#ty> });
                                         handler_call_args.push(quote! { #pat });
-                                        // Remove the attribute from the parameter
                                         attrs.clear();
                                     }
                                     "json" => {
@@ -364,7 +364,12 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
                                         json_type = Some(ty_str);
                                         wrapper_args.push(quote! { Json(#pat): Json<#ty> });
                                         handler_call_args.push(quote! { #pat });
-                                        // Remove the attribute from the parameter
+                                        attrs.clear();
+                                    }
+                                    "path" => {
+                                        path_types.push((pat_str, "any".to_string()));
+                                        wrapper_args.push(quote! { Path(#pat): Path<#ty> });
+                                        handler_call_args.push(quote! { #pat });
                                         attrs.clear();
                                     }
                                     other => {
@@ -403,7 +408,7 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
                     .route(#path, axum::routing::#method_ident(Self::#fn_name))
                 });
 
-                let full_path = prefix_str.clone() + path.as_str();
+                let mut full_path = prefix_str.clone() + path.as_str();
 
                 let should_export = res_type.as_ref().is_some();
 
@@ -432,12 +437,20 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
                     insert_import(&ts_ret);
                 }
 
-                let fn_args = match (&ts_json[..], &ts_query) {
+                let mut fn_args = match (&ts_json[..], &ts_query) {
                     ("void", None) => "".to_string(),
-                    ("void", Some(query)) => format!("query: {}", query),
-                    (json, None) => format!("body: {}", json),
-                    (json, Some(query)) => format!("body: {}, query: {}", json, query),
+                    ("void", Some(query)) => format!("query: {}, ", query),
+                    (json, None) => format!("body: {}, ", json),
+                    (json, Some(query)) => format!("body: {}, query: {}, ", json, query),
                 };
+
+                let mut path_args = String::new();
+                for (pat, ty) in &path_types {
+                    full_path = full_path.replace(&format!("{{{}}}", pat), &format!("${{{}}}", pat));
+                    path_args += &format!("{}: {}, ", pat, ty);
+                }
+
+                fn_args = path_args + &fn_args;
 
                 let query_string = if ts_query.is_some() {
                     " + '?' + new URLSearchParams(Object.entries(query).filter(([_, value]) => value != null))"
@@ -462,7 +475,7 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
                 ts_routes.push(quote! {
                     bindings.push(format!(
 "export async function {}({}): Promise<{}> {{
-const res = await fetch(`{}`{}, {{
+    const res = await fetch(`{}`{}, {{
         method: '{}',
         {}
     }});

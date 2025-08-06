@@ -1,4 +1,4 @@
-use super::api::{ProductListQuery, ProductListResponse, ProductUpdate, ProductView};
+use super::api::{ProductDto, ProductListQuery, ProductListResponse, ProductUpdate};
 use super::domain::ProductFilter;
 use super::repo::ProductRepo;
 use crate::platform::business::api::BusinessSession;
@@ -15,7 +15,7 @@ impl<R: ProductRepo> ProductService<R> {
         Self { repo }
     }
 
-    pub async fn create(&self, business: BusinessSession) -> ApiResult<ProductView> {
+    pub async fn create(&self, business: BusinessSession) -> ApiResult<ProductDto> {
         self.repo
             .create(business.business_id.into_inner(), Default::default())
             .await
@@ -27,7 +27,7 @@ impl<R: ProductRepo> ProductService<R> {
         business: BusinessSession,
         product_id: Id,
         update_req: ProductUpdate,
-    ) -> ApiResult<ProductView> {
+    ) -> ApiResult<ProductDto> {
         let id = product_id.into_inner();
         let business_id = business.business_id.into_inner();
         let mut record = self
@@ -62,7 +62,7 @@ impl<R: ProductRepo> ProductService<R> {
         &self,
         business: BusinessSession,
         product_id: Id,
-    ) -> ApiResult<ProductView> {
+    ) -> ApiResult<ProductDto> {
         let id = product_id.into_inner();
         self.repo
             .find_by_id(business.business_id.into_inner(), id)
@@ -115,7 +115,6 @@ impl<R: ProductRepo> ProductService<R> {
             limit,
         })
     }
-
 
     pub async fn pub_list_products(
         &self,

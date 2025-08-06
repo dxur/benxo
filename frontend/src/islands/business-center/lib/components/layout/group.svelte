@@ -1,9 +1,16 @@
 <script>
-    let { children } = $props();
+    import { cn } from "$lib/utils";
+
+    let props = $props();
+    let { children, class: className, ...restProps } = props;
 </script>
 
 <div
-    class="flex flex-col md:flex-row items-center justify-between gap-4 w-full md:w-auto [&>*]:w-full md:[&>*]:w-auto"
+    class={cn(
+        "flex flex-col md:flex-row lg:flex-row justify-between gap-4 w-full md:w-auto [&>*]:w-full md:[&>*]:w-auto lg:[&>*]:w-auto",
+        className,
+    )}
+    {...restProps}
 >
     {@render children?.()}
 </div>

@@ -17,12 +17,12 @@ pub struct BusinessRoutes;
 #[routes(prefix = "/api/v1/businesses", state = AppState)]
 impl BusinessRoutes {
     /// Create a new business
-    #[route(method = post, path = "/create", res = BusinessView)]
+    #[route(method = post, path = "/create", res = BusinessDto)]
     async fn create(
         State(state): State<AppState>,
         FromCookies(user_token): FromCookies<UserSession>,
         #[json] create_req: BusinessCreate,
-    ) -> ApiResult<Json<BusinessView>> {
+    ) -> ApiResult<Json<BusinessDto>> {
         state
             .business_service
             .create(user_token, create_req)
@@ -72,14 +72,14 @@ impl BusinessRoutes {
     }
 
     /// Get current business details
-    #[route(method = post, path = "/current", res = BusinessView)]
+    #[route(method = post, path = "/current", res = BusinessDto)]
     async fn current(
         State(state): State<AppState>,
         FromCookies(business_token): FromCookies<BusinessSession>,
-    ) -> ApiResult<Json<BusinessView>> {
+    ) -> ApiResult<Json<BusinessDto>> {
         state
             .business_service
-            .current(business_token)
+            .get(business_token.business_id)
             .await
             .map(Json)
     }
@@ -99,13 +99,13 @@ impl BusinessRoutes {
     }
 
     /// Update business settings
-    #[route(method = put, path = "/settings", res = BusinessView)]
+    #[route(method = put, path = "/settings", res = BusinessDto)]
     async fn update_settings(
         State(state): State<AppState>,
         FromCookies(business_token): FromCookies<BusinessSession>,
         FromCookies(user_token): FromCookies<UserSession>,
         #[json] settings: BusinessSettings,
-    ) -> ApiResult<Json<BusinessView>> {
+    ) -> ApiResult<Json<BusinessDto>> {
         state
             .business_service
             .update_business_settings(business_token, user_token, settings)
@@ -114,13 +114,13 @@ impl BusinessRoutes {
     }
 
     /// Create an invitation to join the business
-    #[route(method = post, path = "/invitations", res = InvitationView)]
+    #[route(method = post, path = "/invitations", res = InvitationDto)]
     async fn create_invitation(
         State(state): State<AppState>,
         FromCookies(business_token): FromCookies<BusinessSession>,
         FromCookies(user_token): FromCookies<UserSession>,
         #[json] invitation: InvitationCreate,
-    ) -> ApiResult<Json<InvitationView>> {
+    ) -> ApiResult<Json<InvitationDto>> {
         state
             .business_service
             .invite_member(business_token, user_token, invitation)
@@ -129,12 +129,12 @@ impl BusinessRoutes {
     }
 
     /// Accept an invitation to join a business
-    #[route(method = post, path = "/invitations/accept", res = BusinessView)]
+    #[route(method = post, path = "/invitations/accept", res = BusinessDto)]
     async fn accept_invitation(
         State(state): State<AppState>,
         FromCookies(user_token): FromCookies<UserSession>,
         #[json] accept_req: InvitationAccept,
-    ) -> ApiResult<Json<BusinessView>> {
+    ) -> ApiResult<Json<BusinessDto>> {
         state
             .business_service
             .accept_invitation(user_token, accept_req)
@@ -143,13 +143,13 @@ impl BusinessRoutes {
     }
 
     /// Resend an invitation
-    #[route(method = post, path = "/invitations/resend", res = InvitationView)]
+    #[route(method = post, path = "/invitations/resend", res = InvitationDto)]
     async fn resend_invitation(
         State(state): State<AppState>,
         FromCookies(business_token): FromCookies<BusinessSession>,
         FromCookies(user_token): FromCookies<UserSession>,
         #[json] resend_req: InvitationResend,
-    ) -> ApiResult<Json<InvitationView>> {
+    ) -> ApiResult<Json<InvitationDto>> {
         state
             .business_service
             .resend_invitation(business_token, user_token, resend_req.email.to_string())
@@ -172,13 +172,13 @@ impl BusinessRoutes {
     }
 
     /// Update a member's role and permissions
-    #[route(method = put, path = "/members/edit", res = BusinessMemberView)]
+    #[route(method = put, path = "/members/edit", res = BusinessMemberDto)]
     async fn update_member(
         State(state): State<AppState>,
         FromCookies(business_token): FromCookies<BusinessSession>,
         FromCookies(user_token): FromCookies<UserSession>,
         #[json] update_req: MemberUpdate,
-    ) -> ApiResult<Json<BusinessMemberView>> {
+    ) -> ApiResult<Json<BusinessMemberDto>> {
         state
             .business_service
             .update_member(business_token, user_token, update_req)
