@@ -40,17 +40,17 @@
 
     const columns = <ColumnDef<StoreDto>[]>[
         {
-            accessorKey: "slug",
-            header: "Slug",
-            cell: ({ row }) => {
-                return renderSnippet(withDefault as Snippet, {
-                    value: row.getValue("slug"),
-                });
-            },
-        },
-        {
             accessorKey: "name",
             header: "Name",
+        },
+        {
+            accessorKey: "description",
+            header: "Description",
+            cell: ({ row }) => {
+                return renderSnippet(withDefault as Snippet, {
+                    value: row.getValue("description"),
+                });
+            },
         },
         {
             accessorKey: "status",
@@ -60,15 +60,6 @@
                     statusView as Snippet,
                     row.getValue("status"),
                 );
-            },
-        },
-        {
-            accessorKey: "domain",
-            header: "Domain",
-            cell: ({ row }) => {
-                return renderSnippet(withDefault as Snippet, {
-                    value: row.getValue("domain"),
-                });
             },
         },
         {

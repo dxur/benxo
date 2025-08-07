@@ -41,7 +41,7 @@ impl MongoStoreRepo {
 
     fn get_collection(&self, business_id: ObjectId) -> Collection<StoreRecord> {
         self.client
-            .database(&format!("biz_{}", business_id.to_hex()))
+            .database(&format!("biz-{}", business_id.to_hex()))
             .collection("stores")
     }
 

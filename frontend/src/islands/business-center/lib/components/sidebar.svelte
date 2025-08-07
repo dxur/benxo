@@ -19,9 +19,25 @@
         LogOut,
         GalleryVerticalEnd,
     } from "@lucide/svelte";
+    import { current } from "@bindings/BusinessRoutes";
+    import type { BusinessDto } from "@bindings/BusinessDto";
+    import { toast } from "svelte-sonner";
+    import { ChevronLeftIcon, ChevronRightIcon } from "lucide-svelte";
 
     let { items }: { items: SidebarItem[] } = $props();
     let sidebar = useSidebar();
+
+    let currentBusiness = $state<BusinessDto | undefined>(undefined);
+
+    $effect(() => {
+        current()
+            .then((res) => {
+                currentBusiness = res;
+            })
+            .catch(() => {
+                toast("Something went wrong");
+            });
+    });
 </script>
 
 {#snippet bizSwitcher()}
@@ -42,13 +58,16 @@
                         <div
                             class="grid flex-1 text-left text-sm leading-tight"
                         >
-                            <span class="truncate font-medium">
-                                activeTeam.name
-                            </span>
-                            <span class="truncate text-xs">activeTeam.plan</span
-                            >
+                            {#if currentBusiness}
+                                <span class="truncate font-medium">
+                                    {currentBusiness.name}
+                                </span>
+                                <span class="truncate text-xs"
+                                    >{currentBusiness.plan_type}</span
+                                >
+                            {/if}
                         </div>
-                        <ChevronsUpDownIcon />
+                        <ChevronRightIcon />
                     </Sidebar.MenuButton>
                 {/snippet}
             </DropdownMenu.Trigger>
@@ -58,21 +77,9 @@
                 side={sidebar.isMobile ? "bottom" : "right"}
                 sideOffset={4}
             >
-                <DropdownMenu.Label class="text-muted-foreground text-xs"
-                    >Businesses</DropdownMenu.Label
-                >
-                <DropdownMenu.Item class="gap-2 p-2">
-                    team.name
-                </DropdownMenu.Item>
-                <DropdownMenu.Separator />
                 <DropdownMenu.Item class="gap-2 p-2">
                     <LogOut class="size-4" />
-                    <a
-                        href="/user-center"
-                        class="text-muted-foreground font-medium"
-                    >
-                        User center
-                    </a>
+                    <a href="/user-center" class="font-medium"> User center </a>
                 </DropdownMenu.Item>
             </DropdownMenu.Content>
         </DropdownMenu.Root>

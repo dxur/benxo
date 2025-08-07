@@ -9,7 +9,9 @@
     "bun@latest",
     "bash@latest",
     "varnish@latest",
-    "cargo-watch@latest"
+    "cargo-watch@latest",
+    "minio@latest",
+    "minio-client@latest"
   ],
   "shell": {
     "scripts": {

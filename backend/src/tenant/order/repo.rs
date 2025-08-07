@@ -56,7 +56,7 @@ impl MongoOrderRepo {
 
     fn get_collection(&self, business_id: ObjectId) -> Collection<OrderRecord> {
         self.client
-            .database(&format!("biz_{}", business_id.to_hex()))
+            .database(&format!("biz-{}", business_id.to_hex()))
             .collection("orders")
     }
 

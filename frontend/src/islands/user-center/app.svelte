@@ -1,13 +1,18 @@
 <script lang="ts">
-    import { list, switch_business } from "@bindings/BusinessRoutes";
-    import type { BusinessView } from "@bindings/BusinessView";
+    import { list, switch_business, create } from "@bindings/BusinessRoutes";
+    import type { BusinessDto } from "@bindings/BusinessDto";
 
-    let businesses: BusinessView[] | undefined = $state(undefined);
+    let businesses: BusinessDto[] | undefined = $state(undefined);
+
     $effect(() => {
+        listBusinesses();
+    });
+
+    function listBusinesses() {
         list().then((res) => {
             businesses = res.businesses;
         });
-    });
+    }
 
     function switch_biz(business_id: string) {
         switch_business({ business_id }).then(() => {
@@ -15,7 +20,30 @@
             location.href = "/business-center";
         });
     }
+
+    let business_name = $state("");
+
+    function createBusiness(e: Event) {
+        e.preventDefault();
+        create({
+            name: business_name,
+            description: null,
+        }).then((res) => {
+            console.log(res);
+            listBusinesses();
+        });
+    }
 </script>
+
+<form onsubmit={createBusiness}>
+    <input
+        bind:value={business_name}
+        type="text"
+        name="Name"
+        placeholder="BizX"
+    />
+    <button>Create Business</button>
+</form>
 
 {#if businesses}
     <ul>

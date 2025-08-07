@@ -135,7 +135,7 @@ fn capitalize_word(word: &str) -> String {
     let mut chars = word.chars();
     let first = chars.next().unwrap().to_uppercase().to_string();
     let rest: String = chars.map(|c| c.to_lowercase().to_string()).collect();
-    first + &rest
+    first + rest.as_str()
 }
 
 impl fmt::Display for Name {

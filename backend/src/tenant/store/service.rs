@@ -87,14 +87,12 @@ impl<R: StoreRepo, Reg: StoreRegRepo> StoreService<R, Reg> {
         let business_id = business.business_id.into_inner();
         let store_id = store_id.into_inner();
 
-        if let JsonOption::Value(ref _domain) = update_req.domain {
-            // TODO: confirms that the domain is owned by this user
-        }
-
         if let Some(this) = self.repo.find_by_id(business_id, store_id).await? {
             if let JsonOption::Value(ref domain) = update_req.domain {
                 if let Some(mut other) = self.reg.find_by_domain(&domain).await? {
                     if other.store_id != store_id {
+                        // TODO: confirms that the domain is owned by this user otherwise
+                        // throw an error
                         other.domain = None;
                         self.reg
                             .update(other.business_id, other.store_id, other)
