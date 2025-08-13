@@ -28,13 +28,7 @@ futures = { version = "0.3.31" }
 tokio = { version = "1.44.2", features = ["fs"] }
 indexmap = { version = "2.9.0", features = ["serde"] }
 liquid = { version = "0.26.11" }
-ts-rs = { version = "10.1.0", features = [
-    "bson",
-    "bson-uuid-impl",
-    "indexmap-impl",
-    "no-serde-warnings",
-    "chrono-impl",
-] }
+ts-rs = { version = "=11.0.0", features = ["bson", "bson-uuid-impl", "indexmap-impl", "no-serde-warnings", "chrono-impl"] }
 bcrypt = "0.17.0"
 chrono = { version = "0.4.41", features = ["serde"] }
 serde_json = "1.0.140"

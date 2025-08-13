@@ -15,14 +15,14 @@ use crate::{
 use super::domain::*;
 
 #[derive(Debug, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct BusinessCreate {
     pub name: Name,
     pub description: Option<String>,
 }
 
 #[derive(Debug, Serialize, o2o, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 #[from_owned(BusinessRecord)]
 pub struct BusinessDto {
     #[from(@._id.into())]
@@ -45,7 +45,7 @@ pub struct BusinessDto {
 }
 
 #[derive(Debug, Serialize, o2o, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 #[from_owned(BusinessMember)]
 pub struct BusinessMemberDto {
     pub email: Email,
@@ -65,7 +65,7 @@ pub struct BusinessMemberDto {
 }
 
 #[derive(Debug, Clone, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct BusinessListQuery {
     pub page: Option<u32>,
     pub limit: Option<u32>,
@@ -131,13 +131,13 @@ impl<'c> TryInto<Cookie<'c>> for BusinessToken {
 }
 
 #[derive(Debug, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct BusinessSwitch {
     pub business_id: Id,
 }
 
 #[derive(Debug, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct InvitationCreate {
     pub email: Email,
     pub role: MemberRole,
@@ -145,13 +145,13 @@ pub struct InvitationCreate {
 }
 
 #[derive(Debug, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct InvitationAccept {
     pub token: String,
 }
 
 #[derive(Debug, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct MemberUpdate {
     pub email: Email,
     pub role: Option<MemberRole>,
@@ -159,13 +159,13 @@ pub struct MemberUpdate {
 }
 
 #[derive(Debug, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct MemberRemove {
     pub email: Email,
 }
 
 #[derive(Debug, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct PermissionCheck {
     pub resource: String,
     pub action: String,
@@ -173,13 +173,13 @@ pub struct PermissionCheck {
 }
 
 #[derive(Debug, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct InvitationResend {
     pub email: Email,
 }
 
 #[derive(Debug, Serialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct InvitationDto {
     pub email: Email,
     pub role: MemberRole,
@@ -188,7 +188,7 @@ pub struct InvitationDto {
 }
 
 #[derive(Debug, Serialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct BusinessStatistics {
     pub total_members: u32,
     pub active_members: u32,
@@ -199,13 +199,13 @@ pub struct BusinessStatistics {
 }
 
 #[derive(Debug, Serialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct PermissionCheckResponse {
     pub has_permission: bool,
 }
 
 #[derive(Debug, Serialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct BusinessListResponse {
     pub businesses: Vec<BusinessDto>,
     pub total: u64,
@@ -214,7 +214,7 @@ pub struct BusinessListResponse {
 }
 
 #[derive(Debug, Serialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct PendingInvitationsResponse {
     pub invitations: Vec<(BusinessDto, InvitationDto)>,
 }

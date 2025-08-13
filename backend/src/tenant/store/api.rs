@@ -19,12 +19,12 @@ use crate::{
 pub enum StoreStatusDto {
     Draft,
     Active,
-    InActive,
+    Inactive,
     Archived,
 }
 
 #[derive(Debug, Serialize, o2o, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 #[from_owned(StoreRecord)]
 pub struct StoreDto {
     #[from(@._id.into())]
@@ -40,7 +40,7 @@ pub struct StoreDto {
 }
 
 #[derive(Debug, Clone, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct StoreListQuery {
     pub page: Option<u32>,
     pub limit: Option<u32>,
@@ -49,7 +49,7 @@ pub struct StoreListQuery {
 }
 
 #[derive(Debug, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct StoreUpdate {
     pub name: JsonOption<Name>,
     pub description: JsonOption<String>,
@@ -58,7 +58,7 @@ pub struct StoreUpdate {
 }
 
 #[derive(Debug, Serialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct StoreListResponse {
     pub stores: Vec<StoreDto>,
     pub total: u64,
@@ -67,7 +67,7 @@ pub struct StoreListResponse {
 }
 
 #[derive(Debug, Serialize, o2o, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 #[from_owned(StoreRegRecord)]
 pub struct StoreRegDto {
     #[from(~.into())]
@@ -83,7 +83,7 @@ pub struct StoreRegDto {
 }
 
 #[derive(Debug, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct StoreRegUpdate {
     pub slug: String,
     pub domain: JsonOption<String>,

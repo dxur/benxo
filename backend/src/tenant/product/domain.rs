@@ -12,13 +12,12 @@ pub enum ProductStatus {
     #[default]
     Draft,
     Active,
-    InActive,
+    Inactive,
     Archived,
     Deleted,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, TS)]
-#[ts(export)]
 pub struct ProductVariant {
     pub sku: String,
     #[ts(as = "String")]

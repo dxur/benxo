@@ -3,6 +3,7 @@
         RouterContext,
         RouterView,
     } from "@dvcol/svelte-simple-router/components";
+    import { QueryClient, QueryClientProvider } from "@tanstack/svelte-query";
     import Sidebar from "./lib/components/sidebar.svelte";
     import Breadcrumb from "./lib/components/breadcrumb.svelte";
     import { routes, sidebarItems } from "./index";
@@ -16,15 +17,19 @@
             return 0;
         },
     };
+
+    const client = new QueryClient();
 </script>
 
-<RouterContext {options}>
-    <AppLayout breadcrumb={Breadcrumb}>
-        {#snippet sidebar()}
-            <Sidebar items={sidebarItems} />
-        {/snippet}
-        <main>
-            <RouterView />
-        </main>
-    </AppLayout>
-</RouterContext>
+<QueryClientProvider {client}>
+    <RouterContext {options}>
+        <AppLayout breadcrumb={Breadcrumb}>
+            {#snippet sidebar()}
+                <Sidebar items={sidebarItems} />
+            {/snippet}
+            <main>
+                <RouterView />
+            </main>
+        </AppLayout>
+    </RouterContext>
+</QueryClientProvider>

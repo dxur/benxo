@@ -19,12 +19,12 @@ use crate::{
 pub enum ProductStatusDto {
     Draft,
     Active,
-    InActive,
+    Inactive,
     Archived,
 }
 
 #[derive(Debug, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct ProductVariantCreate {
     pub sku: String,
     #[ts(as = "String")]
@@ -37,7 +37,7 @@ pub struct ProductVariantCreate {
 }
 
 #[derive(Debug, Serialize, o2o, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 #[from_owned(ProductRecord)]
 pub struct ProductDto {
     #[from(@._id.into())]
@@ -59,7 +59,7 @@ pub struct ProductDto {
 }
 
 #[derive(Debug, Clone, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct ProductListQuery {
     pub page: Option<u32>,
     pub limit: Option<u32>,
@@ -70,7 +70,7 @@ pub struct ProductListQuery {
 }
 
 #[derive(Debug, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct ProductUpdate {
     pub title: JsonOption<Name>,
     pub description: JsonOption<String>,
@@ -84,7 +84,7 @@ pub struct ProductUpdate {
 }
 
 #[derive(Debug, Serialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct ProductListResponse {
     pub products: Vec<ProductDto>,
     pub total: u64,

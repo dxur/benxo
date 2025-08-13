@@ -49,7 +49,7 @@ impl StoreRoutes {
     async fn list_stores(
         State(state): State<AppState>,
         FromCookies(business): FromCookies<BusinessSession>,
-        Query(query): Query<StoreListQuery>,
+        #[query] query: StoreListQuery,
     ) -> ApiResult<Json<StoreListResponse>> {
         state
             .store_service

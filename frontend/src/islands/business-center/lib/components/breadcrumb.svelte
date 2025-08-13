@@ -22,12 +22,12 @@
 <Breadcrumb.Root>
     <Breadcrumb.List>
         {#each items as item}
-            <Breadcrumb.Item class="hidden md:block">
+            <Breadcrumb.Item>
                 <Breadcrumb.Link href={item.path} {@attach useLink()}
                     >{item.name}</Breadcrumb.Link
                 >
             </Breadcrumb.Item>
-            <Breadcrumb.Separator class="hidden md:block" />
+            <Breadcrumb.Separator />
         {/each}
         <Breadcrumb.Item>
             <Breadcrumb.Page>{current}</Breadcrumb.Page>

@@ -246,6 +246,7 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
     let mut route_entries = vec![];
     let mut ts_routes = vec![];
     let mut import_lines = HashSet::new();
+    import_lines.insert("import queryString from '@/../node_modules/query-string';".to_string());
     let mut insert_import = |i: &String| {
         let re = Regex::new(r"\b[A-Z][a-zA-Z0-9]*\b").unwrap();
         for cap in re.find_iter(i) {
@@ -453,7 +454,7 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
                 fn_args = path_args + &fn_args;
 
                 let query_string = if ts_query.is_some() {
-                    " + '?' + new URLSearchParams(Object.entries(query).filter(([_, value]) => value != null))"
+                    " + '?' + new URLSearchParams(queryString.stringify(query))"
                 } else {
                     ""
                 };

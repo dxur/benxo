@@ -9,20 +9,7 @@
     import * as Tabs from "$lib/components/ui/tabs/index";
     import { Button } from "$lib/components/ui/button/index";
     import { Badge } from "$lib/components/ui/badge/index";
-    import {
-        createSvelteTable,
-        FlexRender,
-        renderSnippet,
-    } from "$lib/components/ui/data-table/index.js";
     import * as Table from "$lib/components/ui/table/index.js";
-    import {
-        getCoreRowModel,
-        getPaginationRowModel,
-        getFilteredRowModel,
-        type ColumnDef,
-        type ColumnFiltersState,
-        type PaginationState,
-    } from "@tanstack/table-core";
     import Column from "../../lib/components/layout/column.svelte";
     import Group from "../../lib/components/layout/group.svelte";
     import TableSkeleton from "../../lib/components/table-skeleton.svelte";
@@ -34,7 +21,6 @@
     import type { ProductDto } from "@bindings/ProductDto";
     import type { ProductListResponse } from "@bindings/ProductListResponse";
     import type { ProductListQuery } from "@bindings/ProductListQuery";
-    import { untrack } from "svelte";
     import { useLink } from "@dvcol/svelte-simple-router";
     import { Routes } from ".";
     import { useNavigate } from "@dvcol/svelte-simple-router/router";
@@ -108,9 +94,11 @@
         },
     ];
 
-    let pagination = $state(<PaginationState>{ pageIndex: 0, pageSize: 5 });
-    let columnFilters = $state(<ColumnFiltersState>[]);
+    let pagination = $state<PaginationState>({ pageIndex: 0, pageSize: 5 });
     let activeTab = $state("active");
+    let columnFilters = $derived<ColumnFiltersState>([
+        { id: "status", value: activeTab === "all" ? "" : activeTab },
+    ]);
 
     const table = createSvelteTable({
         get data() {
@@ -152,11 +140,6 @@
         category: null,
         featured: null,
         search: null,
-    });
-
-    $effect(() => {
-        const tab = activeTab === "all" ? "" : activeTab;
-        untrack(() => table.getColumn("status")?.setFilterValue(tab));
     });
 
     async function loadProducts() {

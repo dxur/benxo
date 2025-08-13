@@ -113,10 +113,17 @@ async fn main() {
             .await;
         debug!("replset initialization result: {:#?}", res);
 
-        let res = Bucket::create_with_path_style(&s3_bucket, region.clone(), credentials.clone(), Default::default()).await;
+        let res = Bucket::create_with_path_style(
+            &s3_bucket,
+            region.clone(),
+            credentials.clone(),
+            Default::default(),
+        )
+        .await;
         res.map(|v| {
             debug!("bucket creation result: {:#?}", v.bucket);
-        }).map_err(|e| {
+        })
+        .map_err(|e| {
             debug!("bucket creation error: {:#?}", e);
         });
     }

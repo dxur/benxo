@@ -113,6 +113,8 @@ where
 
 impl<T: TS> TS for JsonOption<T> {
     type WithoutGenerics = JsonOption<ts_rs::Dummy>;
+    type OptionInnerType = Self;
+
     fn decl() -> String {
         todo!()
     }

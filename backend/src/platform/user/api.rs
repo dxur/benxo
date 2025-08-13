@@ -116,7 +116,7 @@ impl TryFrom<&Cookies> for UserSession {
 }
 
 #[derive(Debug, Clone, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct UserUpdate {
     pub username: JsonOption<Username>,
     pub first_name: JsonOption<Name>,
@@ -124,41 +124,41 @@ pub struct UserUpdate {
 }
 
 #[derive(Debug, Clone, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct UserLogin {
     pub email: Email,
     pub password: Password,
 }
 
 #[derive(Debug, Clone, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct PasswordReset {
     pub email: Email,
 }
 
 #[derive(Debug, Clone, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct PasswordResetConfirm {
     pub token: String,
     pub new_password: Password,
 }
 
 #[derive(Debug, Clone, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct PasswordChange {
     pub current_password: Password,
     pub new_password: Password,
 }
 
 #[derive(Debug, Clone, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct EmailVerification {
     pub token: String,
 }
 
 #[derive(Debug, Clone, Serialize, TS, o2o)]
 #[from_owned(UserRecord)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct UserDto {
     #[from(@._id.to_hex())]
     pub id: String,
@@ -184,13 +184,13 @@ pub struct LoginResponse {
 }
 
 #[derive(Debug, Clone, Serialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct MessageResponse {
     pub message: String,
 }
 
 #[derive(Debug, Clone, Deserialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct UserListQuery {
     pub page: Option<u32>,
     pub limit: Option<u32>,
@@ -199,7 +199,7 @@ pub struct UserListQuery {
 }
 
 #[derive(Debug, Clone, Serialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct UserListResponse {
     pub users: Vec<UserDto>,
     pub total: u64,

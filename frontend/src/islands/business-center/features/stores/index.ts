@@ -14,11 +14,18 @@ export namespace Routes {
         meta: { parent: LIST_PAGE },
         component: () => import("./store-edit.svelte"),
     };
+    export const CREATE_PAGE: AppRoute = {
+        name: "Create store",
+        path: "/stores/create",
+        meta: { parent: LIST_PAGE },
+        component: () => import("./store-create.svelte"),
+    }
 }
 
 export const storesRoutes = [
     Routes.LIST_PAGE,
     Routes.EDIT_PAGE,
+    Routes.CREATE_PAGE,
 ];
 
 export const storesSidebarItems = <SidebarItem[]>[

@@ -2,8 +2,9 @@
     import { SearchIcon } from "@lucide/svelte";
     import { Input } from "$lib/components/ui/input/index";
     import Spinner from "./spinner.svelte";
+    import { fade } from "svelte/transition";
 
-    let { value = $bindable(), ...restProps } = $props();
+    let { value = $bindable(), searching, ...restProps } = $props();
 </script>
 
 <div class="relative flex-1 w-full md:max-w-sm">
@@ -16,7 +17,9 @@
         class={`pl-10 ${false ? "pr-10 text-muted-foreground" : ""}`}
         {...restProps}
     />
-    {#if false}
-        <Spinner />
+    {#if searching}
+        <div transition:fade>
+            <Spinner />
+        </div>
     {/if}
 </div>

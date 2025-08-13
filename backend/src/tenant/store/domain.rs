@@ -13,7 +13,7 @@ pub enum StoreStatus {
     #[default]
     Draft,
     Active,
-    InActive,
+    Inactive,
     Archived,
     Deleted,
 }

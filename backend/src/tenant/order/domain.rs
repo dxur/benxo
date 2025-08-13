@@ -42,7 +42,7 @@ pub struct OrderItem {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, TS)]
-#[ts(export)]
+#[ts(export, optional_fields)]
 pub struct ShippingAddress {
     pub full_name: String,
     pub address_line_1: String,

@@ -1,157 +1,59 @@
 <script lang="ts">
-    import type { Snippet } from "svelte";
-    import { PackageIcon, PlusIcon } from "@lucide/svelte";
     import * as Tabs from "$lib/components/ui/tabs/index";
-    import { Button } from "$lib/components/ui/button/index";
-    import { Badge } from "$lib/components/ui/badge/index";
-    import {
-        createSvelteTable,
-        FlexRender,
-        renderSnippet,
-    } from "$lib/components/ui/data-table/index.js";
-    import * as Table from "$lib/components/ui/table/index.js";
-    import {
-        getCoreRowModel,
-        getPaginationRowModel,
-        getFilteredRowModel,
-        type ColumnDef,
-        type ColumnFiltersState,
-        type PaginationState,
-    } from "@tanstack/table-core";
+    import * as Pagination from "$lib/components/ui/pagination/index";
+    import * as Table from "$lib/components/ui/table/index";
+    import * as Card from "$lib/components/ui/card/index";
+    import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index";
+    import { Button } from "@/lib/components/ui/button";
     import Column from "../../lib/components/layout/column.svelte";
     import Group from "../../lib/components/layout/group.svelte";
-    import TableSkeleton from "../../lib/components/table-skeleton.svelte";
     import ActionButton from "../../lib/components/action-button.svelte";
     import SectionHeader from "../../lib/components/section-header.svelte";
+    import LoadingSpinner from "../../lib/components/loading-spinner.svelte";
+    import LoadingError from "../../lib/components/loading-error.svelte";
     import SearchBar from "../../lib/components/search-bar.svelte";
-    import { toast } from "svelte-sonner";
-    import { untrack } from "svelte";
+    import {
+        ChevronLeftIcon,
+        ChevronRightIcon,
+        EllipsisVerticalIcon,
+        PackageIcon,
+        PlusIcon,
+    } from "@lucide/svelte";
+
     import { useLink } from "@dvcol/svelte-simple-router";
     import { Routes } from ".";
-    import { useNavigate } from "@dvcol/svelte-simple-router/router";
-    import type { StoreListResponse } from "@bindings/StoreListResponse";
-    import type { StoreListQuery } from "@bindings/StoreListQuery";
+    import { listStores } from "./service";
+    import { createQuery } from "@tanstack/svelte-query";
+    import { formatDateTime } from "../../lib/utils/fmt";
     import type { StoreDto } from "@bindings/StoreDto";
-    import { list_stores, create_store } from "@bindings/StoreRoutes";
+    import { debounce } from "../../lib/utils/event";
 
-    const { push } = useNavigate();
-
-    let data: StoreListResponse | undefined = $state(undefined);
-
-    const columns = <ColumnDef<StoreDto>[]>[
-        {
-            accessorKey: "name",
-            header: "Name",
-        },
-        {
-            accessorKey: "description",
-            header: "Description",
-            cell: ({ row }) => {
-                return renderSnippet(withDefault as Snippet, {
-                    value: row.getValue("description"),
-                });
-            },
-        },
-        {
-            accessorKey: "status",
-            header: "Status",
-            cell: ({ row }) => {
-                return renderSnippet(
-                    statusView as Snippet,
-                    row.getValue("status"),
-                );
-            },
-        },
-        {
-            accessorKey: "updated_at",
-            header: "Last Update",
-            cell: ({ row }) => {
-                return renderSnippet(
-                    dateView as Snippet,
-                    row.getValue("updated_at"),
-                );
-            },
-        },
-    ];
-
-    let pagination = $state(<PaginationState>{ pageIndex: 0, pageSize: 5 });
-    let columnFilters = $state(<ColumnFiltersState>[]);
-    let activeTab = $state("active");
-
-    const table = createSvelteTable({
-        get data() {
-            return data?.stores || [];
-        },
-        columns,
-        getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-        getFilteredRowModel: getFilteredRowModel(),
-        onPaginationChange: (updater) => {
-            if (typeof updater === "function") {
-                pagination = updater(pagination);
-            } else {
-                pagination = updater;
-            }
-        },
-        onColumnFiltersChange: (updater) => {
-            if (typeof updater === "function") {
-                columnFilters = updater(columnFilters);
-            } else {
-                columnFilters = updater;
-            }
-        },
-        state: {
-            get pagination() {
-                return pagination;
-            },
-            get columnFilters() {
-                return columnFilters;
-            },
-        },
-    });
-
+    let activeTab = $state<StoreDto["status"]>("active");
+    let searchInput = $state("");
     let searchQuery = $state("");
-    let query = $state<StoreListQuery>({
-        page: null,
-        limit: null,
-        status: "active",
-        search: null,
+    let paginationQuery = $state({ page: 1, limit: 10 });
+
+    let fetchParams = $derived({
+        search: searchQuery || undefined,
+        status: activeTab || undefined,
+        ...paginationQuery,
     });
+
+    const debouncedSearch = debounce((value) => {
+        searchQuery = value;
+        paginationQuery.page = 1;
+    }, 750);
 
     $effect(() => {
-        const tab = activeTab === "all" ? "" : activeTab;
-        untrack(() => table.getColumn("status")?.setFilterValue(tab));
+        debouncedSearch(searchInput);
     });
 
-    async function loadStores() {
-        data = await list_stores();
-    }
-
-    async function createStore() {
-        await create_store()
-            .then((data) => {
-                toast.success("Store has been created");
-                push({ path: Routes.EDIT_PAGE.path, params: { id: data.id } });
-            })
-            .catch((e) => console.error(e));
-    }
-
-    async function handleRowAction() {}
+    const query = createQuery(() => ({
+        queryKey: ["stores", fetchParams],
+        queryFn: () => listStores(fetchParams),
+        placeholderData: (prev) => prev,
+    }));
 </script>
-
-{#snippet withDefault({ value, other = "N/A" }: any)}
-    {value ? value : other}
-{/snippet}
-
-{#snippet statusView(value: string)}
-    <Badge>
-        {value.toUpperCase()}
-    </Badge>
-{/snippet}
-
-{#snippet dateView(datetime: string)}
-    <time> {datetime} </time>
-{/snippet}
 
 <Column>
     <Group>
@@ -160,98 +62,158 @@
             title="Stores"
             description="Manage your selling endpoints"
         />
-        <ActionButton onclick={createStore}>
+        <ActionButton {@attach useLink({ path: Routes.CREATE_PAGE.path })}>
             <PlusIcon />
             Create A Store</ActionButton
         >
     </Group>
 
     <Group>
-        <SearchBar bind:value={searchQuery} placeholder="Search stores..." />
+        <SearchBar
+            bind:value={searchInput}
+            searching={query.isRefetching}
+            placeholder="Search stores..."
+        />
         <Tabs.Root bind:value={activeTab}>
             <Tabs.List>
                 <Tabs.Trigger value="active">Active</Tabs.Trigger>
                 <Tabs.Trigger value="inactive">Inactive</Tabs.Trigger>
-                <Tabs.Trigger value="draft">Draft</Tabs.Trigger>
-                <Tabs.Trigger value="all">All</Tabs.Trigger>
+                <Tabs.Trigger value="archived">Archived</Tabs.Trigger>
+                <Tabs.Trigger value="">All</Tabs.Trigger>
             </Tabs.List>
         </Tabs.Root>
     </Group>
 
-    {#key query}
-        {#await loadStores()}
-            <TableSkeleton />
-        {:then}
-            <div class="rounded-md border">
-                <Table.Root>
-                    <Table.Header>
-                        {#each table.getHeaderGroups() as headerGroup (headerGroup.id)}
-                            <Table.Row>
-                                {#each headerGroup.headers as header (header.id)}
-                                    <Table.Head colspan={header.colSpan}>
-                                        {#if !header.isPlaceholder}
-                                            <FlexRender
-                                                content={header.column.columnDef
-                                                    .header}
-                                                context={header.getContext()}
-                                            />
-                                        {/if}
-                                    </Table.Head>
-                                {/each}
-                            </Table.Row>
-                        {/each}
-                    </Table.Header>
-                    <Table.Body>
-                        {#each table.getRowModel().rows as row (row.id)}
-                            <Table.Row
-                                data-state={row.getIsSelected() && "selected"}
-                                {@attach useLink({
-                                    path: Routes.EDIT_PAGE.path,
-                                    params: { id: row.original.id },
-                                })}
-                            >
-                                {#each row.getVisibleCells() as cell (cell.id)}
-                                    <Table.Cell>
-                                        <FlexRender
-                                            content={cell.column.columnDef.cell}
-                                            context={cell.getContext()}
-                                        />
-                                    </Table.Cell>
-                                {/each}
-                            </Table.Row>
-                        {:else}
-                            <Table.Row>
-                                <Table.Cell
-                                    colspan={columns.length}
-                                    class="h-24 text-center"
-                                >
-                                    No results.
-                                </Table.Cell>
-                            </Table.Row>
-                        {/each}
-                    </Table.Body>
-                </Table.Root>
-            </div>
-            <div class="flex items-center justify-end space-x-2 py-4">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onclick={() => table.previousPage()}
-                    disabled={!table.getCanPreviousPage()}
-                >
-                    Previous
-                </Button>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onclick={() => table.nextPage()}
-                    disabled={!table.getCanNextPage()}
-                >
-                    Next
-                </Button>
-            </div>
-        {:catch error}
-            {error}
-        {/await}
-    {/key}
+    <div class="space-y-4">
+        {@render table()}
+        {@render pagination()}
+    </div>
 </Column>
+
+{#snippet table()}
+    <Card.Root class="py-0">
+        <Table.Root class="px-16">
+            <Table.Header class="bg-muted sticky top-0 z-10">
+                <Table.Row>
+                    <Table.Head></Table.Head>
+                    <Table.Head>Store</Table.Head>
+                    <Table.Head>Status</Table.Head>
+                    <Table.Head>Description</Table.Head>
+                    <Table.Head>Updated At</Table.Head>
+                    <Table.Head></Table.Head>
+                </Table.Row>
+            </Table.Header>
+            <Table.Body>
+                {@render tableBody()}
+            </Table.Body>
+        </Table.Root>
+    </Card.Root>
+{/snippet}
+
+{#snippet tableBody()}
+    {#if query.isError}
+        <Table.Row>
+            <Table.Cell colspan={8} class="h-24 text-center">
+                <LoadingError message={query.error.message}>
+                    <Button onclick={() => query.refetch()}>Retry</Button>
+                </LoadingError>
+            </Table.Cell>
+        </Table.Row>
+    {:else if query.isLoading}
+        <Table.Row>
+            <Table.Cell colspan={8} class="h-24 text-center">
+                <LoadingSpinner text="Loading..." />
+            </Table.Cell>
+        </Table.Row>
+    {:else if query.data?.stores.length === 0}
+        <Table.Row>
+            <Table.Cell colspan={8} class="h-24 text-center">
+                No stores found.
+            </Table.Cell>
+        </Table.Row>
+    {:else}
+        {#each query.data?.stores || [] as store}
+            <Table.Row>
+                <Table.Cell></Table.Cell>
+                <Table.Cell
+                    class="underline cursor-pointer"
+                    {@attach useLink({
+                        path: Routes.EDIT_PAGE.path,
+                        params: { id: store.id },
+                    })}>{store.name}</Table.Cell
+                >
+                <Table.Cell>{store.status}</Table.Cell>
+                <Table.Cell class="max-w-[200px] truncate"
+                    >{store.description || "N/A"}</Table.Cell
+                >
+                <Table.Cell>{formatDateTime(store.updated_at)}</Table.Cell>
+                <Table.Cell>
+                    {@render actions()}
+                </Table.Cell>
+            </Table.Row>
+        {/each}
+    {/if}
+{/snippet}
+
+{#snippet actions()}
+    <DropdownMenu.Root>
+        <DropdownMenu.Trigger
+            class="data-[state=open]:bg-muted text-muted-foreground flex size-8"
+        >
+            {#snippet child({ props })}
+                <Button variant="ghost" size="icon" {...props}>
+                    <EllipsisVerticalIcon />
+                    <span class="sr-only">Open menu</span>
+                </Button>
+            {/snippet}
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content align="end" class="w-32">
+            <DropdownMenu.Item>Edit</DropdownMenu.Item>
+            <DropdownMenu.Item>Make a copy</DropdownMenu.Item>
+            <DropdownMenu.Item>Favorite</DropdownMenu.Item>
+            <DropdownMenu.Separator />
+            <DropdownMenu.Item variant="destructive">Delete</DropdownMenu.Item>
+        </DropdownMenu.Content>
+    </DropdownMenu.Root>
+{/snippet}
+
+{#snippet pagination()}
+    <Pagination.Root
+        bind:page={paginationQuery.page}
+        count={(query.data?.total || 0) as number}
+        perPage={query.data?.limit || 0}
+    >
+        {#snippet children({ pages, currentPage })}
+            <Pagination.Content>
+                <Pagination.Item>
+                    <Pagination.PrevButton>
+                        <ChevronLeftIcon class="size-4" />
+                        <span class="hidden sm:block">Previous</span>
+                    </Pagination.PrevButton>
+                </Pagination.Item>
+                {#each pages as page (page.key)}
+                    {#if page.type === "ellipsis"}
+                        <Pagination.Item>
+                            <Pagination.Ellipsis />
+                        </Pagination.Item>
+                    {:else}
+                        <Pagination.Item>
+                            <Pagination.Link
+                                {page}
+                                isActive={currentPage === page.value}
+                            >
+                                {page.value}
+                            </Pagination.Link>
+                        </Pagination.Item>
+                    {/if}
+                {/each}
+                <Pagination.Item>
+                    <Pagination.NextButton>
+                        <span class="hidden sm:block">Next</span>
+                        <ChevronRightIcon class="size-4" />
+                    </Pagination.NextButton>
+                </Pagination.Item>
+            </Pagination.Content>
+        {/snippet}
+    </Pagination.Root>
+{/snippet}
