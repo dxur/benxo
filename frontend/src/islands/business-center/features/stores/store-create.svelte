@@ -5,14 +5,19 @@
     import ActionButton from "../../lib/components/action-button.svelte";
     import { PlusIcon, SendIcon, ShoppingBagIcon } from "@lucide/svelte";
 
-    import { createQuery } from "@tanstack/svelte-query";
+    import {
+        createMutation,
+        createQuery,
+        getQueryClientContext,
+    } from "@tanstack/svelte-query";
     import { useNavigate } from "@dvcol/svelte-simple-router/router";
     import type { StoreDto } from "@bindings/StoreDto";
     import { useState } from "../../lib/utils/utils.svelte";
-    import { createForm, validateForm, type Form } from "../../lib/utils/form";
+    import { createForm, getFormValues, type Form } from "../../lib/utils/form";
     import StoreForm from "./store-form.svelte";
-    import { StoreSchema } from "./service";
+    import { StoreSchema, createStore } from "./service";
     import { Routes } from ".";
+    import { toast } from "svelte-sonner";
 
     const { replace } = useNavigate();
 
@@ -22,27 +27,53 @@
             let now = new Date().toISOString();
             return <StoreDto>{
                 id: "",
-                name: "Unnamed",
+                name: "",
                 description: "",
-                status: "draft",
+                status: "inactive",
                 created_at: now,
                 updated_at: now,
             };
         },
     }));
 
-    let form = $derived(useState(createForm(StoreSchema, query.data)));
+    let { form } = $derived(useState(createForm(StoreSchema, query.data)));
 
-    async function handleCreate() {
-        try {
-            validateForm(form);
-            replace({
-                path: Routes.EDIT_PAGE.path,
-                params: { id: form.data?.id },
-            });
-        } catch (error) {
-            console.error("Form submission error:", error);
-        }
+    function handleCreate(status: typeof form.status.value) {
+        return () => {
+            form.status.value = status;
+            try {
+                const values = getFormValues<typeof StoreSchema>(form);
+                createMutation(() => ({
+                    mutationFn: async () => {
+                        return await createStore(values);
+                    },
+                    onSuccess: (data) => {
+                        getQueryClientContext().setQueryData(
+                            ["store", data.id],
+                            data,
+                        );
+                        toast.success("Product created successfully");
+                        replace({
+                            path: Routes.EDIT_PAGE.path,
+                            params: { id: data.id },
+                        });
+                    },
+                    onError: (e) => {
+                        toast.error("Error creating product", {
+                            description: e.message,
+                        });
+                    },
+                }));
+            } catch (e) {
+                console.error(e);
+                const errors = e as [string, string[]][];
+                errors.forEach(([field, errors]) => {
+                    toast.error(`Error in field: ${field}`, {
+                        description: errors.join("\n"),
+                    });
+                });
+            }
+        };
     }
 </script>
 
@@ -67,15 +98,13 @@
                 />
             </div>
             <Group class="md:flex-row-reverse flex-wrap justify-start">
-                <ActionButton>
+                <ActionButton onclick={handleCreate("active")}>
                     <SendIcon />
                     Publish
                 </ActionButton>
                 <ActionButton
                     variant="secondary"
-                    onclick={() => {
-                        handleCreate();
-                    }}
+                    onclick={handleCreate("inactive")}
                 >
                     <PlusIcon />
                     Create

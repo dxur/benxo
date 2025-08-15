@@ -14,13 +14,19 @@ use crate::{
 #[derive(Debug, Clone, Deserialize, Serialize, o2o, TS)]
 #[serde(rename_all = "snake_case")]
 #[map_owned(StoreStatus)]
-#[ghosts(Deleted: Self::Archived)]
 #[ts(export)]
 pub enum StoreStatusDto {
-    Draft,
     Active,
     Inactive,
     Archived,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, TS)]
+#[ts(export, optional_fields)]
+pub struct StoreCreateDto {
+    pub name: Name,
+    pub description: String,
+    pub status: StoreStatusDto,
 }
 
 #[derive(Debug, Serialize, o2o, TS)]

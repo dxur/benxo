@@ -16,9 +16,9 @@ impl<R: StoreRepo, Reg: StoreRegRepo> StoreService<R, Reg> {
         Self { repo, reg }
     }
 
-    pub async fn create(&self, business: BusinessSession) -> ApiResult<StoreDto> {
+    pub async fn create(&self, business: BusinessSession, StoreCreateDto{name, description, status}: StoreCreateDto) -> ApiResult<StoreDto> {
         self.repo
-            .create(business.business_id.into_inner(), Default::default())
+            .create(business.business_id.into_inner(), StoreRecord::new(name, description, status.into()))
             .await
             .map(Into::into)
     }

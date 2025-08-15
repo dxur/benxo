@@ -1,11 +1,10 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 
-import svelte from '@astrojs/svelte';
-
 import tailwindcss from '@tailwindcss/vite';
+import svelte from '@astrojs/svelte';
+import pages from 'astro-pages';
 
-// https://astro.build/config
 export default defineConfig({
   server: {
     host: '0.0.0.0',
@@ -24,5 +23,8 @@ export default defineConfig({
 
     plugins: [tailwindcss()]
   },
-  integrations: [svelte()]
+  integrations: [
+    svelte(),
+    pages('apps/web/pages')
+  ]
 });

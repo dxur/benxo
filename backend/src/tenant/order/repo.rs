@@ -148,19 +148,13 @@ impl OrderRepo for MongoOrderRepo {
         let collection = self.get_collection(business_id);
 
         let result = collection
-            .update_one(
+            .delete_one(
                 doc! { "_id": id },
-                doc! {
-                    "$set": {
-                        "status": to_bson(&OrderStatus::Deleted).unwrap(),
-                        "updated_at": DateTime::now()
-                    }
-                },
             )
             .await
             .map_err(|e| ApiError::internal(format!("Failed to delete order: {}", e)))?;
 
-        if result.matched_count == 0 {
+        if result.deleted_count == 0 {
             return Err(ApiError::not_found("order", "Order not found"));
         }
 

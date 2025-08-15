@@ -10,7 +10,6 @@ use crate::{types::id::Id, utils::serde_helpers::JsonOption};
 #[derive(Debug, Clone, Deserialize, Serialize, o2o, TS)]
 #[serde(rename_all = "snake_case")]
 #[map_owned(OrderStatus)]
-#[ghosts(Deleted: Self::Archived)]
 #[ts(export)]
 pub enum OrderStatusDto {
     Pending,

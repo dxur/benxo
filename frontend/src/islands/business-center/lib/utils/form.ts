@@ -1,3 +1,4 @@
+import { camelToTitleCase } from './fmt';
 import { z } from 'zod';
 
 function getDefaultValue(schema: z.ZodTypeAny): any {
@@ -55,18 +56,17 @@ function deepEqual(a: any, b: any): boolean {
     return false;
 }
 
-export function createForm<T extends z.ZodTypeAny, D extends Partial<z.infer<T>>>(schema: T, initial?: D): Form<T> {
+function createInnerForm<T extends z.ZodTypeAny, D extends Partial<z.infer<T>>>(schema: T, initial?: D): Form<T> {
     if (schema instanceof z.ZodObject) {
         const shape = schema.shape;
-        return Object.fromEntries([
-            ...Object.entries(shape).map(([key, fieldSchema]) => {
+        return Object.fromEntries(
+            Object.entries(shape).map(([key, fieldSchema]) => {
                 const initialFieldValue = initial && typeof initial === 'object' && key in initial
                     ? (initial as any)[key]
                     : undefined;
-                return [key, createForm(fieldSchema as z.ZodTypeAny, initialFieldValue)];
-            }),
-            ["data", initial]
-        ]) as Form<T>;
+                return [key, createInnerForm(fieldSchema as z.ZodTypeAny, initialFieldValue)];
+            })
+        ) as Form<T>;
     } else {
         const defaultValue = getDefaultValue(schema);
         const finalValue = initial !== undefined ? initial : defaultValue;
@@ -94,9 +94,13 @@ export function createForm<T extends z.ZodTypeAny, D extends Partial<z.infer<T>>
     }
 }
 
+export function createForm<T extends z.ZodTypeAny, D extends Partial<z.infer<T>>>(schema: T, initial?: D): { form: Form<T>; data?: D } {
+    return { form: createInnerForm(schema, initial), data: initial }
+}
+
+
 export function validate<T>(field: FormField<T>) {
     return () => {
-        debugger
         field.validate.call(field)
     };
 }
@@ -121,18 +125,14 @@ export function validateForm<T extends z.ZodObject<any>>(form: Form<T>): boolean
     return allValid;
 }
 
-export function getFormValues<T extends z.ZodObject<any>>(
-    form: Form<T>,
-    schema: T
-): z.infer<T> | null {
-    let allValid = true;
-
+export function assertForm<T extends z.ZodObject<any>>(form: Form<T>) {
+    let errors: [string, string[]][] = [];
     function validateRecursive(obj: any): void {
-        Object.values(obj).forEach((field: any) => {
+        Object.entries(obj).forEach(([key, field]: [string, any]) => {
             if (typeof field.validate === 'function') {
                 field.validate();
                 if (field.valid === false) {
-                    allValid = false;
+                    errors.push([camelToTitleCase(key), field.errors]);
                 }
             } else if (typeof field === 'object' && field !== null) {
                 validateRecursive(field);
@@ -141,87 +141,70 @@ export function getFormValues<T extends z.ZodObject<any>>(
     }
 
     validateRecursive(form);
-
-    if (!allValid) {
-        return null;
-    }
-
-    try {
-        function getValuesRecursive(obj: any): any {
-            const values: any = {};
-            Object.entries(obj).forEach(([key, field]: [string, any]) => {
-                if (field.value !== undefined) {
-                    values[key] = field.value;
-                } else if (typeof field === 'object' && field !== null) {
-                    values[key] = getValuesRecursive(field);
-                }
-            });
-            return values;
-        }
-
-        const values = getValuesRecursive(form);
-        return schema.parse(values);
-    } catch (e) {
-        return null;
+    if (errors.length) {
+        throw errors;
     }
 }
 
-// NEW: Get only changed values
+export function getFormValues<T extends z.ZodObject<any>>(
+    form: Form<T>,
+): z.infer<T> {
+    const errors: [string, string[]][] = [];
+    function getValuesRecursive(obj: any): any {
+        const values: any = {};
+        Object.entries(obj).forEach(([key, field]: [string, any]) => {
+            field.validate();
+            if (field.valid === false) {
+                errors.push([key, field.errors]);
+            }
+            if (field.value !== undefined) {
+                values[key] = field.value;
+            } else if (typeof field === 'object' && field !== null) {
+                values[key] = getValuesRecursive(field);
+            }
+        });
+        return values;
+    }
+
+    const values = getValuesRecursive(form);
+    if (errors.length) {
+        throw errors;
+    }
+    return values;
+
+}
+
 export function getChangedValues<T extends z.ZodObject<any>>(
     form: Form<T>,
 ): Partial<z.infer<T>> | null {
-    let allValid = true;
+    const errors: [string, string[]][] = [];
+    const values: any = {};
 
-    function validateRecursive(obj: any): void {
-        Object.values(obj).forEach((field: any) => {
-            if (typeof field.validate === 'function') {
-                field.validate();
-                if (field.valid === false) {
-                    allValid = false;
-                }
-            } else if (typeof field === 'object' && field !== null) {
-                validateRecursive(field);
-            }
-        });
-    }
-
-    validateRecursive(form);
-
-    if (!allValid) {
-        return null;
-    }
-
-    try {
-        function getChangedValuesRecursive(obj: any): any {
-            const values: any = {};
-            Object.entries(obj).forEach(([key, field]: [string, any]) => {
-                if (typeof field.hasChanged === 'function') {
-                    if (field.hasChanged()) {
-                        values[key] = field.value;
-                    } else {
-                        values[key] = undefined;
-                    }
-                } else if (typeof field === 'object' && field !== null) {
-                    const nestedChanged = getChangedValuesRecursive(field);
-                    // Only include nested object if it has any changed values
-                    const hasAnyChanges = Object.values(nestedChanged).some(v => v !== undefined);
-                    if (hasAnyChanges) {
-                        values[key] = nestedChanged;
-                    } else {
-                        values[key] = undefined;
-                    }
-                }
-            });
-            return values;
+    Object.entries(form).forEach(([key, field]: [string, any]) => {
+        field.validate();
+        if (field.valid === false) {
+            errors.push([key, field.errors]);
         }
 
-        return getChangedValuesRecursive(form);
-    } catch (e) {
-        return null;
+        if (typeof field?.hasChanged === 'function') {
+            if (field.hasChanged()) {
+                values[key] = field.value;
+            }
+        } else if (typeof field === 'object' && field !== null) {
+            const nestedChanged = getChangedValues(field);
+            if (nestedChanged !== null) {
+                values[key] = nestedChanged;
+            }
+        }
+    });
+
+    if (errors.length) {
+        throw errors;
     }
+
+    return Object.keys(values).length > 0 ? values : null;
 }
 
-// NEW: Check if form has any changes
 export function hasFormChanges<T extends z.ZodObject<any>>(form: Form<T>): boolean {
     function checkChangesRecursive(obj: any): boolean {
         return Object.values(obj).some((field: any) => {
@@ -237,7 +220,6 @@ export function hasFormChanges<T extends z.ZodObject<any>>(form: Form<T>): boole
     return checkChangesRecursive(form);
 }
 
-// NEW: Reset form to initial values
 export function resetForm<T extends z.ZodObject<any>>(form: Form<T>): void {
     function resetRecursive(obj: any): void {
         Object.values(obj).forEach((field: any) => {

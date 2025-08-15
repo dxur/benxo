@@ -28,8 +28,9 @@ impl StoreRoutes {
     async fn create_store(
         State(state): State<AppState>,
         FromCookies(business): FromCookies<BusinessSession>,
+        #[json] create_req: StoreCreateDto,
     ) -> ApiResult<Json<StoreDto>> {
-        state.store_service.create(business).await.map(Json)
+        state.store_service.create(business, create_req).await.map(Json)
     }
 
     #[route(method=post, path="/{store_id}", res=StoreDto)]
@@ -59,7 +60,7 @@ impl StoreRoutes {
     }
 
     #[route(method=patch, path="/{store_id}", res=StoreDto)]
-    async fn edit_store(
+    async fn update_store(
         State(state): State<AppState>,
         FromCookies(business): FromCookies<BusinessSession>,
         #[path] store_id: Id,

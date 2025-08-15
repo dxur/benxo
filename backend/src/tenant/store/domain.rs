@@ -10,12 +10,10 @@ use crate::types::name::Name;
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum StoreStatus {
-    #[default]
-    Draft,
     Active,
+    #[default]
     Inactive,
     Archived,
-    Deleted,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -28,22 +26,20 @@ pub struct StoreRecord {
     pub updated_at: DateTime,
 }
 
-impl Default for StoreRecord {
-    fn default() -> Self {
+impl StoreRecord {
+    pub fn new(name: Name, description: String, status: StoreStatus) -> Self {
         let now = DateTime::now();
-
+    
         Self {
             _id: Default::default(),
-            name: Default::default(),
-            description: Default::default(),
-            status: Default::default(),
+            name,
+            description,
+            status,
             created_at: now,
             updated_at: now,
         }
     }
-}
 
-impl StoreRecord {
     pub fn is_active(&self) -> bool {
         matches!(self.status, StoreStatus::Active)
     }

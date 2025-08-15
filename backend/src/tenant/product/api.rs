@@ -14,7 +14,6 @@ use crate::{
 #[derive(Debug, Clone, Deserialize, Serialize, o2o, TS)]
 #[serde(rename_all = "snake_case")]
 #[map_owned(ProductStatus)]
-#[ghosts(Deleted: Self::Archived)]
 #[ts(export)]
 pub enum ProductStatusDto {
     Draft,

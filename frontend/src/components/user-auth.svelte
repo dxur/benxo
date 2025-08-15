@@ -1,22 +1,22 @@
 <script lang="ts">
-    import { me } from "@bindings/UserRoutes";
+  import { me } from "@bindings/UserRoutes";
+  import { userStore } from "@/lib/stores/user";
 
-    let { children } = $props();
-    let user: any = $state(undefined);
+  let { children } = $props();
 
-    $effect(() => {
-        me()
-            .then((res) => {
-                console.log("Welcome back");
-                user = res;
-            })
-            .catch((_) => {
-                console.error("Unautherized");
-                location.href = "/auth";
-            });
-    });
+  $effect(() => {
+    me()
+      .then((res) => {
+        console.log("Welcome back");
+        userStore.set(res);
+      })
+      .catch((_) => {
+        console.error("Unautherized");
+        location.href = "/auth/";
+      });
+  });
 </script>
 
-{#if user}
-    {@render children?.(user)}
+{#if $userStore}
+  {@render children?.()}
 {/if}

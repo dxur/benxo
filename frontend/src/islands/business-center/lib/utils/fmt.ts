@@ -34,3 +34,17 @@ export function formatDateTime(dateStr: string): string {
         minute: '2-digit',
     });
 }
+
+export function camelToTitleCase(camel: string) {
+    return camel
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/\b\w/g, char => char.toUpperCase())
+        .trim();
+}
+
+export function snakeToTitleCase(snake: string) {
+    return snake
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, char => char.toUpperCase())
+        .trim();
+}

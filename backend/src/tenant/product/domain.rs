@@ -14,7 +14,6 @@ pub enum ProductStatus {
     Active,
     Inactive,
     Archived,
-    Deleted,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, TS)]

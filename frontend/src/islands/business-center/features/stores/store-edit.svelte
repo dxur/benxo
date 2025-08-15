@@ -15,11 +15,19 @@
     TrashIcon,
   } from "@lucide/svelte";
 
-  import { canBeDeleted, fetchStore, StoreSchema } from "./service";
+  import {
+    canBeDeleted,
+    fetchStore,
+    StoreSchema,
+    updateStore,
+  } from "./service";
   import { useState } from "../../lib/utils/utils.svelte";
-  import { createQuery } from "@tanstack/svelte-query";
+  import { createMutation, createQuery } from "@tanstack/svelte-query";
   import { useRoute } from "@dvcol/svelte-simple-router/router";
-  import { createForm } from "../../lib/utils/form";
+  import { createForm, getChangedValues } from "../../lib/utils/form";
+  import { toast } from "svelte-sonner";
+  import type { StoreUpdate } from "@bindings/StoreUpdate";
+  import { snakeToTitleCase } from "../../lib/utils/fmt";
 
   const { location } = useRoute();
   const storeId = location?.params.id;
@@ -29,11 +37,65 @@
     queryFn: () => fetchStore(storeId),
   }));
 
-  let form = $derived(useState(createForm(StoreSchema, query.data)));
+  const mutation = createMutation(() => ({
+    mutationKey: ["store", storeId],
+    mutationFn: (updateReq: StoreUpdate) => updateStore(storeId, updateReq),
+    onSuccess: () => {
+      toast.success("Product updated successfully");
+      query.refetch();
+    },
+    onError: (error) => {
+      toast.error("Error updating product", {
+        description: error.message,
+      });
+    },
+  }));
 
-  function handleAction(status: typeof form.status.value | "deleted") {
-    return () => {
-      console.log(`Store action: ${status}`);
+  let { form, data } = $derived(useState(createForm(StoreSchema, query.data)));
+
+  function handleAction(status?: typeof form.status.value | "deleted") {
+    return async () => {
+      try {
+        let values = getChangedValues(form);
+        const shouldSave = new Promise<boolean | undefined>((resolve) => {
+          if (!status) {
+            resolve(true);
+          } else {
+            if (values) {
+              // TODO use a real dialog to prompt the user
+              resolve(
+                confirm("You have unsaved changes. Do you want to save them?"),
+              );
+            } else {
+              resolve(false);
+            }
+          }
+        });
+
+        const shouldSaveRes = await shouldSave;
+        console.log("shouldSaveRes", shouldSaveRes);
+        if (shouldSaveRes) {
+          return;
+        }
+
+        let updateReq = null;
+        if (shouldSaveRes && values) {
+          updateReq = values;
+          updateReq.status = status;
+        } else {
+          updateReq = { status };
+        }
+
+        mutation.mutate(updateReq as any);
+      } catch (e) {
+        console.error(e);
+        const errors = e as [string, string[]][];
+        errors.forEach(([field, errors]) => {
+          toast.error(`Error in field: ${field}`, {
+            description: errors.join("\n"),
+          });
+        });
+      }
     };
   }
 </script>
@@ -57,7 +119,7 @@
           title={form.name.initialValue}
           description="Manage store details"
         >
-          <Badge>{form.status.initialValue}</Badge>
+          <Badge>{snakeToTitleCase(form.status.initialValue)}</Badge>
         </SectionHeader>
       </div>
       <Group class="md:flex-row-reverse flex-wrap justify-start">
@@ -67,10 +129,7 @@
             Restore Store
           </ActionButton>
         {:else}
-          <ActionButton
-            variant="default"
-            onclick={handleAction(form.status.initialValue)}
-          >
+          <ActionButton variant="default" onclick={handleAction()}>
             <SaveIcon />
             Save Changes
           </ActionButton>
@@ -92,7 +151,7 @@
         {:else if form.status.initialValue === "archived"}
           <ActionButton
             variant="destructive"
-            disabled={!canBeDeleted(form)}
+            disabled={!canBeDeleted(data)}
             onclick={handleAction("deleted")}
           >
             <TrashIcon />

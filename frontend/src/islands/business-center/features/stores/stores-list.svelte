@@ -71,7 +71,7 @@
     <Group>
         <SearchBar
             bind:value={searchInput}
-            searching={query.isRefetching}
+            searching={query.isRefetching && !query.isFetchedAfterMount}
             placeholder="Search stores..."
         />
         <Tabs.Root bind:value={activeTab}>
@@ -113,21 +113,21 @@
 {#snippet tableBody()}
     {#if query.isError}
         <Table.Row>
-            <Table.Cell colspan={8} class="h-24 text-center">
+            <Table.Cell colspan={8} class="h-56 text-center">
                 <LoadingError message={query.error.message}>
                     <Button onclick={() => query.refetch()}>Retry</Button>
                 </LoadingError>
             </Table.Cell>
         </Table.Row>
-    {:else if query.isLoading}
+    {:else if query.isLoading || (query.isFetching && query.isFetchedAfterMount)}
         <Table.Row>
-            <Table.Cell colspan={8} class="h-24 text-center">
+            <Table.Cell colspan={8} class="h-56 text-center">
                 <LoadingSpinner text="Loading..." />
             </Table.Cell>
         </Table.Row>
     {:else if query.data?.stores.length === 0}
         <Table.Row>
-            <Table.Cell colspan={8} class="h-24 text-center">
+            <Table.Cell colspan={8} class="h-56 text-center">
                 No stores found.
             </Table.Cell>
         </Table.Row>
@@ -148,14 +148,14 @@
                 >
                 <Table.Cell>{formatDateTime(store.updated_at)}</Table.Cell>
                 <Table.Cell>
-                    {@render actions()}
+                    {@render actions(store.id, store.status)}
                 </Table.Cell>
             </Table.Row>
         {/each}
     {/if}
 {/snippet}
 
-{#snippet actions()}
+{#snippet actions(id: string, status: StoreDto["status"])}
     <DropdownMenu.Root>
         <DropdownMenu.Trigger
             class="data-[state=open]:bg-muted text-muted-foreground flex size-8"
@@ -168,11 +168,29 @@
             {/snippet}
         </DropdownMenu.Trigger>
         <DropdownMenu.Content align="end" class="w-32">
-            <DropdownMenu.Item>Edit</DropdownMenu.Item>
-            <DropdownMenu.Item>Make a copy</DropdownMenu.Item>
-            <DropdownMenu.Item>Favorite</DropdownMenu.Item>
+            <DropdownMenu.Item
+                {@attach useLink({
+                    path: Routes.EDIT_PAGE.path,
+                    params: { id },
+                })}>Edit</DropdownMenu.Item
+            >
             <DropdownMenu.Separator />
-            <DropdownMenu.Item variant="destructive">Delete</DropdownMenu.Item>
+            {#if status === "active"}
+                <DropdownMenu.Item variant="destructive"
+                    >Make Inactive</DropdownMenu.Item
+                >
+                <DropdownMenu.Item variant="destructive"
+                    >Archive</DropdownMenu.Item
+                >
+            {:else if status === "archived"}
+                <DropdownMenu.Item>Restore</DropdownMenu.Item>
+                <DropdownMenu.Item>Make Active</DropdownMenu.Item>
+            {:else if status === "inactive"}
+                <DropdownMenu.Item>Make Active</DropdownMenu.Item>
+                <DropdownMenu.Item variant="destructive"
+                    >Archive</DropdownMenu.Item
+                >
+            {/if}
         </DropdownMenu.Content>
     </DropdownMenu.Root>
 {/snippet}

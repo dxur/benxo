@@ -9,17 +9,6 @@ import "@/styles/globals.css";
         <meta name="viewport" content="width=device-width" />
         <meta name="generator" content={Astro.generator} />
         <title>Benxo</title>
-        <script>
-            const mql = window.matchMedia("(prefers-color-scheme: dark)");
-
-            function updateTheme() {
-                document.body.classList.toggle("dark", mql.matches);
-                document.body.classList.toggle("light", !mql.matches);
-            }
-
-            mql.addEventListener("change", updateTheme);
-            document.addEventListener("DOMContentLoaded", updateTheme);
-        </script>
     </head>
     <body>
         <slot />

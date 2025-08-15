@@ -1,62 +1,63 @@
 <script lang="ts">
-    import { list, switch_business, create } from "@bindings/BusinessRoutes";
-    import type { BusinessDto } from "@bindings/BusinessDto";
+  import { list, switch_business, create } from "@bindings/BusinessRoutes";
+  import type { BusinessDto } from "@bindings/BusinessDto";
+  import { userStore } from "@/lib/stores/user";
 
-    let businesses: BusinessDto[] | undefined = $state(undefined);
+  let businesses: BusinessDto[] | undefined = $state(undefined);
 
-    $effect(() => {
-        listBusinesses();
+  $effect(() => {
+    console.log($userStore);
+    listBusinesses();
+  });
+
+  function listBusinesses() {
+    list().then((res) => {
+      businesses = res.businesses;
     });
+  }
 
-    function listBusinesses() {
-        list().then((res) => {
-            businesses = res.businesses;
-        });
-    }
+  function switch_biz(business_id: string) {
+    switch_business({ business_id }).then(() => {
+      console.log(`switched to biz ${business_id}`);
+      location.href = "/business-center/";
+    });
+  }
 
-    function switch_biz(business_id: string) {
-        switch_business({ business_id }).then(() => {
-            console.log(`switched to biz ${business_id}`);
-            location.href = "/business-center";
-        });
-    }
+  let business_name = $state("");
 
-    let business_name = $state("");
-
-    function createBusiness(e: Event) {
-        e.preventDefault();
-        create({
-            name: business_name,
-            description: null,
-        }).then((res) => {
-            console.log(res);
-            listBusinesses();
-        });
-    }
+  function createBusiness(e: Event) {
+    e.preventDefault();
+    create({
+      name: business_name,
+    }).then((res) => {
+      console.log(res);
+      listBusinesses();
+    });
+  }
 </script>
 
 <form onsubmit={createBusiness}>
-    <input
-        bind:value={business_name}
-        type="text"
-        name="Name"
-        placeholder="BizX"
-    />
-    <button>Create Business</button>
+  <input
+    bind:value={business_name}
+    type="text"
+    name="Name"
+    placeholder="BizX"
+  />
+  <button>Create Business</button>
 </form>
 
 {#if businesses}
-    <ul>
-        {#each businesses as business}
-            <li>
-                <a href={undefined} onclick={() => switch_biz(business.id)}>
-                    {business.id}
-                </a>
-                <span>{business.name}</span>
-                <span>{business.description}</span>
-                <span>{business.plan_type}</span>
-                <span>{business.plan_expires_at}</span>
-            </li>
-        {/each}
-    </ul>
+  <ul>
+    {#each businesses as business}
+      <li>
+        <a href={undefined} onclick={() => switch_biz(business.id)}>
+          {business.id}
+        </a>
+        <span>{business.name}</span>
+        <span>{business.description}</span>
+        <span>{business.plan_type}</span>
+        <span>{business.plan_expires_at}</span>
+      </li>
+    {/each}
+  </ul>
 {/if}

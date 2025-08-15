@@ -31,7 +31,7 @@
   import type { ProductUpdate } from "@bindings/ProductUpdate";
   import Editor from "./editor.svelte";
   import { currencyFormatter } from "../../lib/utils/fmt";
-  import { MoveDownIcon } from "lucide-svelte";
+  import { MoveDownIcon } from "@lucide-svelte";
   import { get_product } from "@bindings/ProductRoutes";
 
   const { location } = useRoute();

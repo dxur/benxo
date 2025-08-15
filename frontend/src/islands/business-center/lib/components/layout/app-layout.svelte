@@ -2,9 +2,12 @@
     import * as Sidebar from "$lib/components/ui/sidebar/index";
     import { Separator } from "$lib/components/ui/separator/index";
     import { Toaster } from "$lib/components/ui/sonner/index";
+    import { ModeWatcher } from "mode-watcher";
 
     let { sidebar, breadcrumb, children } = $props();
 </script>
+
+<ModeWatcher />
 
 <Toaster />
 

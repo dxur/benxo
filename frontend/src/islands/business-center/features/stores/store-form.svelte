@@ -43,7 +43,7 @@
     ];
 </script>
 
-<Group class="max-w-7xl md:flex-col md:[&>*]:w-full lg:flex-row">
+<Group class="max-w-4xl md:flex-col md:[&>*]:w-full lg:flex-row">
     <form class="flex-1">
         <Tabs.Root value="general">
             {#if all || tabs.some((tab) => tab.vis)}
@@ -68,11 +68,11 @@
             </fieldset>
         </Tabs.Root>
     </form>
-    <div class="lg:max-w-sm space-y-6">
+    <!-- <div class="lg:max-w-sm space-y-6">
         <div class="lg:w-xs">
             {@render summary()}
         </div>
-    </div>
+    </div> -->
 </Group>
 
 {#snippet generalTab()}
