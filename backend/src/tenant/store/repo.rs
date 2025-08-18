@@ -133,9 +133,7 @@ impl StoreRepo for MongoStoreRepo {
         let collection = self.get_collection(business_id);
 
         let result = collection
-            .delete_one(
-                doc! { "_id": id },
-            )
+            .delete_one(doc! { "_id": id })
             .await
             .map_err(|e| ApiError::internal(format!("Failed to delete store: {}", e)))?;
 

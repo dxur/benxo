@@ -24,7 +24,7 @@
     import { Routes } from ".";
     import { listStores } from "./service";
     import { createQuery } from "@tanstack/svelte-query";
-    import { formatDateTime } from "../../lib/utils/fmt";
+    import { formatDateTime, snakeToTitleCase } from "../../lib/utils/fmt";
     import type { StoreDto } from "@bindings/StoreDto";
     import { debounce } from "../../lib/utils/event";
 
@@ -142,7 +142,7 @@
                         params: { id: store.id },
                     })}>{store.name}</Table.Cell
                 >
-                <Table.Cell>{store.status}</Table.Cell>
+                <Table.Cell>{snakeToTitleCase(store.status)}</Table.Cell>
                 <Table.Cell class="max-w-[200px] truncate"
                     >{store.description || "N/A"}</Table.Cell
                 >
@@ -174,7 +174,7 @@
                     params: { id },
                 })}>Edit</DropdownMenu.Item
             >
-            <DropdownMenu.Separator />
+            <!-- <DropdownMenu.Separator />
             {#if status === "active"}
                 <DropdownMenu.Item variant="destructive"
                     >Make Inactive</DropdownMenu.Item
@@ -190,7 +190,7 @@
                 <DropdownMenu.Item variant="destructive"
                     >Archive</DropdownMenu.Item
                 >
-            {/if}
+            {/if} -->
         </DropdownMenu.Content>
     </DropdownMenu.Root>
 {/snippet}

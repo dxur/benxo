@@ -1,40 +1,20 @@
-import { camelToTitleCase } from './fmt';
-import { z } from 'zod';
+import * as _ from 'lodash';
+import { snakeToTitleCase } from './fmt';
+import * as yup from 'yup';
 
-function getDefaultValue(schema: z.ZodTypeAny): any {
-    if (schema instanceof z.ZodDefault) {
-        return schema._def.defaultValue();
-    }
-    if (schema instanceof z.ZodOptional || schema instanceof z.ZodNullable) {
-        return undefined;
-    }
-
-    if (schema instanceof z.ZodString) return "";
-    if (schema instanceof z.ZodNumber) return 0;
-    if (schema instanceof z.ZodBoolean) return false;
-    if (schema instanceof z.ZodArray) return [];
-    if (schema instanceof z.ZodObject) return {};
-    if (schema instanceof z.ZodTuple) return [];
-    if (schema instanceof z.ZodRecord) return {};
-    if (schema instanceof z.ZodEnum) {
-        return schema.options[0];
-    }
-
-    return undefined;
-}
-
+// Form field values are always concrete, never undefined/null
 type FormField<T> = {
-    value: T;
-    initialValue: T;
+    value: NonNullable<T> extends never ? string : NonNullable<T>;
+    initialValue: NonNullable<T> extends never ? string : NonNullable<T>;
     valid: boolean | undefined;
     errors: string[] | undefined;
-    validate(): void;
+    validate(): T | undefined;
     hasChanged(): boolean;
 };
 
-export type Form<T extends z.ZodTypeAny> = T extends z.ZodObject<infer Shape>
-    ? { [K in keyof Shape]: Form<Shape[K]> } & { data?: any }
-    : FormField<z.infer<T>>;
+export type Form<T extends yup.ObjectSchema<any>> = T extends yup.ObjectSchema<infer Shape>
+    ? { [K in keyof Shape]: FormField<Shape[K]> }
+    : never;
 
 function deepEqual(a: any, b: any): boolean {
     if (a === b) return true;
@@ -56,145 +36,163 @@ function deepEqual(a: any, b: any): boolean {
     return false;
 }
 
-function createInnerForm<T extends z.ZodTypeAny, D extends Partial<z.infer<T>>>(schema: T, initial?: D): Form<T> {
-    if (schema instanceof z.ZodObject) {
-        const shape = schema.shape;
-        return Object.fromEntries(
-            Object.entries(shape).map(([key, fieldSchema]) => {
-                const initialFieldValue = initial && typeof initial === 'object' && key in initial
-                    ? (initial as any)[key]
-                    : undefined;
-                return [key, createInnerForm(fieldSchema as z.ZodTypeAny, initialFieldValue)];
-            })
-        ) as Form<T>;
-    } else {
-        const defaultValue = getDefaultValue(schema);
-        const finalValue = initial !== undefined ? initial : defaultValue;
+function getConcreteDefault<T>(schema: yup.Schema, providedValue?: T): NonNullable<T> extends never ? string : NonNullable<T> {
+    // If provided value is not null/undefined, use it
+    if (providedValue !== null && providedValue !== undefined) {
+        return providedValue as any;
+    }
 
-        return {
-            value: finalValue,
-            initialValue: finalValue,
-            valid: undefined as boolean | undefined,
-            errors: undefined as string[] | undefined,
-            validate() {
-                try {
-                    schema.parse(this.value);
-                    this.errors = undefined;
-                    this.valid = true;
-                } catch (e) {
-                    const err = e as z.ZodError;
-                    this.errors = (err.errors || []).map((e: any) => e.message);
-                    this.valid = false;
-                }
-            },
-            hasChanged() {
-                return !deepEqual(this.value, this.initialValue);
-            }
-        } as Form<T>;
+    // Try to get default from schema
+    if (schema.spec?.default !== undefined) {
+        const defaultValue = typeof schema.spec.default === 'function'
+            ? schema.spec.default()
+            : schema.spec.default;
+
+        if (defaultValue !== null && defaultValue !== undefined) {
+            return defaultValue as any;
+        }
+    }
+
+    // Fallback to type-appropriate non-null defaults based on schema type
+    const schemaType = schema.describe().type;
+    switch (schemaType) {
+        case 'string': return '' as any;
+        case 'number': return 0 as any;
+        case 'boolean': return false as any;
+        case 'array': return [] as any;
+        case 'object': return {} as any;
+        case 'date': return new Date() as any;
+        default: return '' as any; // Default to empty string for unknown types
     }
 }
 
-export function createForm<T extends z.ZodTypeAny, D extends Partial<z.infer<T>>>(schema: T, initial?: D): { form: Form<T>; data?: D } {
-    return { form: createInnerForm(schema, initial), data: initial }
-}
+function createFormField<T>(schema: yup.Schema, initialValue?: T): FormField<T> {
+    const concreteValue = getConcreteDefault(schema, initialValue);
 
+    return {
+        value: _.cloneDeep(concreteValue),
+        initialValue: _.cloneDeep(concreteValue),
+        valid: undefined as boolean | undefined,
+        errors: undefined as string[] | undefined,
+        validate() {
+            try {
+                // For validation, we pass the actual value (which might need to be null for validation)
+                // but the form field value itself is never null/undefined
+                let valueToValidate = this.value;
 
-export function validate<T>(field: FormField<T>) {
-    return () => {
-        field.validate.call(field)
+                // Handle special cases where empty values should be treated as null for validation
+                if (valueToValidate === '' && schema.describe().nullable) {
+                    valueToValidate = null as any;
+                }
+
+                const validatedValue = schema.validateSync(valueToValidate, { abortEarly: false });
+                this.errors = undefined;
+                this.valid = true;
+                return validatedValue;
+            } catch (e) {
+                if (e instanceof yup.ValidationError) {
+                    this.errors = e.errors || [e.message];
+                    this.valid = false;
+                }
+                return undefined;
+            }
+        },
+        hasChanged() {
+            return !deepEqual(this.value, this.initialValue);
+        }
     };
 }
 
-export function validateForm<T extends z.ZodObject<any>>(form: Form<T>): boolean {
+export function createForm<T extends yup.ObjectSchema<any>, D>(
+    schema: T,
+    initial?: D & Partial<yup.InferType<T>>
+): {
+    form: Form<T>;
+    data: D | undefined;
+} {
+    const shape = schema.fields;
+    const form: any = {};
+
+    Object.entries(shape).forEach(([key, fieldSchema]) => {
+        const initialFieldValue = initial && typeof initial === 'object' && key in initial
+            ? (initial as any)[key]
+            : undefined;
+        form[key] = createFormField(fieldSchema as yup.Schema, initialFieldValue);
+    });
+
+    return { form, data: initial };
+}
+
+export function validate<T>(field: FormField<T>) {
+    return () => {
+        field.validate();
+    };
+}
+
+export function validateForm<T extends yup.ObjectSchema<any>>(form: Form<T>): boolean {
     let allValid = true;
 
-    function validateRecursive(obj: any): void {
-        Object.values(obj).forEach((field: any) => {
-            if (typeof field.validate === 'function') {
-                field.validate();
-                if (field.valid === false) {
-                    allValid = false;
-                }
-            } else if (typeof field === 'object' && field !== null) {
-                validateRecursive(field);
-            }
-        });
-    }
+    Object.values(form).forEach((field: FormField<any>) => {
+        field.validate();
+        if (field.valid === false) {
+            allValid = false;
+        }
+    });
 
-    validateRecursive(form);
     return allValid;
 }
 
-export function assertForm<T extends z.ZodObject<any>>(form: Form<T>) {
-    let errors: [string, string[]][] = [];
-    function validateRecursive(obj: any): void {
-        Object.entries(obj).forEach(([key, field]: [string, any]) => {
-            if (typeof field.validate === 'function') {
-                field.validate();
-                if (field.valid === false) {
-                    errors.push([camelToTitleCase(key), field.errors]);
-                }
-            } else if (typeof field === 'object' && field !== null) {
-                validateRecursive(field);
-            }
-        });
-    }
+export function assertForm<T extends yup.ObjectSchema<any>>(form: Form<T>) {
+    const errors: [string, string[]][] = [];
 
-    validateRecursive(form);
+    Object.entries(form).forEach(([key, field]: [string, FormField<any>]) => {
+        field.validate();
+        if (field.valid === false && field.errors) {
+            errors.push([snakeToTitleCase(key), field.errors]);
+        }
+    });
+
     if (errors.length) {
         throw errors;
     }
 }
 
-export function getFormValues<T extends z.ZodObject<any>>(
+export function getFormValues<T extends yup.ObjectSchema<any>>(
     form: Form<T>,
-): z.infer<T> {
+): yup.InferType<T> {
     const errors: [string, string[]][] = [];
-    function getValuesRecursive(obj: any): any {
-        const values: any = {};
-        Object.entries(obj).forEach(([key, field]: [string, any]) => {
-            field.validate();
-            if (field.valid === false) {
-                errors.push([key, field.errors]);
-            }
-            if (field.value !== undefined) {
-                values[key] = field.value;
-            } else if (typeof field === 'object' && field !== null) {
-                values[key] = getValuesRecursive(field);
-            }
-        });
-        return values;
-    }
+    const values: any = {};
 
-    const values = getValuesRecursive(form);
+    Object.entries(form).forEach(([key, field]: [string, FormField<any>]) => {
+        const validatedValue = field.validate();
+        if (field.valid === false && field.errors) {
+            errors.push([key, field.errors]);
+        }
+        if (validatedValue !== undefined) {
+            values[key] = validatedValue;
+        }
+    });
+
     if (errors.length) {
         throw errors;
     }
     return values;
-
 }
 
-export function getChangedValues<T extends z.ZodObject<any>>(
+export function getChangedValues<T extends yup.ObjectSchema<any>>(
     form: Form<T>,
-): Partial<z.infer<T>> | null {
+): Partial<yup.InferType<T>> | null {
     const errors: [string, string[]][] = [];
-    const values: any = {};
+    const changedValues: any = {};
 
-    Object.entries(form).forEach(([key, field]: [string, any]) => {
-        field.validate();
-        if (field.valid === false) {
+    Object.entries(form).forEach(([key, field]: [string, FormField<any>]) => {
+        const validatedValue = field.validate();
+        if (field.valid === false && field.errors) {
             errors.push([key, field.errors]);
         }
 
-        if (typeof field?.hasChanged === 'function') {
-            if (field.hasChanged()) {
-                values[key] = field.value;
-            }
-        } else if (typeof field === 'object' && field !== null) {
-            const nestedChanged = getChangedValues(field);
-            if (nestedChanged !== null) {
-                values[key] = nestedChanged;
-            }
+        if (field.hasChanged() && validatedValue !== undefined) {
+            changedValues[key] = validatedValue;
         }
     });
 
@@ -202,70 +200,35 @@ export function getChangedValues<T extends z.ZodObject<any>>(
         throw errors;
     }
 
-    return Object.keys(values).length > 0 ? values : null;
+    return Object.keys(changedValues).length > 0 ? changedValues : null;
 }
 
-export function hasFormChanges<T extends z.ZodObject<any>>(form: Form<T>): boolean {
-    function checkChangesRecursive(obj: any): boolean {
-        return Object.values(obj).some((field: any) => {
-            if (typeof field.hasChanged === 'function') {
-                return field.hasChanged();
-            } else if (typeof field === 'object' && field !== null) {
-                return checkChangesRecursive(field);
-            }
-            return false;
-        });
-    }
-
-    return checkChangesRecursive(form);
+export function hasFormChanges<T extends yup.ObjectSchema<any>>(form: Form<T>): boolean {
+    return Object.values(form).some((field: FormField<any>) => field.hasChanged());
 }
 
-export function resetForm<T extends z.ZodObject<any>>(form: Form<T>): void {
-    function resetRecursive(obj: any): void {
-        Object.values(obj).forEach((field: any) => {
-            if (field.initialValue !== undefined && field.value !== undefined) {
-                field.value = field.initialValue;
-                field.valid = undefined;
-                field.errors = undefined;
-            } else if (typeof field === 'object' && field !== null) {
-                resetRecursive(field);
-            }
-        });
-    }
-
-    resetRecursive(form);
+export function resetForm<T extends yup.ObjectSchema<any>>(form: Form<T>): void {
+    Object.values(form).forEach((field: FormField<any>) => {
+        field.value = _.cloneDeep(field.initialValue);
+        field.valid = undefined;
+        field.errors = undefined;
+    });
 }
 
-export function isFormValid<T extends z.ZodObject<any>>(form: Form<T>): boolean {
-    function checkValidRecursive(obj: any): boolean {
-        return Object.values(obj).every((field: any) => {
-            if (field.valid !== undefined) {
-                return field.valid === true;
-            } else if (typeof field === 'object' && field !== null) {
-                return checkValidRecursive(field);
-            }
-            return true;
-        });
-    }
-
-    return checkValidRecursive(form);
+export function isFormValid<T extends yup.ObjectSchema<any>>(form: Form<T>): boolean {
+    return Object.values(form).every((field: FormField<any>) => {
+        return field.valid === undefined || field.valid === true;
+    });
 }
 
-export function getFormErrors<T extends z.ZodObject<any>>(form: Form<T>): Record<string, string[]> {
+export function getFormErrors<T extends yup.ObjectSchema<any>>(form: Form<T>): Record<string, string[]> {
     const errors: Record<string, string[]> = {};
 
-    function collectErrorsRecursive(obj: any, prefix = ''): void {
-        Object.entries(obj).forEach(([key, field]: [string, any]) => {
-            const fieldKey = prefix ? `${prefix}.${key}` : key;
+    Object.entries(form).forEach(([key, field]: [string, FormField<any>]) => {
+        if (field.errors && field.errors.length > 0) {
+            errors[key] = field.errors;
+        }
+    });
 
-            if (field.errors && field.errors.length > 0) {
-                errors[fieldKey] = field.errors;
-            } else if (typeof field === 'object' && field !== null && !field.value && !field.validate) {
-                collectErrorsRecursive(field, fieldKey);
-            }
-        });
-    }
-
-    collectErrorsRecursive(form);
     return errors;
 }

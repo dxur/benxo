@@ -35,16 +35,28 @@ export function formatDateTime(dateStr: string): string {
     });
 }
 
-export function camelToTitleCase(camel: string) {
+export function camelToTitleCase(camel?: string | null): string {
+    if (camel === undefined || camel === null) return "N/A";
     return camel
-        .replace(/([A-Z])/g, ' $1')
-        .replace(/\b\w/g, char => char.toUpperCase())
+        .replace(/([A-Z])/g, " $1")
+        .replace(/\b\w/g, (char) => char.toUpperCase())
         .trim();
 }
 
-export function snakeToTitleCase(snake: string) {
+export function snakeToTitleCase(snake?: string | null): string {
+    if (snake === undefined || snake === null) return "N/A";
     return snake
-        .replace(/_/g, ' ')
-        .replace(/\b\w/g, char => char.toUpperCase())
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (char) => char.toUpperCase())
         .trim();
+}
+
+export function orIf<C>(c: C): (val: C) => C | undefined;
+export function orIf<C, O>(c: C, o: O): (val: C) => C | O;
+export function orIf<C, O>(c: C, o?: O) {
+    return (val: C) => (val === c ? o : val);
+}
+
+export function nullIf<C>(c: C): ReturnType<typeof orIf<C, null>> {
+    return orIf(c, null);
 }

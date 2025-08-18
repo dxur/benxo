@@ -30,7 +30,11 @@ impl StoreRoutes {
         FromCookies(business): FromCookies<BusinessSession>,
         #[json] create_req: StoreCreateDto,
     ) -> ApiResult<Json<StoreDto>> {
-        state.store_service.create(business, create_req).await.map(Json)
+        state
+            .store_service
+            .create(business, create_req)
+            .await
+            .map(Json)
     }
 
     #[route(method=post, path="/{store_id}", res=StoreDto)]

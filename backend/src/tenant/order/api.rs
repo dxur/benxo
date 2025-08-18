@@ -35,7 +35,7 @@ pub enum PaymentStatusDto {
 }
 
 #[derive(Debug, Deserialize, TS)]
-#[ts(export, optional_fields)]
+#[ts(export, bound="")]
 pub struct OrderItemCreate {
     pub product_id: Id,
     pub variant_sku: String,
@@ -43,7 +43,7 @@ pub struct OrderItemCreate {
 }
 
 #[derive(Debug, Deserialize, TS)]
-#[ts(export, optional_fields)]
+#[ts(export, bound="")]
 pub struct OrderCreate {
     pub customer_email: String,
     pub customer_name: String,
@@ -60,7 +60,7 @@ pub struct OrderCreate {
 }
 
 #[derive(Debug, Serialize, o2o, TS)]
-#[ts(export, optional_fields)]
+#[ts(export, bound="")]
 #[from_owned(OrderHistory)]
 pub struct OrderHistoryDto {
     #[from(~.into())]
@@ -73,7 +73,7 @@ pub struct OrderHistoryDto {
 }
 
 #[derive(Debug, Serialize, o2o, TS)]
-#[ts(export, optional_fields)]
+#[ts(export, bound="")]
 #[from_owned(OrderRecord)]
 pub struct OrderDto {
     #[from(@._id.into())]
@@ -121,7 +121,7 @@ pub struct OrderListQuery {
 }
 
 #[derive(Debug, Deserialize, TS)]
-#[ts(export, optional_fields)]
+#[ts(export, bound="")]
 pub struct OrderUpdate {
     pub status: JsonOption<OrderStatusDto>,
     pub payment_status: JsonOption<PaymentStatusDto>,
@@ -132,7 +132,7 @@ pub struct OrderUpdate {
 }
 
 #[derive(Debug, Deserialize, TS)]
-#[ts(export, optional_fields)]
+#[ts(export, bound="")]
 pub struct OrderStatusUpdate {
     pub status: OrderStatusDto,
     pub note: Option<String>,
@@ -140,7 +140,7 @@ pub struct OrderStatusUpdate {
 }
 
 #[derive(Debug, Serialize, TS)]
-#[ts(export, optional_fields)]
+#[ts(export, bound="")]
 pub struct OrderListResponse {
     pub orders: Vec<OrderDto>,
     pub total: u64,
@@ -149,7 +149,7 @@ pub struct OrderListResponse {
 }
 
 #[derive(Debug, Serialize, TS)]
-#[ts(export, optional_fields)]
+#[ts(export, bound="")]
 pub struct OrderAnalytics {
     pub total_orders: u64,
     #[ts(as = "String")]
@@ -162,7 +162,7 @@ pub struct OrderAnalytics {
 }
 
 #[derive(Debug, Deserialize, TS)]
-#[ts(export, optional_fields)]
+#[ts(export, bound="")]
 pub struct BulkOrderStatusUpdate {
     pub order_ids: Vec<Id>,
     pub status: OrderStatusDto,
@@ -171,7 +171,7 @@ pub struct BulkOrderStatusUpdate {
 }
 
 #[derive(Debug, Serialize, TS)]
-#[ts(export, optional_fields)]
+#[ts(export, bound="")]
 pub struct BulkUpdateResponse {
     pub updated_count: u64,
     pub failed_ids: Vec<Id>,

@@ -16,9 +16,37 @@ impl<R: StoreRepo, Reg: StoreRegRepo> StoreService<R, Reg> {
         Self { repo, reg }
     }
 
-    pub async fn create(&self, business: BusinessSession, StoreCreateDto{name, description, status}: StoreCreateDto) -> ApiResult<StoreDto> {
+    pub async fn create(
+        &self,
+        business: BusinessSession,
+        create_req: StoreCreateDto,
+    ) -> ApiResult<StoreDto> {
         self.repo
-            .create(business.business_id.into_inner(), StoreRecord::new(name, description, status.into()))
+            .create(
+                business.business_id.into_inner(),
+                StoreRecord::new(
+                    create_req.name,
+                    create_req.description,
+                    create_req.status.into(),
+                    create_req.category,
+                    create_req.contact_email,
+                    create_req.contact_phone,
+                    create_req.address,
+                    create_req.city,
+                    create_req.zip_code,
+                    create_req.social_links,
+                    create_req.selected_theme,
+                    create_req.color_scheme,
+                    create_req.header_style,
+                    create_req.google_analytics_id,
+                    create_req.gtm_container_id,
+                    create_req.tracking_pixels,
+                    create_req.meta_title,
+                    create_req.meta_description,
+                    create_req.meta_keywords,
+                    create_req.custom_key_values,
+                ),
+            )
             .await
             .map(Into::into)
     }
@@ -40,6 +68,23 @@ impl<R: StoreRepo, Reg: StoreRegRepo> StoreService<R, Reg> {
         update_req.name.map(|v| record.name = v);
         update_req.description.map(|v| record.description = v);
         update_req.status.map(|v| record.status = v.into());
+        update_req.category.ok_then(|v| record.category = v);
+        update_req.contact_email.ok_then(|v| record.contact_email = v);
+        update_req.contact_phone.ok_then(|v| record.contact_phone = v);
+        update_req.address.ok_then(|v| record.address = v);
+        update_req.city.ok_then(|v| record.city = v);
+        update_req.zip_code.ok_then(|v| record.zip_code = v);
+        update_req.social_links.map(|v| record.social_links = v);
+        update_req.selected_theme.ok_then(|v| record.selected_theme = v);
+        update_req.color_scheme.ok_then(|v| record.color_scheme = v);
+        update_req.header_style.ok_then(|v| record.header_style = v);
+        update_req.google_analytics_id.ok_then(|v| record.google_analytics_id = v);
+        update_req.gtm_container_id.ok_then(|v| record.gtm_container_id = v);
+        update_req.tracking_pixels.map(|v| record.tracking_pixels = v);
+        update_req.meta_title.ok_then(|v| record.meta_title = v);
+        update_req.meta_description.ok_then(|v| record.meta_description = v);
+        update_req.meta_keywords.ok_then(|v| record.meta_keywords = v);
+        update_req.custom_key_values.map(|v| record.custom_key_values = v);
 
         self.repo
             .update(business_id, id, record)

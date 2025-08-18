@@ -3,6 +3,7 @@
     import { Separator } from "$lib/components/ui/separator/index";
     import { Toaster } from "$lib/components/ui/sonner/index";
     import { ModeWatcher } from "mode-watcher";
+    import AlertDialog from "../alert-dialog.svelte";
 
     let { sidebar, breadcrumb, children } = $props();
 </script>
@@ -10,6 +11,8 @@
 <ModeWatcher />
 
 <Toaster />
+
+<AlertDialog />
 
 <div class="bg-wrapper"></div>
 
