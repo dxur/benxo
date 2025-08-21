@@ -1,4 +1,4 @@
-import * as _ from 'lodash';
+import { isEqual, cloneDeep } from 'lodash';
 import { snakeToTitleCase } from './fmt';
 import * as yup from 'yup';
 
@@ -15,26 +15,6 @@ type FormField<T> = {
 export type Form<T extends yup.ObjectSchema<any>> = T extends yup.ObjectSchema<infer Shape>
     ? { [K in keyof Shape]: FormField<Shape[K]> }
     : never;
-
-function deepEqual(a: any, b: any): boolean {
-    if (a === b) return true;
-    if (a == null || b == null) return false;
-    if (typeof a !== typeof b) return false;
-
-    if (Array.isArray(a) && Array.isArray(b)) {
-        if (a.length !== b.length) return false;
-        return a.every((item, index) => deepEqual(item, b[index]));
-    }
-
-    if (typeof a === 'object') {
-        const keysA = Object.keys(a);
-        const keysB = Object.keys(b);
-        if (keysA.length !== keysB.length) return false;
-        return keysA.every(key => deepEqual(a[key], b[key]));
-    }
-
-    return false;
-}
 
 function getConcreteDefault<T>(schema: yup.Schema, providedValue?: T): NonNullable<T> extends never ? string : NonNullable<T> {
     // If provided value is not null/undefined, use it
@@ -70,8 +50,8 @@ function createFormField<T>(schema: yup.Schema, initialValue?: T): FormField<T> 
     const concreteValue = getConcreteDefault(schema, initialValue);
 
     return {
-        value: _.cloneDeep(concreteValue),
-        initialValue: _.cloneDeep(concreteValue),
+        value: cloneDeep(concreteValue),
+        initialValue: cloneDeep(concreteValue),
         valid: undefined as boolean | undefined,
         errors: undefined as string[] | undefined,
         validate() {
@@ -98,7 +78,7 @@ function createFormField<T>(schema: yup.Schema, initialValue?: T): FormField<T> 
             }
         },
         hasChanged() {
-            return !deepEqual(this.value, this.initialValue);
+            return !isEqual(this.value, this.initialValue);
         }
     };
 }
@@ -209,7 +189,7 @@ export function hasFormChanges<T extends yup.ObjectSchema<any>>(form: Form<T>): 
 
 export function resetForm<T extends yup.ObjectSchema<any>>(form: Form<T>): void {
     Object.values(form).forEach((field: FormField<any>) => {
-        field.value = _.cloneDeep(field.initialValue);
+        field.value = cloneDeep(field.initialValue);
         field.valid = undefined;
         field.errors = undefined;
     });

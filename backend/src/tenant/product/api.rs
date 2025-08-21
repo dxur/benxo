@@ -16,23 +16,23 @@ use crate::{
 #[map_owned(ProductStatus)]
 #[ts(export)]
 pub enum ProductStatusDto {
-    Draft,
     Active,
     Inactive,
     Archived,
 }
 
 #[derive(Debug, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
 #[ts(export, bound="")]
-pub struct ProductVariantCreate {
-    pub sku: String,
-    #[ts(as = "String")]
-    pub price: BigDecimal,
-    #[ts(as = "Option<String>")]
-    pub compare_at: Option<BigDecimal>,
-    pub stocks: usize,
+pub struct ProductCreateDto {
+    pub title: Name,
+    pub description: String,
+    pub status: ProductStatusDto,
+    pub featured: bool,
+    pub category: String,
     pub images: Vec<String>,
-    pub options: IndexMap<String, String>,
+    pub variants: Vec<ProductVariant>,
+    pub slug: String,
 }
 
 #[derive(Debug, Serialize, o2o, TS)]
@@ -48,7 +48,6 @@ pub struct ProductDto {
     pub featured: bool,
     pub category: String,
     pub images: Vec<String>,
-    pub options: IndexMap<String, IndexSet<String>>,
     pub variants: Vec<ProductVariant>,
     pub slug: String,
     #[from(~.to_chrono())]
@@ -77,7 +76,6 @@ pub struct ProductUpdate {
     pub images: JsonOption<Vec<String>>,
     pub featured: JsonOption<bool>,
     pub status: JsonOption<ProductStatusDto>,
-    pub options: JsonOption<IndexMap<String, IndexSet<String>>>,
     pub variants: JsonOption<Vec<ProductVariant>>,
     pub slug: JsonOption<String>,
 }

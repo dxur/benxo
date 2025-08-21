@@ -1,6 +1,7 @@
 <script lang="ts">
   import { me } from "@bindings/UserRoutes";
   import { userStore } from "@/lib/stores/user";
+  import { navigate } from "astro:transitions/client";
 
   let { children } = $props();
 
@@ -12,7 +13,7 @@
       })
       .catch((_) => {
         console.error("Unautherized");
-        location.href = "/auth/";
+        navigate("/auth/");
       });
   });
 </script>

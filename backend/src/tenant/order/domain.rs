@@ -22,6 +22,7 @@ pub enum OrderStatus {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PaymentStatus {
+    #[default]
     Pending,
     Paid,
     Failed,
@@ -41,7 +42,7 @@ pub struct OrderItem {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, TS)]
-#[ts(export, bound="")]
+#[ts(export, bound = "")]
 pub struct ShippingAddress {
     pub full_name: String,
     pub address_line_1: String,
@@ -71,7 +72,7 @@ pub struct OrderRecord {
     pub shipping_address: ShippingAddress,
     pub billing_address: Option<ShippingAddress>,
     pub status: OrderStatus,
-    pub payment_status: PaymentStatus,
+    // pub payment_status: PaymentStatus,
     pub subtotal: BigDecimal,
     pub shipping_cost: BigDecimal,
     pub tax_amount: BigDecimal,
@@ -106,7 +107,7 @@ impl Default for OrderRecord {
             },
             billing_address: Default::default(),
             status: Default::default(),
-            payment_status: PaymentStatus::Pending,
+            // payment_status: Default::default(),
             subtotal: BigDecimal::from(0),
             shipping_cost: BigDecimal::from(0),
             tax_amount: BigDecimal::from(0),
@@ -161,7 +162,7 @@ impl OrderRecord {
 #[derive(Debug, Clone, Default)]
 pub struct OrderFilter {
     pub status: Option<OrderStatus>,
-    pub payment_status: Option<PaymentStatus>,
+    // pub payment_status: Option<PaymentStatus>,
     pub customer_email: Option<String>,
     pub search: Option<String>,
     pub date_from: Option<DateTime>,

@@ -1,6 +1,6 @@
 import type { AppRoute } from "../..";
 import type { SidebarItem } from "../../lib/components/sidebar.svelte";
-import { PackageIcon, TrendingUpIcon } from "@lucide/svelte";
+import { PackageIcon } from "@lucide/svelte";
 
 export namespace Routes {
     export const LIST_PAGE: AppRoute = {
@@ -14,17 +14,18 @@ export namespace Routes {
         meta: { parent: LIST_PAGE },
         component: () => import("./product-edit.svelte"),
     };
-    export const STOCKS_PAGE: AppRoute = {
-        name: "Stocks",
-        path: "/stocks",
-        component: () => import("./stocks.svelte"),
+    export const CREATE_PAGE: AppRoute = {
+        name: "Create product",
+        path: "/products/create",
+        meta: { parent: LIST_PAGE },
+        component: () => import("./product-create.svelte"),
     }
 }
 
 export const productsRoutes = [
     Routes.LIST_PAGE,
     Routes.EDIT_PAGE,
-    Routes.STOCKS_PAGE,
+    Routes.CREATE_PAGE,
 ];
 
 export const productsSidebarItems = <SidebarItem[]>[
@@ -33,11 +34,5 @@ export const productsSidebarItems = <SidebarItem[]>[
         name: "Products",
         path: Routes.LIST_PAGE.path,
         icon: PackageIcon
-    },
-    {
-        id: "stocks",
-        name: "Stocks",
-        path: Routes.STOCKS_PAGE.path,
-        icon: TrendingUpIcon
     },
 ];

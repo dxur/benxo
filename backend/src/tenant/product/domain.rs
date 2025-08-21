@@ -9,9 +9,8 @@ use crate::types::name::Name;
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ProductStatus {
-    #[default]
-    Draft,
     Active,
+    #[default]
     Inactive,
     Archived,
 }
@@ -37,35 +36,40 @@ pub struct ProductRecord {
     pub featured: bool,
     pub category: String,
     pub images: Vec<String>,
-    pub options: IndexMap<String, IndexSet<String>>,
     pub variants: Vec<ProductVariant>,
     pub slug: String,
     pub created_at: DateTime,
     pub updated_at: DateTime,
 }
 
-impl Default for ProductRecord {
-    fn default() -> Self {
+impl ProductRecord {
+    pub fn new(
+        title: Name,
+        description: String,
+        status: ProductStatus,
+        featured: bool,
+        category: String,
+        images: Vec<String>,
+        variants: Vec<ProductVariant>,
+        slug: String,
+    ) -> Self {
         let now = DateTime::now();
 
         Self {
             _id: Default::default(),
-            title: Default::default(),
-            description: Default::default(),
-            status: Default::default(),
-            featured: Default::default(),
-            category: Default::default(),
-            images: Default::default(),
-            options: Default::default(),
-            variants: Default::default(),
-            slug: Default::default(),
+            title,
+            description,
+            status,
+            featured,
+            category,
+            images,
+            variants,
+            slug,
             created_at: now,
             updated_at: now,
         }
     }
-}
 
-impl ProductRecord {
     pub fn is_active(&self) -> bool {
         matches!(self.status, ProductStatus::Active)
     }

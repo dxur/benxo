@@ -1,9 +1,10 @@
 <script lang="ts">
+    import * as Tabs from "$lib/components/ui/tabs/index";
     import Column from "../../lib/components/layout/column.svelte";
     import Group from "../../lib/components/layout/group.svelte";
     import SectionHeader from "../../lib/components/section-header.svelte";
     import ActionButton from "../../lib/components/action-button.svelte";
-    import { PlusIcon, SendIcon, ShoppingBagIcon } from "@lucide/svelte";
+    import { PlusIcon, SendIcon, PackageIcon } from "@lucide/svelte";
 
     import {
         createMutation,
@@ -11,78 +12,63 @@
         getQueryClientContext,
     } from "@tanstack/svelte-query";
     import { useNavigate } from "@dvcol/svelte-simple-router/router";
-    import type { StoreDto } from "@bindings/StoreDto";
     import { useState } from "../../lib/utils/utils.svelte";
     import { createForm, getFormValues, type Form } from "../../lib/utils/form";
-    import { StoreSchema, createStore } from "./service";
+    import { ProductSchema, useProductCreate } from "./service";
     import { Routes } from ".";
     import { toast } from "svelte-sonner";
     import { snakeToTitleCase } from "../../lib/utils/fmt";
-    import StoreFormGeneral from "./store-form-general.svelte";
-    import type { StoreCreateDto } from "@bindings/StoreCreateDto";
+    import ProductFormGeneral from "./product-form-general.svelte";
+    import type { ProductCreateDto } from "@bindings/ProductCreateDto";
+    import ProductFormVariants from "./product-form-variants.svelte";
+    import ProductFormMedia from "./product-form-media.svelte";
 
     const { replace } = useNavigate();
 
     const query = createQuery(() => ({
-        queryKey: ["store-create"],
+        queryKey: ["product-create"],
         queryFn: () => {
-            return <StoreDto>{
+            return <ProductCreateDto>{
                 id: "",
-                name: "Amazing Store",
+                title: "Amazing Product",
                 description: "",
-                category: null,
                 status: "inactive",
-                contact_email: null,
-                contact_phone: null,
-                address: null,
-                city: null,
-                zip_code: null,
-                social_links: [],
-                selected_theme: null,
-                color_scheme: null,
-                header_style: null,
-                google_analytics_id: null,
-                gtm_container_id: null,
-                tracking_pixels: [],
-                meta_title: null,
-                meta_description: null,
-                meta_keywords: null,
-                custom_key_values: {},
-                created_at: "<timestamp>",
-                updated_at: "<timestamp>",
+                featured: false,
+                category: "",
+                images: [],
+                options: {},
+                variants: [],
+                slug: "",
             };
         },
     }));
 
-    let { form } = $derived(useState(createForm(StoreSchema, query.data)));
+    let { form } = $derived(useState(createForm(ProductSchema, query.data)));
 
     const queryContext = getQueryClientContext();
 
-    const creationMutation = createMutation(() => ({
-        mutationFn: async (values: StoreCreateDto) => {
-            return await createStore(values);
-        },
-        onSuccess: (data) => {
-            toast.success("Store created successfully");
+    const creationMutation = useProductCreate(
+        (data) => {
+            toast.success("Product created successfully");
             queryContext.invalidateQueries({
-                queryKey: ["stores"],
+                queryKey: ["products"],
             });
             replace({
                 path: Routes.EDIT_PAGE.path,
                 params: { id: data.id },
             });
         },
-        onError: (e) => {
+        (e) => {
             toast.error("Error creating product", {
                 description: e.message,
             });
         },
-    }));
+    );
 
     function handleCreate(status: typeof form.status.value) {
         form.status.value = status;
         try {
-            const values = getFormValues<typeof StoreSchema>(form);
+            const values = getFormValues<typeof ProductSchema>(form);
             creationMutation.mutate(values);
         } catch (e) {
             console.error("Validation Error", e);
@@ -111,9 +97,9 @@
         <Group>
             <div class="flex items-center gap-4">
                 <SectionHeader
-                    icon={ShoppingBagIcon}
-                    title="Create new store"
-                    description="Fill in the details below to create a new store"
+                    icon={PackageIcon}
+                    title="Create new product"
+                    description="Fill in the details below to create a new product"
                 />
             </div>
             <Group class="md:flex-row-reverse flex-wrap justify-start">
@@ -132,11 +118,26 @@
         </Group>
 
         <Group class="max-w-4xl md:flex-col md:[&>*]:w-full lg:flex-row">
-            <form class="flex-1">
-                <fieldset class="tab-content">
-                    <StoreFormGeneral bind:form />
-                </fieldset>
-            </form>
+            <div class="flex-1">
+                <Tabs.Root value="general">
+                    <Tabs.List class="w-full">
+                        <Tabs.Trigger value="general">General</Tabs.Trigger>
+                        <Tabs.Trigger value="media">Media</Tabs.Trigger>
+                        <Tabs.Trigger value="variants">Variants</Tabs.Trigger>
+                    </Tabs.List>
+                    <fieldset>
+                        <Tabs.Content value="general" class="tab-content">
+                            <ProductFormGeneral bind:form />
+                        </Tabs.Content>
+                        <Tabs.Content value="media" class="tab-content">
+                            <ProductFormMedia bind:form />
+                        </Tabs.Content>
+                        <Tabs.Content value="variants" class="tab-content">
+                            <ProductFormVariants bind:form />
+                        </Tabs.Content>
+                    </fieldset>
+                </Tabs.Root>
+            </div>
         </Group>
     </Column>
 {/snippet}

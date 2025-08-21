@@ -19,8 +19,9 @@ impl ProductRoutes {
     async fn create_product(
         State(state): State<AppState>,
         FromCookies(business): FromCookies<BusinessSession>,
+        #[json] product: ProductCreateDto,
     ) -> ApiResult<Json<ProductDto>> {
-        state.product_service.create(business).await.map(Json)
+        state.product_service.create(business, product).await.map(Json)
     }
 
     #[route(method=post, path="/{product_id}", res=ProductDto)]
@@ -40,7 +41,7 @@ impl ProductRoutes {
     async fn list_products(
         State(state): State<AppState>,
         FromCookies(business): FromCookies<BusinessSession>,
-        Query(query): Query<ProductListQuery>,
+        #[query] query: ProductListQuery,
     ) -> ApiResult<Json<ProductListResponse>> {
         state
             .product_service

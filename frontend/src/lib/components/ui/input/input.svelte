@@ -25,7 +25,7 @@
 	}: Props = $props();
 </script>
 
-<div class="space-y-1">
+<div class="space-y-1 flex-1">
 	{#if type === "file"}
 		<input
 			bind:this={ref}

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { current } from "@bindings/BusinessRoutes";
+    import { navigate } from "astro:transitions/client";
 
     let { children } = $props();
     let biz: any = $state(undefined);
@@ -12,7 +13,7 @@
             })
             .catch((_) => {
                 console.error("Unautherized");
-                location.href = "/user-center";
+                navigate("/user-center/");
             });
     });
 </script>

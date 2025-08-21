@@ -1,5 +1,6 @@
 <script lang="ts">
   import { auth, me } from "@bindings/UserRoutes";
+  import { navigate } from "astro:transitions/client";
 
   let email = $state("");
   let email_otp = $state("");
@@ -15,7 +16,7 @@
   $effect(() => {
     me().then(() => {
       console.error("Logout first");
-      location.href = "/user-center/";
+      navigate("/user-center/");
     });
   });
 
@@ -28,7 +29,7 @@
       },
     })
       .then((_) => {
-        location.href = "/user-center";
+        navigate("/user-center/");
       })
       .catch((e) => {
         alert(e);
@@ -78,7 +79,7 @@
       },
     })
       .then((_) => {
-        location.href = "/user-center";
+        navigate("/user-center/");
       })
       .catch((e) => {
         alert(e);

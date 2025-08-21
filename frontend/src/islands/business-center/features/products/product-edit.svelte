@@ -1,525 +1,356 @@
-<!-- ProductEditPage.svelte -->
 <script lang="ts">
-  import { useRoute, link, useLink } from "@dvcol/svelte-simple-router";
-  import { Routes } from "./index";
-
+  import * as Tabs from "$lib/components/ui/tabs/index";
+  import * as AlertDialog from "$lib/components/ui/alert-dialog/index";
+  import { Badge } from "@/lib/components/ui/badge";
   import Column from "../../lib/components/layout/column.svelte";
   import Group from "../../lib/components/layout/group.svelte";
   import SectionHeader from "../../lib/components/section-header.svelte";
   import ActionButton from "../../lib/components/action-button.svelte";
-  import { Button } from "$lib/components/ui/button/index";
-  import { Badge } from "$lib/components/ui/badge/index";
-  import { Input } from "$lib/components/ui/input/index";
-  import { Label } from "$lib/components/ui/label/index";
-  import { Textarea } from "$lib/components/ui/textarea/index";
-  import { Switch } from "$lib/components/ui/switch/index";
-  import * as Card from "$lib/components/ui/card/index";
-  import * as Tabs from "$lib/components/ui/tabs/index";
-  import * as AlertDialog from "$lib/components/ui/alert-dialog/index";
   import {
-    PackageIcon,
+    ArchiveIcon,
+    PauseIcon,
+    RefreshCwIcon,
     SaveIcon,
+    SendIcon,
+    PackageIcon,
     TrashIcon,
-    ArrowLeftIcon,
-    ImageIcon,
-    PlusIcon,
     StarIcon,
-    MoveUpIcon,
+    CopyIcon,
   } from "@lucide/svelte";
 
-  import type { ProductDto } from "@bindings/ProductDto";
+  import {
+    canBeDeleted,
+    ProductSchema,
+    generateSlug,
+    useProductQuery,
+    useProductUpdate,
+    useProductDelete,
+  } from "./service";
+  import { useNavigate } from "@dvcol/svelte-simple-router/router";
+  import { useState } from "../../lib/utils/utils.svelte";
+  import { useRoute } from "@dvcol/svelte-simple-router/router";
+  import { createForm, getChangedValues } from "../../lib/utils/form";
+  import { toast } from "svelte-sonner";
   import type { ProductUpdate } from "@bindings/ProductUpdate";
-  import Editor from "./editor.svelte";
-  import { currencyFormatter } from "../../lib/utils/fmt";
-  import { MoveDownIcon } from "@lucide-svelte";
-  import { get_product } from "@bindings/ProductRoutes";
+  import { snakeToTitleCase } from "../../lib/utils/fmt";
+  import ProductFormGeneral from "./product-form-general.svelte";
+  import ProductFormVariants from "./product-form-variants.svelte";
+  import ProductFormMedia from "./product-form-media.svelte";
+  import { dialog } from "../../lib/components/alert-dialog.svelte";
+  import { Routes } from ".";
+
+  const { replace } = useNavigate();
 
   const { location } = useRoute();
-  const { id } = location?.params as { id: string };
+  const productId: string = location?.params.id as string;
 
-  let product = $state({} as ProductDto);
-  let formData = $state({} as ProductUpdate);
-  let hasChanges = $state(false);
-  let isSaving = $state(false);
-  let isDeleting = $state(false);
-  let showDeleteDialog = $state(false);
+  const query = useProductQuery(productId);
 
-  async function loadProduct() {
+  const updateMutation = useProductUpdate(
+    productId,
+    () => {
+      toast.success("Product updated successfully");
+      query.refetch();
+    },
+    (error) => {
+      toast.error("Error updating product", {
+        description: error.message,
+      });
+    },
+  );
+
+  const deleteMutation = useProductDelete(
+    productId,
+    () => {
+      toast.success("Product deleted successfully");
+      replace({
+        path: Routes.LIST_PAGE.path,
+      });
+    },
+    (error) => {
+      toast.error("Error deleting product", {
+        description: error.message,
+      });
+    },
+  );
+
+  let { form, data } = $derived(
+    useState(createForm(ProductSchema, query.data)),
+  );
+
+  type ProductAction =
+    | "save"
+    | "publish"
+    | "unpublish"
+    | "archive"
+    | "restore"
+    | "delete"
+    | "duplicate"
+    | "toggle_featured";
+
+  async function handleAction(action: ProductAction) {
     try {
-      product = await get_product(id);
-      formData = product;
-      return product;
-    } catch (error) {
-      throw error;
+      let values = getChangedValues(form);
+
+      if (action === "delete") {
+        const confirmed = await dialog.confirm({
+          title: "Delete this product?",
+          description:
+            "This action cannot be undone. All product data and variants will be permanently removed.",
+          actions: [
+            { label: "Cancel", value: false },
+            { label: "Delete", value: true, variant: "destructive" },
+          ],
+        });
+        if (!confirmed) return;
+
+        deleteMutation.mutate();
+        return;
+      }
+
+      if (action === "duplicate") {
+        const confirmed = await dialog.confirm({
+          title: "Duplicate this product?",
+          description: "This will create a new product with the same details.",
+          actions: [
+            { label: "Cancel", value: false, variant: "secondary" },
+            { label: "Duplicate", value: true },
+          ],
+        });
+        if (!confirmed) return;
+
+        // TODO: Implement duplication logic
+        toast.info("Duplication feature coming soon");
+        return;
+      }
+
+      if (action === "archive") {
+        const confirmed = await dialog.confirm({
+          title: "Archive this product?",
+          description:
+            "Archived products will not be visible to customers and cannot be purchased.",
+          actions: [
+            { label: "Cancel", value: false },
+            { label: "Archive", value: true, variant: "destructive" },
+          ],
+        });
+        if (!confirmed) return;
+      }
+
+      if (action === "unpublish") {
+        const confirmed = await dialog.confirm({
+          title: "Unpublish this product?",
+          description:
+            "Customers will not be able to view or purchase this product until you publish it again.",
+          actions: [
+            { label: "Cancel", value: false },
+            { label: "Unpublish", value: true, variant: "destructive" },
+          ],
+        });
+        if (!confirmed) return;
+      }
+
+      let updateReq: Partial<ProductUpdate> = values ?? {};
+
+      switch (action) {
+        case "save":
+          // Auto-generate slug if title changed and slug is empty
+          if (values?.title && !form.slug.value) {
+            updateReq.slug = generateSlug(values.title);
+          }
+          break;
+        case "publish":
+          updateReq.status = "active";
+          break;
+        case "unpublish":
+          updateReq.status = "inactive";
+          break;
+        case "archive":
+          updateReq.status = "archived";
+          break;
+        case "restore":
+          updateReq.status = "inactive";
+          break;
+        case "toggle_featured":
+          updateReq.featured = !form.featured.value;
+          break;
+      }
+
+      console.info("Updating product with values:", updateReq);
+
+      if (Object.keys(updateReq).length > 0) {
+        updateMutation.mutate(updateReq as ProductUpdate);
+      } else {
+        toast.warning("No changes have been made");
+      }
+    } catch (e) {
+      console.error("Validation Error", e);
+      const errors = e as [string, string[]][];
+      errors.forEach(([field, errors]) => {
+        toast.error(`Error in field: ${snakeToTitleCase(field)}`, {
+          description: errors.join("\n"),
+        });
+      });
     }
   }
 
-  async function saveProduct() {
-    try {
-      isSaving = true;
-      product = await productEditService.updateProduct(id, formData);
-      formData = productEditService.createFormData(product);
-      hasChanges = false;
-    } catch (error) {
-      console.error("Save failed:", error);
-    } finally {
-      isSaving = false;
-    }
+  function getTotalStock() {
+    if (!form.variants.value) return 0;
+    return form.variants.value.reduce(
+      (total, variant) => total + (variant.stocks || 0),
+      0,
+    );
   }
 
-  async function deleteProduct() {
-    try {
-      isDeleting = true;
-      await productEditService.deleteProduct(id);
-      window.location.href = Routes.LIST_PAGE.path;
-    } catch (error) {
-      console.error("Delete failed:", error);
-    } finally {
-      isDeleting = false;
-      showDeleteDialog = false;
-    }
-  }
-
-  function handleChange() {
-    hasChanges = true;
-  }
-
-  // Image management
-  function addImage() {
-    const imageUrl = prompt("Enter image URL:");
-    if (imageUrl) {
-      formData.images = [...(formData.images || []), imageUrl];
-      handleChange();
-    }
-  }
-
-  function removeImage(index: number) {
-    if (!formData.images) return;
-    formData.images = formData.images.filter((_, i) => i !== index);
-    handleChange();
-  }
-
-  function moveImageUp(index: number) {
-    if (!formData.images || index === 0) return;
-    const imageToMove = formData.images[index];
-    formData.images[index] = formData.images[index - 1];
-    formData.images[index - 1] = imageToMove;
-    handleChange();
-  }
-
-  function moveImageDown(index: number) {
-    if (!formData.images || index + 1 >= formData.images.length) return;
-    const imageToMove = formData.images[index];
-    formData.images[index] = formData.images[index + 1];
-    formData.images[index + 1] = imageToMove;
-    handleChange();
+  function getLowestPrice() {
+    if (!form.variants.value?.length) return "0.00";
+    const prices = form.variants.value
+      .map((v) => parseFloat(v.price || "0"))
+      .filter((p) => !isNaN(p));
+    return prices.length ? Math.min(...prices).toFixed(2) : "0.00";
   }
 </script>
 
-{#await loadProduct()}
-  <div class="flex items-center justify-center min-h-[400px]">
-    <div class="text-center">
-      <div
-        class="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent mx-auto mb-4"
-      ></div>
-      <p class="text-muted-foreground">Loading product...</p>
-    </div>
-  </div>
-{:then}
+<div>
+  {#if query.isLoading}
+    <p>Loading...</p>
+  {:else if query.isError}
+    <p>Error: {query.error.message}</p>
+  {:else if query.isSuccess}
+    {@render body()}
+  {/if}
+</div>
+
+{#snippet body()}
   <Column class="[&>*]:w-full items-center">
     <Group>
       <div class="flex items-center gap-4">
         <SectionHeader
           icon={PackageIcon}
-          title={product.title}
-          description="Manage product details, pricing, and inventory"
-        />
-      </div>
-      <Group>
-        <ActionButton
-          variant="destructive"
-          onclick={() => (showDeleteDialog = true)}
-          disabled={isDeleting}
+          title={form.title.initialValue}
+          description="Manage product details and variants"
         >
-          <TrashIcon />
-          Archive
+          <div class="flex items-center gap-2">
+            <Badge
+              variant={form.status.initialValue === "active"
+                ? "default"
+                : form.status.initialValue === "inactive"
+                  ? "outline"
+                  : "destructive"}
+            >
+              {snakeToTitleCase(form.status.initialValue)}
+            </Badge>
+            {#if form.featured.initialValue}
+              <Badge
+                variant="outline"
+                class="text-yellow-600 border-yellow-300"
+              >
+                <StarIcon class="w-3 h-3 mr-1" />
+                Featured
+              </Badge>
+            {/if}
+          </div>
+        </SectionHeader>
+
+        <!-- <div class="text-sm text-muted-foreground space-y-1">
+          <div>Stock: {getTotalStock()} units</div>
+          <div>Price: from ${getLowestPrice()}</div>
+          <div>Variants: {form.variants.value?.length || 0}</div>
+        </div> -->
+      </div>
+
+      <Group class="md:flex-row-reverse flex-wrap justify-start">
+        {#if form.status.initialValue === "archived"}
+          <ActionButton
+            variant="default"
+            onclick={() => handleAction("restore")}
+          >
+            <RefreshCwIcon />
+            Restore Product
+          </ActionButton>
+        {:else}
+          <ActionButton variant="default" onclick={() => handleAction("save")}>
+            <SaveIcon />
+            Save Changes
+          </ActionButton>
+        {/if}
+
+        {#if form.status.initialValue === "inactive"}
+          <ActionButton
+            variant="secondary"
+            onclick={() => handleAction("publish")}
+          >
+            <SendIcon />
+            Publish Product
+          </ActionButton>
+        {:else if form.status.initialValue === "active"}
+          <ActionButton
+            variant="destructive"
+            onclick={() => handleAction("unpublish")}
+          >
+            <PauseIcon />
+            Unpublish Product
+          </ActionButton>
+        {:else if form.status.initialValue === "archived"}
+          <ActionButton
+            variant="destructive"
+            disabled={!canBeDeleted(data)}
+            onclick={() => handleAction("delete")}
+          >
+            <TrashIcon />
+            Delete Product
+          </ActionButton>
+        {/if}
+
+        <ActionButton
+          variant="outline"
+          onclick={() => handleAction("toggle_featured")}
+        >
+          <StarIcon />
+          {form.featured.value ? "Remove from Featured" : "Mark as Featured"}
         </ActionButton>
-        <ActionButton onclick={saveProduct} disabled={!hasChanges || isSaving}>
-          <SaveIcon />
-          {isSaving ? "Saving..." : "Save Changes"}
+
+        <ActionButton
+          variant="outline"
+          onclick={() => handleAction("duplicate")}
+        >
+          <CopyIcon />
+          Duplicate
         </ActionButton>
+
+        {#if form.status.initialValue === "inactive"}
+          <ActionButton
+            variant="destructive"
+            onclick={() => handleAction("archive")}
+          >
+            <ArchiveIcon />
+            Archive Product
+          </ActionButton>
+        {/if}
       </Group>
     </Group>
 
-    <Group class="max-w-7xl md:flex-col md:[&>*]:w-full lg:flex-row">
+    <Group class="max-w-4xl md:flex-col md:[&>*]:w-full lg:flex-row">
       <div class="flex-1">
         <Tabs.Root value="general">
           <Tabs.List class="w-full">
             <Tabs.Trigger value="general">General</Tabs.Trigger>
-            <Tabs.Trigger value="description">Description</Tabs.Trigger>
-            <Tabs.Trigger value="images">Images</Tabs.Trigger>
+            <Tabs.Trigger value="media">Media</Tabs.Trigger>
             <Tabs.Trigger value="variants">Variants</Tabs.Trigger>
           </Tabs.List>
-          <Tabs.Content value="general" class="space-y-6">
-            {@render general()}
-          </Tabs.Content>
-          <Tabs.Content value="description" class="space-y-6">
-            {@render description()}
-          </Tabs.Content>
-          <Tabs.Content value="images" class="space-y-6">
-            {@render images()}
-          </Tabs.Content>
-          <Tabs.Content value="variants" class="space-y-6">
-            {@render variants()}
-          </Tabs.Content>
+          <fieldset>
+            <Tabs.Content value="general" class="tab-content">
+              <ProductFormGeneral bind:form />
+            </Tabs.Content>
+            <Tabs.Content value="media" class="tab-content">
+              <ProductFormMedia bind:form />
+            </Tabs.Content>
+            <Tabs.Content value="variants" class="tab-content">
+              <ProductFormVariants bind:form />
+            </Tabs.Content>
+          </fieldset>
         </Tabs.Root>
-      </div>
-      <div class="lg:max-w-sm space-y-6">
-        <div class="lg:w-xs">
-          {@render summary()}
-        </div>
       </div>
     </Group>
   </Column>
-
-  <!-- Delete Dialog -->
-  <AlertDialog.Root bind:open={showDeleteDialog}>
-    <AlertDialog.Content>
-      <AlertDialog.Header>
-        <AlertDialog.Title>Are you sure?</AlertDialog.Title>
-        <AlertDialog.Description>
-          This action will archive the product "{product.title}". Archived
-          products can be restored later, but they won't be visible to
-          customers.
-        </AlertDialog.Description>
-      </AlertDialog.Header>
-      <AlertDialog.Footer>
-        <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
-        <AlertDialog.Action
-          onclick={deleteProduct}
-          disabled={isDeleting}
-          aria-invalid
-        >
-          Archive Product
-        </AlertDialog.Action>
-      </AlertDialog.Footer>
-    </AlertDialog.Content>
-  </AlertDialog.Root>
-{:catch error}
-  <div class="flex flex-col items-center justify-center py-12">
-    <div class="text-center">
-      <h3 class="text-lg font-semibold">Failed to load product</h3>
-      <p class="text-muted-foreground mt-2">
-        {error?.message || "Something went wrong while loading the product."}
-      </p>
-      <a href={Routes.LIST_PAGE.path} use:link>
-        <Button class="mt-4">Back to Products</Button>
-      </a>
-    </div>
-  </div>
-{/await}
-
-{#snippet general()}
-  <Card.Root>
-    <Card.Header>
-      <Card.Title>Basic Information</Card.Title>
-      <Card.Description
-        >Essential product details that customers will see.</Card.Description
-      >
-    </Card.Header>
-    <Card.Content class="space-y-4">
-      <div class="grid gap-4 md:grid-cols-2">
-        <div class="space-y-2">
-          <Label for="title">Product Name *</Label>
-          <Input
-            id="title"
-            bind:value={formData.title}
-            oninput={handleChange}
-            placeholder="Enter product name"
-            required
-          />
-        </div>
-        <div class="space-y-2">
-          <Label for="category">Category</Label>
-          <Input
-            id="category"
-            bind:value={formData.category}
-            oninput={handleChange}
-            placeholder="Enter product category"
-          />
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <Switch
-          id="featured"
-          bind:checked={formData.featured as boolean}
-          onCheckedChange={handleChange}
-        />
-        <Label for="featured">Featured Product</Label>
-      </div>
-
-      <div class="space-y-2">
-        <Label for="slug">URL Slug</Label>
-        <Input
-          id="slug"
-          bind:value={formData.slug}
-          oninput={handleChange}
-          placeholder="product-url-slug"
-        />
-        <p class="text-sm text-muted-foreground">
-          URL: /products/{formData.slug || product.slug}
-        </p>
-      </div>
-    </Card.Content>
-  </Card.Root>
-{/snippet}
-
-{#snippet description()}
-  <Editor />
-{/snippet}
-
-<!-- 
-{#snippet pricing()}
-    <Card.Root>
-        <Card.Header>
-            <Card.Title>Pricing</Card.Title>
-            <Card.Description
-                >Set your product pricing and compare prices.</Card.Description
-            >
-        </Card.Header>
-        <Card.Content class="space-y-4">
-            <div class="grid gap-4 md:grid-cols-2">
-                <div class="space-y-2">
-                    <Label for="base_price">Base Price (DZD) *</Label>
-                    <Input
-                        id="base_price"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        bind:value={formData.base_price}
-                        oninput={handleChange}
-                        placeholder="0.00"
-                        required
-                    />
-                </div>
-                <div class="space-y-2">
-                    <Label for="base_compare_price">Compare Price (DZD)</Label>
-                    <Input
-                        id="base_compare_price"
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        bind:value={formData.base_compare_price}
-                        oninput={handleChange}
-                        placeholder="0.00"
-                    />
-                    <p class="text-sm text-muted-foreground">
-                        Higher price to show savings
-                    </p>
-                </div>
-            </div>
-
-            {#if formData.base_compare_price && formData.base_price && formData.base_compare_price > formData.base_price}
-                <div class="rounded-lg bg-green-50 border border-green-200 p-4">
-                    <div class="flex items-center gap-2">
-                        <Badge
-                            variant="outline"
-                            class="bg-green-100 text-green-800 border-green-300"
-                        >
-                            {Math.round(
-                                (1 -
-                                    formData.base_price /
-                                        formData.base_compare_price) *
-                                    100,
-                            )}% OFF
-                        </Badge>
-                        <span class="text-sm text-green-800">
-                            Customers save {new Intl.NumberFormat("en-US", {
-                                style: "currency",
-                                currency: "DZD",
-                            }).format(
-                                formData.base_compare_price -
-                                    formData.base_price,
-                            )}
-                        </span>
-                    </div>
-                </div>
-            {/if}
-        </Card.Content>
-    </Card.Root>
-{/snippet} -->
-
-{#snippet images()}
-  <Card.Root>
-    <Card.Header>
-      <Card.Title>Product Images</Card.Title>
-      <Card.Description>
-        Add high-quality images to showcase your product. The first image will
-        be used as the thumbnail.
-      </Card.Description>
-    </Card.Header>
-    <Card.Content class="space-y-4">
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {#each formData.images || [] as image, index}
-          <div class="relative group">
-            <div
-              class="aspect-square rounded-lg bg-muted overflow-hidden border-2 transition-colors {index ===
-              0
-                ? 'border-primary shadow-md'
-                : 'border-border hover:border-primary/50'}"
-            >
-              <img
-                src={image}
-                alt="Product image {index + 1}"
-                class="w-full h-full object-cover"
-              />
-            </div>
-
-            {#if index === 0}
-              <div class="absolute bottom-2 left-2">
-                <Badge
-                  variant="default"
-                  class="bg-primary text-primary-foreground"
-                >
-                  <StarIcon class="h-3 w-3 mr-1" />
-                  Thumbnail
-                </Badge>
-              </div>
-            {/if}
-
-            <div
-              class="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              {#if index !== 0}
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  class="h-8 w-8 shadow-md"
-                  onclick={() => moveImageUp(index)}
-                  title="Move up"
-                >
-                  <MoveUpIcon class="h-4 w-4" />
-                </Button>
-              {/if}
-              {#if index + 1 < (formData.images?.length || 1)}
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  class="h-8 w-8 shadow-md"
-                  onclick={() => moveImageDown(index)}
-                  title="move Down"
-                >
-                  <MoveDownIcon class="h-4 w-4" />
-                </Button>
-              {/if}
-              <Button
-                variant="destructive"
-                size="icon"
-                class="h-8 w-8 shadow-md"
-                onclick={() => removeImage(index)}
-                title="Remove image"
-              >
-                <TrashIcon class="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        {:else}
-          <div
-            class="aspect-square rounded-lg bg-muted flex items-center justify-center text-muted-foreground border-2 border-dashed border-border"
-          >
-            <div class="text-center">
-              <ImageIcon class="h-8 w-8 mx-auto mb-2" />
-              <p class="text-sm">No images yet</p>
-            </div>
-          </div>
-        {/each}
-
-        <button
-          onclick={addImage}
-          class="aspect-square rounded-lg border-2 border-dashed border-border hover:border-primary hover:bg-accent/50 transition-colors flex items-center justify-center text-muted-foreground hover:text-primary"
-        >
-          <div class="text-center">
-            <PlusIcon class="h-6 w-6 mx-auto mb-2" />
-            <span class="text-sm font-medium">Add Image</span>
-          </div>
-        </button>
-      </div>
-    </Card.Content>
-  </Card.Root>
-{/snippet}
-
-{#snippet variants()}
-  <Card.Root>
-    <Card.Header>
-      <Card.Title>Product Variants</Card.Title>
-      <Card.Description
-        >Manage different variations of your product (size, color, etc.)</Card.Description
-      >
-    </Card.Header>
-    <Card.Content>
-      <div class="text-center py-12 text-muted-foreground">
-        <PackageIcon class="h-12 w-12 mx-auto mb-4 opacity-50" />
-        <h3 class="font-medium text-lg mb-2">Variants coming soon</h3>
-        <p class="text-sm">
-          Advanced variant management will be available in the next update.
-        </p>
-      </div>
-    </Card.Content>
-  </Card.Root>
-{/snippet}
-
-{#snippet summary()}
-  <Card.Root>
-    <Card.Header>
-      <Card.Title>Quick Stats</Card.Title>
-    </Card.Header>
-    <Card.Content class="space-y-3">
-      <div class="flex justify-between text-sm">
-        <span class="text-muted-foreground">Variants</span>
-        <span class="font-medium">{product.variants.length || 0}</span>
-      </div>
-      <div class="flex justify-between text-sm">
-        <span class="text-muted-foreground">Price</span>
-        <span class="font-medium">
-          {currencyFormatter.format(+(product.variants.at(0)?.price || "0"))}
-        </span>
-      </div>
-      <div class="flex justify-between text-sm">
-        <span class="text-muted-foreground">Category</span>
-        <Badge variant="outline">{product.category || "None"}</Badge>
-      </div>
-      <div class="flex justify-between text-sm">
-        <span class="text-muted-foreground">Featured</span>
-        <Badge variant={product.featured ? "default" : "secondary"}>
-          {product.featured ? "Yes" : "No"}
-        </Badge>
-      </div>
-    </Card.Content>
-  </Card.Root>
-
-  {#if product.images?.length > 0}
-    <Card.Root>
-      <Card.Header>
-        <Card.Title>Product Images</Card.Title>
-      </Card.Header>
-      <Card.Content>
-        <div class="grid grid-cols-2 gap-2">
-          {#each product.images.slice(0, 4) as image}
-            <div class="aspect-square rounded-md bg-muted overflow-hidden">
-              <img
-                src={image}
-                alt="Product"
-                class="w-full h-full object-cover"
-              />
-            </div>
-          {/each}
-        </div>
-        {#if product.images.length > 4}
-          <p class="text-sm text-muted-foreground mt-2">
-            +{product.images.length - 4} more images
-          </p>
-        {/if}
-      </Card.Content>
-    </Card.Root>
-  {/if}
 {/snippet}

@@ -13,7 +13,7 @@
   import * as Sidebar from "$lib/components/ui/sidebar/index";
   import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index";
   import { useSidebar } from "$lib/components/ui/sidebar/index.js";
-  import { active, link } from "@dvcol/svelte-simple-router";
+  import { active, link, useLink } from "@dvcol/svelte-simple-router";
   import {
     ChevronsUpDownIcon,
     LogOut,
@@ -89,10 +89,15 @@
     <Sidebar.MenuItem>
       <Sidebar.MenuButton>
         {#snippet child({ props })}
-          <a href={item.path} {...props} use:link use:active>
+          <button
+            {@attach useLink({ path: item.path })}
+            {...props}
+            use:link
+            use:active={{ path: item.path }}
+          >
             <item.icon />
             <span>{item.name}</span>
-          </a>
+          </button>
         {/snippet}
       </Sidebar.MenuButton>
     </Sidebar.MenuItem>

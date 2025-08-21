@@ -2,6 +2,7 @@
   import { list, switch_business, create } from "@bindings/BusinessRoutes";
   import type { BusinessDto } from "@bindings/BusinessDto";
   import { userStore } from "@/lib/stores/user";
+  import { navigate } from "astro:transitions/client";
 
   let businesses: BusinessDto[] | undefined = $state(undefined);
 
@@ -19,7 +20,7 @@
   function switch_biz(business_id: string) {
     switch_business({ business_id }).then(() => {
       console.log(`switched to biz ${business_id}`);
-      location.href = "/business-center/";
+      navigate("/business-center/");
     });
   }
 
@@ -29,6 +30,7 @@
     e.preventDefault();
     create({
       name: business_name,
+      description: null,
     }).then((res) => {
       console.log(res);
       listBusinesses();

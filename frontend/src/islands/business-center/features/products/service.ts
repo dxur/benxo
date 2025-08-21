@@ -1,206 +1,283 @@
-// product-edit.service.ts
-import * as ProductRoutes from "@bindings/ProductRoutes";
-import { toast } from "svelte-sonner";
-import type { ProductDto } from "@bindings/ProductDto";
-import type { ProductUpdate } from "@bindings/ProductUpdate";
-import type { ProductVariant } from "@bindings/ProductVariant";
-import type { ProductVariantCreate } from "@bindings/ProductVariantCreate";
-import { delete_product, edit_product, get_product, list_products } from "@bindings/ProductRoutes";
+import * as yup from 'yup';
+import { createMutation, createQuery } from "@tanstack/svelte-query";
+import type { ProductDto } from "@bindings/ProductDto"
+import type { ProductListQuery } from "@bindings/ProductListQuery"
+import { nullIf } from '../../lib/utils/fmt';
 
-export class ProductVM {
-    id = $state('');
-    title = $state('');
-    description = $state('');
-    status = $state<'draft' | 'active' | 'archived'>('draft');
-    featured = $state<boolean>(false);
-    category = $state<string>('');
-    images = $state<string[]>([]);
-    variants = $state<ProductVariantVM[]>([]);
-    slug = $state<string>('');
+import {
+    get_product as fetchProduct,
+    create_product as createProduct,
+    list_products as listProducts,
+    edit_product as updateProduct,
+    delete_product as deleteProduct
+} from '@bindings/ProductRoutes';
+import type { ProductUpdate } from '@bindings/ProductUpdate';
+import { toast } from 'svelte-sonner';
+import type { ProductCreateDto } from '@bindings/ProductCreateDto';
 
-    private original: Partial<ProductVM>;
-    isDirty: boolean = false;
-    errors: Record<string, string[]> = {};
+const nullStr = nullIf("");
 
-    constructor(dto?: ProductDto) {
-        if (dto) {
-            this.id = dto.id as string;
-            this.title = dto.title as string;
-            this.description = dto.description;
-            this.status = dto.status;
-            this.featured = dto.featured;
-            this.category = dto.category;
-            this.images = [...dto.images];
-            this.variants = dto.variants.map(v => new ProductVariantVM(v));
-            this.slug = dto.slug;
-        }
-        this.original = { ...this };
-    }
+// Product Variant Schema
+const ProductVariantSchema = yup.object({
+    sku: yup
+        .string()
+        .required("SKU is required.")
+        .min(3, "SKU must be at least 3 characters long.")
+        .max(50, "SKU cannot exceed 50 characters.")
+        .matches(/^[A-Za-z0-9\-_]+$/, "SKU can only contain letters, numbers, hyphens, and underscores."),
 
-    // Simple validation
-    validate(): boolean {
-        this.errors = {};
+    price: yup
+        .string()
+        .required("Price is required.")
+        .matches(/^\d+(\.\d{1,2})?$/, "Price must be a valid decimal (e.g., 19.99)."),
 
-        if (!this.title.trim()) {
-            this.errors.title = ['Title is required'];
-        }
+    compare_at: yup
+        .string()
+        .nullable()
+        .defined()
+        .transform(nullStr)
+        .matches(/^\d+(\.\d{1,2})?$/, {
+            message: "Compare at price must be a valid decimal (e.g., 29.99).",
+            excludeEmptyString: true
+        }),
 
-        if (!this.description.trim()) {
-            this.errors.description = ['Description is required'];
-        }
+    stocks: yup
+        .number()
+        .integer("Stock must be a whole number.")
+        .min(0, "Stock cannot be negative.")
+        .required("Stock quantity is required."),
 
-        return Object.keys(this.errors).length === 0;
-    }
+    images: yup
+        .array(yup.string().url("Image must be a valid URL.").defined())
+        .max(10, "You can only add up to 10 images per variant.")
+        .default([]),
 
-    // Convert to update DTO
-    toUpdateDto(): ProductUpdate {
-        return {
-            title: this.title as any,
-            description: this.description,
-            category: this.category,
-            images: [...this.images],
-            featured: this.featured,
-            status: this.status,
-            options: {},
-            variants: this.variants.map(v => v.toDto()),
-            slug: this.slug
-        };
-    }
+    options: yup
+        .object()
+        .test(
+            "variant-options",
+            "Option values cannot be empty.",
+            function (value) {
+                if (!value) return true;
 
-    // Mark as saved
-    markSaved(): void {
-        this.original = { ...this };
-        this.isDirty = false;
-    }
+                for (const [key, val] of Object.entries(value)) {
+                    if (typeof val === "string" && val.trim().length === 0) {
+                        return this.createError({
+                            path: `options.${key}`,
+                            message: "Option values cannot be empty.",
+                        });
+                    }
+                }
+                return true;
+            }
+        )
+        .default({}),
+});
 
-    // Check if dirty
-    checkDirty(): void {
-        this.isDirty = JSON.stringify(this) !== JSON.stringify(this.original);
-    }
+// Main Product Schema
+export const ProductSchema = yup.object({
+    title: yup
+        .string()
+        .required("Product title is required.")
+        .min(3, "Product title must be at least 3 characters long.")
+        .max(200, "Product title cannot exceed 200 characters."),
 
-    // Simple business methods
-    addVariant(): void {
-        this.variants.push(new ProductVariantVM());
-        this.checkDirty();
-    }
+    description: yup
+        .string()
+        .max(2000, "Description cannot exceed 2000 characters.")
+        .default(""),
 
-    removeVariant(index: number): void {
-        this.variants.splice(index, 1);
-        this.checkDirty();
-    }
+    status: yup
+        .string<"active" | "inactive" | "archived">()
+        .oneOf(["active", "inactive", "archived"], "Product status must be one of: active, inactive, archived.")
+        .required("Product status is required."),
+
+    category: yup
+        .string()
+        .max(100, "Category cannot exceed 100 characters.")
+        .defined()
+        .required("Category is required."),
+
+    featured: yup
+        .boolean()
+        .default(false),
+
+    images: yup
+        .array(yup.string().url("Image must be a valid URL.").defined())
+        .max(20, "You can only add up to 20 images.")
+        .default([]),
+
+    slug: yup
+        .string()
+        .matches(/^[a-z0-9\-]+$/, {
+            message: "Slug can only contain lowercase letters, numbers, and hyphens.",
+            excludeEmptyString: true
+        })
+        .max(100, "Slug cannot exceed 100 characters.")
+        .defined()
+        .required("Slug is required."),
+
+    variants: yup
+        .array(ProductVariantSchema)
+        .min(1, "Product must have at least one variant.")
+        .max(100, "Product cannot have more than 100 variants.")
+        .test(
+            "unique-skus",
+            "All variant SKUs must be unique.",
+            function (variants) {
+                if (!variants || variants.length <= 1) return true;
+
+                const skus = variants.map(v => v.sku.toLowerCase());
+                const uniqueSkus = new Set(skus);
+
+                if (skus.length !== uniqueSkus.size) {
+                    return this.createError({
+                        message: "All variant SKUs must be unique.",
+                        path: "variants"
+                    });
+                }
+                return true;
+            }
+        )
+        .default([]),
+});
+
+export function canBeDeleted(data?: ProductDto): boolean {
+    if (!data) { return false }
+    const oneMonthLater = new Date(data?.updated_at);
+    oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
+    return new Date() >= oneMonthLater && data.status === "archived";
 }
 
-// Simple Product Variant
-export class ProductVariantVM {
-    sku: string = '';
-    price: string = '';
-    stocks: number = 0;
-    images: string[] = [];
-
-    constructor(variant?: ProductVariant) {
-        if (variant) {
-            this.sku = variant.sku;
-            this.price = variant.price;
-            this.stocks = variant.stocks;
-            this.images = [...variant.images];
-        }
-    }
-
-    toDto(): ProductVariantCreate {
-        return {
-            sku: this.sku,
-            price: this.price,
-            compare_at: null,
-            stocks: this.stocks,
-            images: [...this.images],
-            options: {}
-        };
-    }
+export function generateSlug(title: string): string {
+    return title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s\-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim()
+        .substring(0, 100);
 }
 
-// Page class for Product Edit
-export class ProductEditPage {
-    product: ProductVM;
-    isLoading: boolean = false;
-    error: string | null = null;
+export function validateVariantCombinations(options: Record<string, string[]>, variants: any[]): string | null {
+    if (!options || Object.keys(options).length === 0) return null;
 
-    constructor(productId?: string) {
-        this.product = new ProductVM();
-        if (productId) {
-            this.loadProduct(productId);
-        }
+    const optionKeys = Object.keys(options);
+    const possibleCombinations = optionKeys.reduce((acc, key) => {
+        return acc * options[key].length;
+    }, 1);
+
+    if (variants.length > possibleCombinations) {
+        return "Too many variants for the available option combinations.";
     }
 
-    async loadProduct(id: string): Promise<void> {
-        this.isLoading = true;
-        this.error = null;
-        try {
-            const dto = await get_product(id);
-            this.product = new ProductVM(dto);
-        } catch (err) {
-            this.error = `Failed to load product: ${err}`;
-        } finally {
-            this.isLoading = false;
+    // Check for duplicate combinations
+    const combinations = new Set();
+    for (const variant of variants) {
+        const combo = optionKeys.map(key => variant.options[key] || '').join('|');
+        if (combinations.has(combo)) {
+            return "Duplicate variant combinations detected.";
         }
+        combinations.add(combo);
     }
 
-    async saveProduct(): Promise<void> {
-        if (!this.product.validate()) {
+    return null;
+}
+
+// Helper function to create default variant
+export function createDefaultVariant(): any {
+    return {
+        sku: '',
+        price: '0.00',
+        compare_at: null,
+        stocks: 0,
+        images: [],
+        options: {}
+    };
+}
+
+// Helper function to generate variants from options
+export function generateVariantsFromOptions(options: Record<string, string[]>): any[] {
+    if (!options || Object.keys(options).length === 0) {
+        return [createDefaultVariant()];
+    }
+
+    const optionKeys = Object.keys(options);
+    const combinations: any[] = [];
+
+    function generateCombinations(index: number, current: Record<string, string>) {
+        if (index === optionKeys.length) {
+            combinations.push({
+                ...createDefaultVariant(),
+                options: { ...current }
+            });
             return;
         }
 
-        this.isLoading = true;
-        this.error = null;
-        try {
-            const updateDto = this.product.toUpdateDto();
-            await edit_product(this.product.id, updateDto);
-            this.product.markSaved();
-        } catch (err) {
-            this.error = `Failed to save product: ${err}`;
-        } finally {
-            this.isLoading = false;
+        const key = optionKeys[index];
+        const values = options[key];
+
+        for (const value of values) {
+            generateCombinations(index + 1, { ...current, [key]: value });
         }
     }
 
-    updateTitle(title: string): void {
-        this.product.title = title;
-        this.product.checkDirty();
-    }
-
-    updateDescription(description: string): void {
-        this.product.description = description;
-        this.product.checkDirty();
-    }
+    generateCombinations(0, {});
+    return combinations;
 }
 
-// Page class for Product List
-export class ProductListPage {
-    products: ProductVM[] = [];
-    isLoading: boolean = false;
-    error: string | null = null;
+export function useProductListQuery(getParams: () => ProductListQuery) {
+    return createQuery(() => ({
+        queryKey: ["products", getParams()],
+        queryFn: () => listProducts(getParams()),
+        placeholderData: (prev) => prev,
+    }));
+}
 
-    async loadProducts(): Promise<void> {
-        this.isLoading = true;
-        this.error = null;
-        try {
-            const response = await list_products();
-            this.products = response.products.map(dto => new ProductVM(dto));
-        } catch (err) {
-            this.error = `Failed to load products: ${err}`;
-        } finally {
-            this.isLoading = false;
-        }
-    }
+export function useProductQuery(productId: string) {
+    return createQuery(() => ({
+        queryKey: ["product", productId],
+        queryFn: () => fetchProduct(productId),
+    }));
+}
 
-    async deleteProduct(id: string): Promise<void> {
-        this.isLoading = true;
-        try {
-            await delete_product(id);
-            this.products = this.products.filter(p => p.id !== id);
-        } catch (err) {
-            this.error = `Failed to delete product: ${err}`;
-        } finally {
-            this.isLoading = false;
-        }
-    }
+export function useProductCreate(
+    onSuccess: (data: ProductDto) => void,
+    onError: (error: Error) => void
+) {
+
+    return createMutation(() => ({
+        mutationFn: async (values: ProductCreateDto) => {
+            return await createProduct(values);
+        },
+        onSuccess,
+        onError,
+    }));
+}
+
+export function useProductUpdate(
+    productId: string,
+    onSuccess: (data: ProductDto) => void,
+    onError: (error: Error) => void
+) {
+    return createMutation(() => ({
+        mutationKey: ["product", productId],
+        mutationFn: (updateReq: ProductUpdate) =>
+            updateProduct(productId, updateReq),
+        onSuccess,
+        onError,
+    }))
+}
+
+export function useProductDelete(
+    productId: string,
+    onSuccess: (data: unknown) => void,
+    onError: (error: Error) => void
+) {
+    return createMutation(() => ({
+        mutationKey: ["product-delete", productId],
+        mutationFn: () => deleteProduct(productId),
+        onSuccess,
+        onError,
+    }))
 }

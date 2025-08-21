@@ -16,7 +16,7 @@
         ChevronLeftIcon,
         ChevronRightIcon,
         EllipsisVerticalIcon,
-        PackageIcon,
+        ShoppingBagIcon,
         PlusIcon,
     } from "@lucide/svelte";
 
@@ -28,7 +28,7 @@
     import type { StoreDto } from "@bindings/StoreDto";
     import { debounce } from "../../lib/utils/event";
 
-    let activeTab = $state<StoreDto["status"]>("active");
+    let activeTab = $state<StoreDto["status"] | "">("");
     let searchInput = $state("");
     let searchQuery = $state("");
     let paginationQuery = $state({ page: 1, limit: 10 });
@@ -58,7 +58,7 @@
 <Column>
     <Group>
         <SectionHeader
-            icon={PackageIcon}
+            icon={ShoppingBagIcon}
             title="Stores"
             description="Manage your selling endpoints"
         />
@@ -95,12 +95,12 @@
         <Table.Root class="px-16">
             <Table.Header class="bg-muted sticky top-0 z-10">
                 <Table.Row>
-                    <Table.Head></Table.Head>
+                    <Table.Head class="w-1"></Table.Head>
                     <Table.Head>Store</Table.Head>
                     <Table.Head>Status</Table.Head>
                     <Table.Head>Description</Table.Head>
                     <Table.Head>Updated At</Table.Head>
-                    <Table.Head></Table.Head>
+                    <Table.Head>Actions</Table.Head>
                 </Table.Row>
             </Table.Header>
             <Table.Body>

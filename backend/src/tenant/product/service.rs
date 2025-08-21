@@ -1,10 +1,10 @@
-use super::api::{ProductDto, ProductListQuery, ProductListResponse, ProductUpdate};
-use super::domain::ProductFilter;
-use super::repo::ProductRepo;
 use crate::platform::business::api::BusinessSession;
 use crate::tenant::product::domain::ProductVariant;
 use crate::types::id::Id;
 use crate::utils::error::{ApiError, ApiResult};
+use super::repo::ProductRepo;
+use super::api::*;
+use super::domain::*;
 
 pub struct ProductService<R: ProductRepo> {
     repo: R,
@@ -15,9 +15,18 @@ impl<R: ProductRepo> ProductService<R> {
         Self { repo }
     }
 
-    pub async fn create(&self, business: BusinessSession) -> ApiResult<ProductDto> {
+    pub async fn create(&self, business: BusinessSession, create_req: ProductCreateDto) -> ApiResult<ProductDto> {
         self.repo
-            .create(business.business_id.into_inner(), Default::default())
+            .create(business.business_id.into_inner(), ProductRecord::new(
+                create_req.title,
+                create_req.description,
+                create_req.status.into(),
+                create_req.featured,
+                create_req.category,
+                create_req.images,
+                create_req.variants,
+                create_req.slug,
+            ))
             .await
             .map(Into::into)
     }
@@ -39,7 +48,6 @@ impl<R: ProductRepo> ProductService<R> {
         update_req.title.map(|v| record.title = v);
         update_req.description.map(|v| record.description = v);
         update_req.category.map(|v| record.category = v);
-        update_req.options.map(|v| record.options = v);
         update_req.variants.map(|v| record.variants = v);
         update_req.slug.map(|v| record.slug = v);
         update_req.images.map(|v| record.images = v);

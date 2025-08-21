@@ -3,7 +3,7 @@
 
     type DialogAction = {
         label: string;
-        variant?: "default" | "destructive";
+        variant?: "default" | "secondary" | "destructive";
         value?: boolean | undefined;
     };
 
