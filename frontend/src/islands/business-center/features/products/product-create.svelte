@@ -25,10 +25,9 @@
 
     const { replace } = useNavigate();
 
-    const query = createQuery(() => ({
-        queryKey: ["product-create"],
-        queryFn: () => {
-            return <ProductCreateDto>{
+    let { form } = $derived(
+        useState(
+            createForm(ProductSchema, <ProductCreateDto>{
                 id: "",
                 title: "Amazing Product",
                 description: "",
@@ -39,11 +38,9 @@
                 options: {},
                 variants: [],
                 slug: "",
-            };
-        },
-    }));
-
-    let { form } = $derived(useState(createForm(ProductSchema, query.data)));
+            }),
+        ),
+    );
 
     const queryContext = getQueryClientContext();
 
@@ -82,62 +79,50 @@
     }
 </script>
 
-<div>
-    {#if query.isLoading}
-        <p>Loading...</p>
-    {:else if query.isError}
-        <p>Error: {query.error.message}</p>
-    {:else if query.isSuccess}
-        {@render body()}
-    {/if}
-</div>
-
-{#snippet body()}
-    <Column class="[&>*]:w-full items-center">
-        <Group>
-            <div class="flex items-center gap-4">
-                <SectionHeader
-                    icon={PackageIcon}
-                    title="Create new product"
-                    description="Fill in the details below to create a new product"
-                />
-            </div>
-            <Group class="md:flex-row-reverse flex-wrap justify-start">
-                <ActionButton onclick={() => handleCreate("active")}>
-                    <SendIcon />
-                    Publish
-                </ActionButton>
-                <ActionButton
-                    variant="secondary"
-                    onclick={() => handleCreate("inactive")}
-                >
-                    <PlusIcon />
-                    Create
-                </ActionButton>
-            </Group>
+<Column class="[&>*]:w-full items-center">
+    <Group>
+        <div class="flex items-center gap-4">
+            <SectionHeader
+                icon={PackageIcon}
+                title="Create new product"
+                description="Fill in the details below to create a new product"
+            />
+        </div>
+        <Group class="md:flex-row-reverse flex-wrap justify-start">
+            <ActionButton onclick={() => handleCreate("active")}>
+                <SendIcon />
+                Publish
+            </ActionButton>
+            <ActionButton
+                variant="secondary"
+                onclick={() => handleCreate("inactive")}
+            >
+                <PlusIcon />
+                Create
+            </ActionButton>
         </Group>
+    </Group>
 
-        <Group class="max-w-4xl md:flex-col md:[&>*]:w-full lg:flex-row">
-            <div class="flex-1">
-                <Tabs.Root value="general">
-                    <Tabs.List class="w-full">
-                        <Tabs.Trigger value="general">General</Tabs.Trigger>
-                        <Tabs.Trigger value="media">Media</Tabs.Trigger>
-                        <Tabs.Trigger value="variants">Variants</Tabs.Trigger>
-                    </Tabs.List>
-                    <fieldset>
-                        <Tabs.Content value="general" class="tab-content">
-                            <ProductFormGeneral bind:form />
-                        </Tabs.Content>
-                        <Tabs.Content value="media" class="tab-content">
-                            <ProductFormMedia bind:form />
-                        </Tabs.Content>
-                        <Tabs.Content value="variants" class="tab-content">
-                            <ProductFormVariants bind:form />
-                        </Tabs.Content>
-                    </fieldset>
-                </Tabs.Root>
-            </div>
-        </Group>
-    </Column>
-{/snippet}
+    <Group class="max-w-4xl md:flex-col md:[&>*]:w-full lg:flex-row">
+        <div class="flex-1">
+            <Tabs.Root value="general">
+                <Tabs.List class="w-full">
+                    <Tabs.Trigger value="general">General</Tabs.Trigger>
+                    <Tabs.Trigger value="media">Media</Tabs.Trigger>
+                    <Tabs.Trigger value="variants">Variants</Tabs.Trigger>
+                </Tabs.List>
+                <fieldset>
+                    <Tabs.Content value="general" class="tab-content">
+                        <ProductFormGeneral bind:form />
+                    </Tabs.Content>
+                    <Tabs.Content value="media" class="tab-content">
+                        <ProductFormMedia bind:form />
+                    </Tabs.Content>
+                    <Tabs.Content value="variants" class="tab-content">
+                        <ProductFormVariants bind:form />
+                    </Tabs.Content>
+                </fieldset>
+            </Tabs.Root>
+        </div>
+    </Group>
+</Column>

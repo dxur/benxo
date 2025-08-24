@@ -1,9 +1,14 @@
 use async_trait::async_trait;
+use bigdecimal::BigDecimal;
 use bson::{doc, oid::ObjectId, to_bson, DateTime};
 use futures::stream::TryStreamExt;
 use mongodb::{options::FindOptions, Client, Collection};
+use chrono::Utc;
+use futures::StreamExt;
+use bigdecimal::FromPrimitive;
 
 use super::domain::*;
+use super::api::OrderAnalytics;
 use crate::utils::error::{ApiError, ApiResult};
 
 #[async_trait]
@@ -43,6 +48,12 @@ pub trait OrderRepo: Send + Sync {
         page: u32,
         limit: u32,
     ) -> ApiResult<(Vec<OrderRecord>, u64)>;
+    async fn get_analytics(
+        &self,
+        business_id: ObjectId,
+        date_from: Option<DateTime>,
+        date_to: Option<DateTime>,
+    ) -> ApiResult<OrderAnalytics>;
 }
 
 pub struct MongoOrderRepo {
@@ -67,9 +78,9 @@ impl MongoOrderRepo {
             query.insert("status", to_bson(status).unwrap());
         }
 
-        if let Some(ref payment_status) = filter.payment_status {
-            query.insert("payment_status", to_bson(payment_status).unwrap());
-        }
+        // if let Some(ref payment_status) = filter.payment_status {
+        //     query.insert("payment_status", to_bson(payment_status).unwrap());
+        // }
 
         if let Some(ref customer_email) = filter.customer_email {
             query.insert("customer_email", customer_email);
@@ -104,7 +115,17 @@ impl MongoOrderRepo {
 #[async_trait]
 impl OrderRepo for MongoOrderRepo {
     async fn create(&self, business_id: ObjectId, order: OrderRecord) -> ApiResult<OrderRecord> {
-        todo!()
+        let collection = self.get_collection(business_id);
+
+        collection.insert_one(&order).await.map_err(|e| {
+            if e.to_string().contains("duplicate key") {
+                ApiError::conflict("order", "Similar order already exist")
+            } else {
+                ApiError::internal(format!("Failed to create product: {}", e))
+            }
+        })?;
+
+        Ok(order)
     }
 
     async fn find_by_id(
@@ -233,5 +254,95 @@ impl OrderRepo for MongoOrderRepo {
         limit: u32,
     ) -> ApiResult<(Vec<OrderRecord>, u64)> {
         todo!()
+    }
+
+    async fn get_analytics(
+        &self,
+        business_id: ObjectId,
+        date_from: Option<DateTime>,
+        date_to: Option<DateTime>,
+    ) -> ApiResult<OrderAnalytics> {
+        let collection = self.get_collection(business_id);
+
+        // ----- Build match stage -----
+        let mut match_stage = doc! {};
+        if let Some(from) = date_from {
+            match_stage.insert("created_at", doc! { "$gte": from });
+        }
+        if let Some(to) = date_to {
+            match_stage
+                .entry("created_at".to_string())
+                .or_insert(doc! {}.into())
+                .as_document_mut()
+                .unwrap()
+                .insert("$lte", to);
+        }
+
+        // ----- Aggregation pipeline -----
+        let pipeline = vec![
+            doc! { "$match": match_stage },
+            doc! { "$group": {
+                "_id": null,
+                "total_orders": { "$sum": 1 },
+                "total_revenue": { "$sum": "$total_price" },
+                "pending_orders": {
+                    "$sum": {
+                        "$cond": [{ "$eq": ["$status", "pending"] }, 1, 0]
+                    }
+                },
+                "completed_orders": {
+                    "$sum": {
+                        "$cond": [{ "$eq": ["$status", "completed"] }, 1, 0]
+                    }
+                },
+                "cancelled_orders": {
+                    "$sum": {
+                        "$cond": [{ "$eq": ["$status", "cancelled"] }, 1, 0]
+                    }
+                },
+                "average_order_value": { "$avg": "$total_price" },
+            }},
+        ];
+
+        let mut cursor = collection
+            .aggregate(pipeline)
+            .await
+            .map_err(|e| ApiError::internal(format!("Aggregation failed: {}", e)))?;
+
+        if let Some(result) = cursor.next().await.transpose().map_err(|e| ApiError::internal(format!("Failed to retrieve aggregation result: {}", e)))? {
+            let total_orders = result.get_i32("total_orders").unwrap_or(0) as u64;
+            let total_revenue = result
+                .get_f64("total_revenue")
+                .map(BigDecimal::from_f64)
+                .map(|v| v.unwrap_or(BigDecimal::from(0)))
+                .unwrap_or(BigDecimal::from(0));
+            let pending_orders = result.get_i32("pending_orders").unwrap_or(0) as u64;
+            let completed_orders = result.get_i32("completed_orders").unwrap_or(0) as u64;
+            let cancelled_orders = result.get_i32("cancelled_orders").unwrap_or(0) as u64;
+            let average_order_value = result
+                .get_f64("average_order_value")
+                .map(BigDecimal::from_f64)
+                .map(|v| v.unwrap_or(BigDecimal::from(0)))
+                .unwrap_or(BigDecimal::from(0));
+
+            return Ok(OrderAnalytics {
+                total_orders,
+                total_revenue,
+                pending_orders,
+                completed_orders,
+                cancelled_orders,
+                average_order_value,
+            });
+        }
+
+        // ----- Default (no results) -----
+        Ok(OrderAnalytics {
+            total_orders: 0,
+            total_revenue: BigDecimal::from(0),
+            pending_orders: 0,
+            completed_orders: 0,
+            cancelled_orders: 0,
+            average_order_value: BigDecimal::from(0),
+        })
     }
 }

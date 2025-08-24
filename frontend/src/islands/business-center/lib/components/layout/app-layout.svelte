@@ -14,8 +14,6 @@
 
 <AlertDialog />
 
-<div class="bg-wrapper"></div>
-
 <Sidebar.Provider>
     {@render sidebar()}
     <Sidebar.Inset class="overflow-hidden">

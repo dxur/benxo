@@ -1,7 +1,10 @@
-export const currencyFormatter = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "DZD",
-});
+export function formatCurrency(amount: number, currency: string): string {
+    const formatter = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency,
+    });
+    return formatter.format(amount);
+}
 
 export function formatDateTime(dateStr: string): string {
     const date = new Date(dateStr);

@@ -3,6 +3,7 @@ import type { SidebarItem } from "./lib/components/sidebar.svelte";
 import { homeRoutes, homeSidebarItems, Routes as HomeRoutes } from "./features/home/index"
 import { storesRoutes, storesSidebarItems } from "./features/stores/index"
 import { productsRoutes, productsSidebarItems } from "./features/products/index"
+import { ordersRoutes, ordersSidebarItems } from "./features/orders/index"
 import type { Snippet } from "svelte";
 import type { ComponentOrLazy } from "@dvcol/svelte-utils/component";
 
@@ -23,11 +24,13 @@ export const routes = <AppRoute[]>[
     },
     ...homeRoutes,
     ...productsRoutes,
+    ...ordersRoutes,
     ...storesRoutes,
 ];
 
 export const sidebarItems = <SidebarItem[]>[
     ...homeSidebarItems,
     ...productsSidebarItems,
+    ...ordersSidebarItems,
     ...storesSidebarItems,
 ];

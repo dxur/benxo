@@ -1,5 +1,5 @@
 use bigdecimal::BigDecimal;
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
 use o2o::o2o;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
@@ -45,9 +45,9 @@ pub struct OrderItemCreate {
 #[derive(Debug, Deserialize, TS)]
 #[ts(export, bound = "")]
 pub struct OrderCreate {
-    pub customer_email: String,
+    pub customer_email: Option<String>,
     pub customer_name: String,
-    pub customer_phone: Option<String>,
+    pub customer_phone: String,
     pub items: Vec<OrderItemCreate>,
     pub shipping_address: ShippingAddress,
     pub billing_address: Option<ShippingAddress>,
@@ -59,6 +59,15 @@ pub struct OrderCreate {
     pub notes: Option<String>,
 }
 
+
+#[derive(Debug, Serialize, o2o, TS)]
+#[ts(export, bound = "")]
+#[from_owned(Source)]
+pub enum SourceDto{
+    Store(#[from(~.into())]Id),
+    User(#[from(~.into())]Id),
+}
+
 #[derive(Debug, Serialize, o2o, TS)]
 #[ts(export, bound = "")]
 #[from_owned(OrderHistory)]
@@ -67,7 +76,7 @@ pub struct OrderHistoryDto {
     pub status: OrderStatusDto,
     pub note: Option<String>,
     #[from(~.map(From::from))]
-    pub created_by: Option<Id>,
+    pub created_by: Option<SourceDto>,
     #[from(~.to_chrono())]
     pub created_at: DateTime<Utc>,
 }
@@ -78,9 +87,9 @@ pub struct OrderHistoryDto {
 pub struct OrderDto {
     #[from(@._id.into())]
     pub id: Id,
-    pub customer_email: String,
+    pub customer_email: Option<String>,
     pub customer_name: String,
-    pub customer_phone: Option<String>,
+    pub customer_phone: String,
     pub items: Vec<OrderItem>,
     pub shipping_address: ShippingAddress,
     pub billing_address: Option<ShippingAddress>,
@@ -136,7 +145,6 @@ pub struct OrderUpdate {
 pub struct OrderStatusUpdate {
     pub status: OrderStatusDto,
     pub note: Option<String>,
-    pub created_by: Option<Id>,
 }
 
 #[derive(Debug, Serialize, TS)]
@@ -159,6 +167,15 @@ pub struct OrderAnalytics {
     pub cancelled_orders: u64,
     #[ts(as = "String")]
     pub average_order_value: BigDecimal,
+    // #[ts(as = "Vec<(NaiveDate, u64)>")]
+    // pub orders_per_day: Vec<(NaiveDate, u64)>,         // time series: activity trend
+    // #[ts(as = "Vec<(NaiveDate, String)>")]
+    // pub revenue_per_day: Vec<(NaiveDate, BigDecimal)>, // time series: financial trend
+    // #[ts(as = "Vec<(String, String)>")]
+    // pub top_customers: Vec<(String, BigDecimal)>,      // top customers by spend
+    // #[ts(as = "Vec<(String, u64)>")]
+    // pub top_products: Vec<(String, u64)>,              // bestsellers
+    // pub date_range: (Option<DateTime<Utc>>, Option<DateTime<Utc>>), // for context
 }
 
 #[derive(Debug, Deserialize, TS)]
@@ -177,7 +194,8 @@ pub struct BulkUpdateResponse {
     pub failed_ids: Vec<Id>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, TS)]
+#[ts(export, bound = "")]
 pub struct AnalyticsQuery {
     pub date_from: Option<DateTime<Utc>>,
     pub date_to: Option<DateTime<Utc>>,

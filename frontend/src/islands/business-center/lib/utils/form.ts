@@ -4,7 +4,7 @@ import * as yup from 'yup';
 
 // Form field values are always concrete, never undefined/null
 type FormField<T> = {
-    value: NonNullable<T> extends never ? string : NonNullable<T>;
+    value: T extends never ? string : T;
     initialValue: NonNullable<T> extends never ? string : NonNullable<T>;
     valid: boolean | undefined;
     errors: string[] | undefined;

@@ -36,7 +36,7 @@ impl<R: OrderRepo> OrderService<R> {
                 .get_product(business.clone(), item_req.product_id)
                 .await?;
 
-            let variant: &ProductVariant = Some(todo!()).ok_or_else(|| {
+            let variant: &ProductVariant = product.variants.iter().find(|v| v.sku == item_req.variant_sku).ok_or_else(|| {
                 ApiError::forbidden(
                     "order",
                     format!("Variant with SKU '{}' not found", item_req.variant_sku),
@@ -82,6 +82,12 @@ impl<R: OrderRepo> OrderService<R> {
             ..Default::default()
         };
 
+        order.add_history_entry(
+            OrderStatus::Pending,
+            None,
+            Some(Source::User(business.user_id.into())),
+        );
+
         order.calculate_totals();
 
         self.repo
@@ -118,9 +124,9 @@ impl<R: OrderRepo> OrderService<R> {
         update_req.status.map(|v| {
             order.add_history_entry(v.into(), Some("Status updated".to_string()), None);
         });
-        update_req
-            .payment_status
-            .map(|v| order.payment_status = v.into());
+        // update_req
+        //     .payment_status
+        //     .map(|v| order.payment_status = v.into());
         update_req
             .tracking_number
             .map(|v| order.tracking_number = Some(v));
@@ -156,7 +162,7 @@ impl<R: OrderRepo> OrderService<R> {
         order.add_history_entry(
             status_update.status.into(),
             status_update.note,
-            status_update.created_by.map(Into::into),
+            Some(Source::User(business.user_id.into())),
         );
 
         self.repo
@@ -174,7 +180,7 @@ impl<R: OrderRepo> OrderService<R> {
             page,
             limit,
             status,
-            payment_status,
+            // payment_status,
             customer_email,
             search,
             date_from,
@@ -183,7 +189,7 @@ impl<R: OrderRepo> OrderService<R> {
 
         let filter = OrderFilter {
             status: status.map(Into::into),
-            payment_status: payment_status.map(Into::into),
+            // payment_status: payment_status.map(Into::into),
             customer_email,
             search,
             date_from: date_from.map(DateTime::from_chrono),
@@ -241,7 +247,13 @@ impl<R: OrderRepo> OrderService<R> {
         date_from: Option<chrono::DateTime<Utc>>,
         date_to: Option<chrono::DateTime<Utc>>,
     ) -> ApiResult<OrderAnalytics> {
-        todo!()
+        self.repo
+            .get_analytics(
+                business.business_id.into_inner(),
+                date_from.map(DateTime::from_chrono),
+                date_to.map(DateTime::from_chrono),
+            )
+            .await
     }
 
     pub async fn get_customer_orders(

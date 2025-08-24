@@ -32,7 +32,10 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <Label>Color Scheme</Label>
-                <Select.Root type="single" bind:value={form.color_scheme.value}>
+                <Select.Root
+                    type="single"
+                    bind:value={form.color_scheme.value!}
+                >
                     <Select.Trigger class="w-full">
                         {snakeToTitleCase(form.color_scheme.value) ||
                             "Select Color Scheme"}
@@ -46,7 +49,10 @@
             </div>
             <div>
                 <Label>Header Style</Label>
-                <Select.Root type="single" bind:value={form.header_style.value}>
+                <Select.Root
+                    type="single"
+                    bind:value={form.header_style.value!}
+                >
                     <Select.Trigger class="w-full"
                         >{snakeToTitleCase(form.header_style.value) ||
                             "Select Header Style"}</Select.Trigger

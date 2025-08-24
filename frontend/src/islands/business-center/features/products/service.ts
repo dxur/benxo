@@ -227,9 +227,10 @@ export function generateVariantsFromOptions(options: Record<string, string[]>): 
 }
 
 export function useProductListQuery(getParams: () => ProductListQuery) {
+    const params = getParams();
     return createQuery(() => ({
-        queryKey: ["products", getParams()],
-        queryFn: () => listProducts(getParams()),
+        queryKey: ["products", params],
+        queryFn: () => listProducts(params),
         placeholderData: (prev) => prev,
     }));
 }

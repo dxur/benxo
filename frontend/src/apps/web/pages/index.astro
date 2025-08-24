@@ -3,5 +3,82 @@ import Layout from "@/layouts/index.astro";
 ---
 
 <Layout>
-  <a href="/auth">Open App</a>
+  <div
+    class="h-[100dvh] overflow-hidden flex flex-col bg-gradient-to-b from-gray-400/50 via-gray-800/70 to-gray-900/80"
+  >
+    <nav
+      class="relative w-full h-20 flex items-center justify-center px-4 z-10 shrink-0"
+    >
+      <!-- nav content -->
+    </nav>
+
+    <section
+      class="flex-1 flex flex-col justify-center items-center text-center px-4 overflow-hidden"
+    >
+      <h1
+        class="text-5xl md:text-7xl font-extrabold text-white mb-6 leading-tight drop-shadow-2xl"
+      >
+        Build Your
+        <span
+          class="bg-gradient-to-r from-emerald-300 via-teal-300 to-cyan-300 bg-clip-text text-transparent animate-pulse"
+        >
+          Dream Store
+        </span>
+      </h1>
+      <p
+        class="text-white/90 text-xl md:text-2xl mb-10 max-w-2xl mx-auto font-medium drop-shadow-lg"
+      >
+        Launch your online store quickly and securely. Shine in the marketplace
+        with ease and professional elegance.
+      </p>
+      <a
+        href="/user-center/"
+        class="px-10 py-5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold rounded-full text-xl hover:from-emerald-600 hover:to-teal-600 transition-all duration-300 shadow-2xl hover:shadow-emerald-500/25 hover:scale-105 flex items-center gap-3 border-2 border-white/20"
+      >
+        <i class="fas fa-rocket text-xl"></i>
+        Get Started Now
+      </a>
+
+      <div
+        class="mt-12 flex flex-wrap items-center justify-center gap-6 md:gap-8 text-white/60"
+      >
+        <div class="flex items-center gap-2">
+          <i class="fas fa-check-circle text-emerald-400"></i>
+          <span>No Setup Fees</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <i class="fas fa-shield-alt text-emerald-400"></i>
+          <span>Secure & Fast</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <i class="fas fa-support text-emerald-400"></i>
+          <span>24/7 Support</span>
+        </div>
+      </div>
+    </section>
+  </div>
 </Layout>
+
+<style>
+  nav {
+    background-color: rgba(255, 255, 255, 0.3);
+    color-scheme: light dark;
+  }
+
+  nav::after {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 30px;
+    -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="30"><circle cx="20" cy="0" r="20" fill="black"/></svg>')
+      repeat-x;
+    -webkit-mask-size: 40px 30px;
+    mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="30"><circle cx="20" cy="0" r="20" fill="black"/></svg>')
+      repeat-x;
+    mask-size: 40px 30px;
+    background-color: inherit;
+    position: absolute;
+    bottom: -30px;
+    left: 0;
+  }
+</style>

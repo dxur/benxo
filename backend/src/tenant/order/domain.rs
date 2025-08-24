@@ -19,7 +19,7 @@ pub enum OrderStatus {
     Archived,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Default, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PaymentStatus {
     #[default]
@@ -55,19 +55,25 @@ pub struct ShippingAddress {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
+pub enum Source {
+    Store(ObjectId),
+    User(ObjectId),
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct OrderHistory {
     pub status: OrderStatus,
     pub note: Option<String>,
-    pub created_by: Option<ObjectId>,
+    pub created_by: Option<Source>,
     pub created_at: DateTime,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct OrderRecord {
     pub _id: ObjectId,
-    pub customer_email: String,
+    pub customer_email: Option<String>,
     pub customer_name: String,
-    pub customer_phone: Option<String>,
+    pub customer_phone: String,
     pub items: Vec<OrderItem>,
     pub shipping_address: ShippingAddress,
     pub billing_address: Option<ShippingAddress>,
@@ -115,12 +121,7 @@ impl Default for OrderRecord {
             currency: "USD".to_string(),
             notes: Default::default(),
             tracking_number: Default::default(),
-            history: vec![OrderHistory {
-                status: OrderStatus::Pending,
-                note: Some("Order created".to_string()),
-                created_by: None,
-                created_at: now,
-            }],
+            history: Default::default(),
             created_at: now,
             updated_at: now,
         }
@@ -140,7 +141,7 @@ impl OrderRecord {
         &mut self,
         status: OrderStatus,
         note: Option<String>,
-        created_by: Option<ObjectId>,
+        created_by: Option<Source>,
     ) {
         self.history.push(OrderHistory {
             status: status.clone(),
