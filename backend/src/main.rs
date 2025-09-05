@@ -16,6 +16,8 @@ mod types;
 mod utils;
 mod validators;
 
+use std::sync::Arc;
+
 use axum::Router;
 use bson::doc;
 use hickory_resolver::config::*;
@@ -27,7 +29,6 @@ use s3::bucket::Bucket;
 use s3::bucket_ops::BucketConfiguration;
 use s3::creds::Credentials;
 use s3::Region;
-use std::sync::Arc;
 use tokio::net::TcpListener;
 use tower_cookies::CookieManagerLayer;
 use tower_http::trace::TraceLayer;

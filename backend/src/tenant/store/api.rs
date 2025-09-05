@@ -1,9 +1,10 @@
+use std::collections::HashMap;
+
 use bigdecimal::BigDecimal;
 use chrono::{DateTime, Utc};
 use indexmap::{IndexMap, IndexSet};
 use o2o::o2o;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use ts_rs::TS;
 
 use super::domain::*;

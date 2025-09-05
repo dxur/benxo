@@ -1,7 +1,8 @@
+use std::borrow::Cow;
+
 use chrono::{DateTime, Duration, Utc};
 use s3::bucket::Bucket;
 use s3::post_policy::*;
-use std::borrow::Cow;
 
 use super::api::*;
 use super::domain::*;

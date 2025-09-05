@@ -1,9 +1,10 @@
-use crate::utils::error::ApiError;
 use axum::{
     extract::{FromRequest, OptionalFromRequest, Request},
     response::IntoResponse,
 };
 use serde::{de::DeserializeOwned, Serialize};
+
+use crate::utils::error::ApiError;
 
 pub struct Json<T>(pub T);
 

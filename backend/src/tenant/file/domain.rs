@@ -1,6 +1,7 @@
+use std::borrow::Cow;
+
 use bson::{oid::ObjectId, DateTime};
 use serde::{Deserialize, Serialize};
-use std::borrow::Cow;
 use ts_rs::TS;
 
 use crate::types::name::Name;

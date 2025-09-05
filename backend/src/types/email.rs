@@ -1,8 +1,9 @@
+use std::fmt;
+use std::str::FromStr;
+
 use email_address::EmailAddress;
 use serde::de::{self, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::fmt;
-use std::str::FromStr;
 use ts_rs::TS;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, TS)]

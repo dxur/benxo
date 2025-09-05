@@ -1,8 +1,9 @@
+use std::time::Instant;
+
 use bson::oid::ObjectId;
 use hickory_resolver::name_server::TokioConnectionProvider;
 use hickory_resolver::proto::rr::RData;
 use hickory_resolver::Resolver;
-use std::time::Instant;
 
 use super::api::*;
 use super::domain::*;

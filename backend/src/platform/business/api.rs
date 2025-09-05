@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use tower_cookies::{Cookie, Cookies};
 use ts_rs::TS;
 
+use super::domain::*;
 use crate::{
     types::{email::Email, id::Id, name::Name},
     utils::{
@@ -11,8 +12,6 @@ use crate::{
         jwt::{decode_jwt, encode_jwt},
     },
 };
-
-use super::domain::*;
 
 #[derive(Debug, Deserialize, TS)]
 #[ts(export, bound = "")]

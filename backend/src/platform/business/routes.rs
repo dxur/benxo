@@ -3,14 +3,13 @@ use axum::extract::State;
 use macros::routes;
 use tower_cookies::Cookies;
 
+use super::api::*;
 use crate::extractors::cookies::FromCookies;
 use crate::extractors::json::Json;
 use crate::platform::business::domain::BusinessSettings;
 use crate::platform::user::api::{MessageResponse, UserSession};
 use crate::utils::error::ApiResult;
 use crate::AppState;
-
-use super::api::*;
 
 pub struct BusinessRoutes;
 

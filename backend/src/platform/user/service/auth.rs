@@ -1,13 +1,12 @@
 use tokio::task;
 use tracing::{error, info, instrument, warn};
 
+use super::*;
 use crate::{
     platform::user::mail::send_reset_email,
     types::{name::Name, password::Password, username::Username},
     utils::jwt::decode_jwt,
 };
-
-use super::*;
 
 impl<R: UserRepo> UserService<R> {
     #[instrument(skip(self), fields(step = ?step, token_type = %token.type_name()))]

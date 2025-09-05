@@ -1,8 +1,9 @@
+use std::collections::HashMap;
+
 use bigdecimal::BigDecimal;
 use bson::{oid::ObjectId, DateTime, Decimal128};
 use indexmap::{IndexMap, IndexSet};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use ts_rs::TS;
 
 use crate::types::id::Id;
