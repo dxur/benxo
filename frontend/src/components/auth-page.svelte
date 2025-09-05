@@ -3,12 +3,11 @@
   import { Label } from "$lib/components/ui/label/index.js";
   import { Input } from "$lib/components/ui/input/index.js";
   import { Button } from "$lib/components/ui/button/index.js";
-  import { cn } from "$lib/utils.js";
-  import type { HTMLAttributes } from "svelte/elements";
 
   import { auth, me } from "@bindings/UserRoutes";
   import { navigate } from "astro:transitions/client";
   import { ModeWatcher } from "mode-watcher";
+  import { untrack } from "svelte";
 
   let email = $state("");
   let email_otp = $state("");
@@ -20,6 +19,14 @@
   let password = $state("");
 
   let step = $state<"login" | "signup" | "emailOtp" | "phoneOtp">("login");
+  let error = $state<string | null>(null);
+
+  $effect(() => {
+    step;
+    untrack(() => {
+      error = null;
+    });
+  });
 
   $effect(() => {
     me().then(() => {
@@ -32,7 +39,9 @@
     e.preventDefault();
     auth({ Login: { email, password } })
       .then(() => navigate("/user-center/"))
-      .catch((err) => alert(err));
+      .catch((err) => {
+        error = err?.message || "Something went wrong while logging in.";
+      });
   }
 
   function signup(e: Event) {
@@ -41,7 +50,9 @@
       .then(() => {
         step = "emailOtp";
       })
-      .catch((err) => alert(err));
+      .catch((err) => {
+        error = err?.message || "Something went wrong while logging in.";
+      });
   }
 
   function signupEmailOtp(e: Event) {
@@ -50,7 +61,9 @@
       .then(() => {
         step = "phoneOtp";
       })
-      .catch((err) => alert(err));
+      .catch((err) => {
+        error = err?.message || "Something went wrong while logging in.";
+      });
   }
 
   function signupPhoneOtp(e: Event) {
@@ -65,9 +78,21 @@
       },
     })
       .then(() => navigate("/user-center/"))
-      .catch((err) => alert(err));
+      .catch((err) => {
+        error = err?.message || "Something went wrong while logging in.";
+      });
   }
 </script>
+
+{#snippet errorComponent()}
+  {#if error}
+    <div
+      class="rounded-md bg-red-50 p-3 text-sm text-red-600 border border-red-200"
+    >
+      {error}
+    </div>
+  {/if}
+{/snippet}
 
 <ModeWatcher />
 
@@ -103,6 +128,8 @@
               required
             />
           </div>
+
+          {@render errorComponent()}
 
           <Button type="submit" class="w-full">Login</Button>
 
@@ -177,6 +204,8 @@
             />
           </div>
 
+          {@render errorComponent()}
+
           <Button type="submit" class="w-full">Next</Button>
           <p class="text-sm text-center">
             Have an account? <button
@@ -194,6 +223,9 @@
             placeholder="Enter email OTP"
             required
           />
+
+          {@render errorComponent()}
+
           <Button type="submit" class="w-full">Next</Button>
         </form>
       {:else if step === "phoneOtp"}
@@ -205,6 +237,9 @@
             placeholder="Enter phone OTP"
             required
           />
+
+          {@render errorComponent()}
+
           <Button type="submit" class="w-full">Finish Signup</Button>
         </form>
       {/if}

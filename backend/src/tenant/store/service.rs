@@ -1,3 +1,9 @@
+use bson::oid::ObjectId;
+use hickory_resolver::name_server::TokioConnectionProvider;
+use hickory_resolver::proto::rr::RData;
+use hickory_resolver::Resolver;
+use std::time::Instant;
+
 use super::api::*;
 use super::domain::*;
 use super::repo::{StoreRegRepo, StoreRepo};
@@ -9,11 +15,16 @@ use crate::utils::serde_helpers::JsonOption;
 pub struct StoreService<R: StoreRepo, Reg: StoreRegRepo> {
     repo: R,
     reg: Reg,
+    resolver: Resolver<TokioConnectionProvider>,
 }
 
 impl<R: StoreRepo, Reg: StoreRegRepo> StoreService<R, Reg> {
-    pub fn new(repo: R, reg: Reg) -> Self {
-        Self { repo, reg }
+    pub fn new(repo: R, reg: Reg, resolver: Resolver<TokioConnectionProvider>) -> Self {
+        Self {
+            repo,
+            reg,
+            resolver,
+        }
     }
 
     pub async fn create(
@@ -69,22 +80,40 @@ impl<R: StoreRepo, Reg: StoreRegRepo> StoreService<R, Reg> {
         update_req.description.map(|v| record.description = v);
         update_req.status.map(|v| record.status = v.into());
         update_req.category.ok_then(|v| record.category = v);
-        update_req.contact_email.ok_then(|v| record.contact_email = v);
-        update_req.contact_phone.ok_then(|v| record.contact_phone = v);
+        update_req
+            .contact_email
+            .ok_then(|v| record.contact_email = v);
+        update_req
+            .contact_phone
+            .ok_then(|v| record.contact_phone = v);
         update_req.address.ok_then(|v| record.address = v);
         update_req.city.ok_then(|v| record.city = v);
         update_req.zip_code.ok_then(|v| record.zip_code = v);
         update_req.social_links.map(|v| record.social_links = v);
-        update_req.selected_theme.ok_then(|v| record.selected_theme = v);
+        update_req
+            .selected_theme
+            .ok_then(|v| record.selected_theme = v);
         update_req.color_scheme.ok_then(|v| record.color_scheme = v);
         update_req.header_style.ok_then(|v| record.header_style = v);
-        update_req.google_analytics_id.ok_then(|v| record.google_analytics_id = v);
-        update_req.gtm_container_id.ok_then(|v| record.gtm_container_id = v);
-        update_req.tracking_pixels.map(|v| record.tracking_pixels = v);
+        update_req
+            .google_analytics_id
+            .ok_then(|v| record.google_analytics_id = v);
+        update_req
+            .gtm_container_id
+            .ok_then(|v| record.gtm_container_id = v);
+        update_req
+            .tracking_pixels
+            .map(|v| record.tracking_pixels = v);
         update_req.meta_title.ok_then(|v| record.meta_title = v);
-        update_req.meta_description.ok_then(|v| record.meta_description = v);
-        update_req.meta_keywords.ok_then(|v| record.meta_keywords = v);
-        update_req.custom_key_values.map(|v| record.custom_key_values = v);
+        update_req
+            .meta_description
+            .ok_then(|v| record.meta_description = v);
+        update_req
+            .meta_keywords
+            .ok_then(|v| record.meta_keywords = v);
+        update_req
+            .custom_key_values
+            .map(|v| record.custom_key_values = v);
 
         self.repo
             .update(business_id, id, record)
@@ -102,6 +131,15 @@ impl<R: StoreRepo, Reg: StoreRegRepo> StoreService<R, Reg> {
         let id = store_id.into_inner();
         self.repo
             .find_by_id(business.business_id.into_inner(), id)
+            .await?
+            .ok_or(ApiError::not_found("store", id.to_hex()))
+            .map(Into::into)
+    }
+
+    pub async fn get_active_store(&self, business_id: Id, store_id: Id) -> ApiResult<StoreDto> {
+        let id = store_id.into_inner();
+        self.repo
+            .find_active_by_id(business_id.into_inner(), id)
             .await?
             .ok_or(ApiError::not_found("store", id.to_hex()))
             .map(Into::into)
@@ -136,12 +174,31 @@ impl<R: StoreRepo, Reg: StoreRegRepo> StoreService<R, Reg> {
             if let JsonOption::Value(ref domain) = update_req.domain {
                 if let Some(mut other) = self.reg.find_by_domain(&domain).await? {
                     if other.store_id != store_id {
-                        // TODO: confirms that the domain is owned by this user otherwise
-                        // throw an error
-                        other.domain = None;
-                        self.reg
-                            .update(other.business_id, other.store_id, other)
-                            .await?;
+                        if other.business_id == business_id {
+                            other.domain = None;
+                            self.reg
+                                .update(other.business_id, other.store_id, other)
+                                .await?;
+                        } else {
+                            let Some((other_business_id, _)) = self.verify_domain(&domain).await?
+                            else {
+                                return Err(ApiError::malformed(
+                                    "The domain does not have the required TXT record",
+                                ));
+                            };
+
+                            if other_business_id != business_id {
+                                return Err(ApiError::conflict(
+                                    "domain",
+                                    "The domain is already registered with another business",
+                                ));
+                            }
+
+                            other.domain = None;
+                            self.reg
+                                .update(other.business_id, other.store_id, other)
+                                .await?;
+                        }
                     }
                 }
             }
@@ -169,6 +226,17 @@ impl<R: StoreRepo, Reg: StoreRegRepo> StoreService<R, Reg> {
         } else {
             Err(ApiError::not_found("store", store_id.to_hex()))
         }
+    }
+
+    pub async fn get_reg(&self, business: BusinessSession, store_id: Id) -> ApiResult<StoreRegDto> {
+        let business_id = business.business_id.into_inner();
+        let store_id = store_id.into_inner();
+
+        self.reg
+            .find_by_store(business_id, store_id)
+            .await?
+            .ok_or(ApiError::not_found("store registration", store_id.to_hex()))
+            .map(Into::into)
     }
 
     pub async fn list_stores(
@@ -202,5 +270,35 @@ impl<R: StoreRepo, Reg: StoreRegRepo> StoreService<R, Reg> {
             page,
             limit,
         })
+    }
+
+    async fn verify_domain(&self, domain: &str) -> ApiResult<Option<(ObjectId, u32)>> {
+        let res = self.resolver.txt_lookup(domain).await.map_err(|e| {
+            ApiError::internal(format!("Failed to resolve domain {}: {}", domain, e))
+        })?;
+
+        let ttl = res
+            .valid_until()
+            .checked_duration_since(Instant::now())
+            .map(|d| d.as_secs() as u32)
+            .unwrap_or(0);
+
+        for record in res {
+            let txt_value: String = record.to_string();
+
+            if let Some(rest) = txt_value.strip_prefix("business_id=") {
+                match ObjectId::parse_str(rest.trim()) {
+                    Ok(oid) => return Ok(Some((oid, ttl))),
+                    Err(_) => {
+                        return Err(ApiError::malformed(format!(
+                            "Invalid ObjectId in TXT record: {}",
+                            rest
+                        )))
+                    }
+                }
+            }
+        }
+
+        Ok(None)
     }
 }

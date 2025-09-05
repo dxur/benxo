@@ -36,12 +36,16 @@ impl<R: OrderRepo> OrderService<R> {
                 .get_product(business.clone(), item_req.product_id)
                 .await?;
 
-            let variant: &ProductVariant = product.variants.iter().find(|v| v.sku == item_req.variant_sku).ok_or_else(|| {
-                ApiError::forbidden(
-                    "order",
-                    format!("Variant with SKU '{}' not found", item_req.variant_sku),
-                )
-            })?;
+            let variant: &ProductVariant = product
+                .variants
+                .iter()
+                .find(|v| v.sku == item_req.variant_sku)
+                .ok_or_else(|| {
+                    ApiError::forbidden(
+                        "order",
+                        format!("Variant with SKU '{}' not found", item_req.variant_sku),
+                    )
+                })?;
 
             if variant.stocks < item_req.quantity as usize {
                 return Err(ApiError::forbidden(

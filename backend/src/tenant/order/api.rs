@@ -59,13 +59,12 @@ pub struct OrderCreate {
     pub notes: Option<String>,
 }
 
-
 #[derive(Debug, Serialize, o2o, TS)]
 #[ts(export, bound = "")]
 #[from_owned(Source)]
-pub enum SourceDto{
-    Store(#[from(~.into())]Id),
-    User(#[from(~.into())]Id),
+pub enum SourceDto {
+    Store(#[from(~.into())] Id),
+    User(#[from(~.into())] Id),
 }
 
 #[derive(Debug, Serialize, o2o, TS)]

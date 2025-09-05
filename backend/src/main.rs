@@ -2,22 +2,25 @@
 #![allow(unused)]
 #![allow(async_fn_in_trait)]
 
-// pub mod db;
-pub mod events;
-pub mod extractors;
-// pub mod extractors;
-pub mod middlewares;
-// pub mod models;
-pub mod platform;
-// pub mod routes;
+// mod db;
+mod events;
+mod extractors;
+// mod extractors;
+mod middlewares;
+// mod models;
+mod platform;
+// mod routes;
 mod domain;
-pub mod tenant;
-pub mod types;
-pub mod utils;
-pub mod validators;
+mod tenant;
+mod types;
+mod utils;
+mod validators;
 
 use axum::Router;
 use bson::doc;
+use hickory_resolver::config::*;
+use hickory_resolver::name_server::TokioConnectionProvider;
+use hickory_resolver::Resolver;
 use mongodb::options::ClientOptions as MongoClientOptions;
 use mongodb::Client as MongoClient;
 use s3::bucket::Bucket;
@@ -32,6 +35,9 @@ use tracing::{debug, info};
 
 use crate::platform::business::routes::BusinessRoutes;
 use crate::platform::business::service::BusinessService;
+// use crate::platform::dns::repo::MongoDomainRepo;
+// use crate::platform::dns::routes::DnsRoutes;
+// use crate::platform::dns::service::DnsService;
 use crate::platform::user::repo::MongoUserRepo;
 use crate::platform::user::routes::UserRoutes;
 use crate::platform::user::service::UserService;
@@ -55,6 +61,7 @@ type AppState = Arc<State>;
 struct State {
     pub user_service: UserService<MongoUserRepo>,
     pub business_service: BusinessService<MongoBusinessRepo>,
+    // pub dns_service: DnsService<MongoDomainRepo>,
     pub product_service: ProductService<MongoProductRepo>,
     pub order_service: OrderService<MongoOrderRepo>,
     pub store_service: StoreService<MongoStoreRepo, MongoStoreRegRepo>,
@@ -132,8 +139,17 @@ async fn main() {
         .unwrap()
         .with_path_style();
 
+    let resolver = Resolver::builder_with_config(
+        hickory_resolver::system_conf::read_system_conf()
+            .map(|(c, _)| c)
+            .unwrap_or(ResolverConfig::default()),
+        TokioConnectionProvider::default(),
+    )
+    .build();
+
     let user_repo = MongoUserRepo::new(&db);
     let business_repo = MongoBusinessRepo::new(&db);
+    // let domain_repo = MongoDomainRepo::new(&db);
     let store_reg_repo = MongoStoreRegRepo::new(&db);
     let product_repo = MongoProductRepo::new(mongo_client.clone());
     let order_repo = MongoOrderRepo::new(mongo_client.clone());
@@ -142,14 +158,16 @@ async fn main() {
 
     let user_service = UserService::new(user_repo);
     let business_service = BusinessService::new(business_repo);
+    // let dns_service = DnsService::new(domain_repo, resolver);
     let product_service = ProductService::new(product_repo);
     let order_service = OrderService::new(order_repo);
-    let store_service = StoreService::new(store_repo, store_reg_repo);
+    let store_service = StoreService::new(store_repo, store_reg_repo, resolver);
     let file_service = FileService::new(file_repo, bucket);
 
     let state = Arc::new(State {
         user_service,
         business_service,
+        // dns_service,
         product_service,
         order_service,
         store_service,
@@ -160,6 +178,7 @@ async fn main() {
     let api = Router::new()
         .nest_packed(UserRoutes::make_router())
         .nest_packed(BusinessRoutes::make_router())
+        // .nest_packed(DnsRoutes::make_router())
         .nest_packed(ProductRoutes::make_router())
         .nest_packed(OrderRoutes::make_router())
         .nest_packed(StoreRoutes::make_router())

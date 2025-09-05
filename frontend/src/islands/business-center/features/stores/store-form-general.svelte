@@ -4,10 +4,9 @@
     import { Textarea } from "$lib/components/ui/textarea/index";
     import * as Card from "$lib/components/ui/card/index";
     import { Button } from "$lib/components/ui/button/index";
-    import { Plus, Trash2 } from "lucide-svelte";
     import type { Form } from "../../lib/utils/form";
     import type { StoreSchema } from "./service";
-    import { TrashIcon } from "@lucide/svelte";
+    import { TrashIcon, PlusIcon } from "@lucide/svelte";
 
     let {
         form = $bindable(),
@@ -142,7 +141,7 @@
             </Card.Description>
         </div>
         <Button variant="outline" size="sm" onclick={addSocialLink}>
-            <Plus class="w-4 h-4 mr-2" />
+            <PlusIcon class="w-4 h-4 mr-2" />
             Add Platform
         </Button>
     </Card.Header>

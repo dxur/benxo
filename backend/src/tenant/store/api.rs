@@ -23,7 +23,7 @@ pub enum StoreStatusDto {
 
 // TODO: into StoreRecord
 #[derive(Debug, Clone, Deserialize, Serialize, TS)]
-#[ts(export, bound="")]
+#[ts(export, bound = "")]
 pub struct StoreCreateDto {
     pub name: Name,
     pub description: String,
@@ -56,7 +56,7 @@ pub struct StoreCreateDto {
 
 #[derive(Debug, Serialize, o2o, TS)]
 #[from_owned(StoreRecord)]
-#[ts(export, bound="")]
+#[ts(export, bound = "")]
 pub struct StoreDto {
     #[from(@._id.into())]
     pub id: Id,
@@ -105,7 +105,7 @@ pub struct StoreListQuery {
 }
 
 #[derive(Debug, Deserialize, TS)]
-#[ts(export, bound="")]
+#[ts(export, bound = "")]
 pub struct StoreUpdate {
     pub name: JsonOption<Name>,
     pub description: JsonOption<String>,
@@ -138,7 +138,7 @@ pub struct StoreUpdate {
 }
 
 #[derive(Debug, Serialize, TS)]
-#[ts(export, bound="")]
+#[ts(export, bound = "")]
 pub struct StoreListResponse {
     pub stores: Vec<StoreDto>,
     pub total: u64,
@@ -147,7 +147,7 @@ pub struct StoreListResponse {
 }
 
 #[derive(Debug, Serialize, o2o, TS)]
-#[ts(export, bound="")]
+#[ts(export, bound = "")]
 #[from_owned(StoreRegRecord)]
 pub struct StoreRegDto {
     #[from(~.into())]
@@ -163,7 +163,7 @@ pub struct StoreRegDto {
 }
 
 #[derive(Debug, Deserialize, TS)]
-#[ts(export, bound="")]
+#[ts(export, bound = "")]
 pub struct StoreRegUpdate {
     pub slug: String,
     pub domain: JsonOption<String>,

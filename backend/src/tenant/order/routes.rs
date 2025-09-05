@@ -44,7 +44,7 @@ impl OrderRoutes {
     async fn list_orders(
         State(state): State<AppState>,
         FromCookies(business): FromCookies<BusinessSession>,
-        #[query]query: OrderListQuery,
+        #[query] query: OrderListQuery,
     ) -> ApiResult<Json<OrderListResponse>> {
         state
             .order_service

@@ -14,6 +14,11 @@ pub trait StoreRepo: Send + Sync {
         business_id: ObjectId,
         id: ObjectId,
     ) -> ApiResult<Option<StoreRecord>>;
+    async fn find_active_by_id(
+        &self,
+        business_id: ObjectId,
+        id: ObjectId,
+    ) -> ApiResult<Option<StoreRecord>>;
     async fn update(
         &self,
         business_id: ObjectId,
@@ -101,6 +106,21 @@ impl StoreRepo for MongoStoreRepo {
 
         let store = collection
             .find_one(doc! { "_id": id })
+            .await
+            .map_err(|e| ApiError::internal(format!("Database query failed: {}", e)))?;
+
+        Ok(store)
+    }
+
+    async fn find_active_by_id(
+        &self,
+        business_id: ObjectId,
+        id: ObjectId,
+    ) -> ApiResult<Option<StoreRecord>> {
+        let collection = self.get_collection(business_id);
+
+        let store = collection
+            .find_one(doc! { "_id": id, "status": "active" })
             .await
             .map_err(|e| ApiError::internal(format!("Database query failed: {}", e)))?;
 

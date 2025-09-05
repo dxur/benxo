@@ -1,10 +1,10 @@
+use super::api::*;
+use super::domain::*;
+use super::repo::ProductRepo;
 use crate::platform::business::api::BusinessSession;
 use crate::tenant::product::domain::ProductVariant;
 use crate::types::id::Id;
 use crate::utils::error::{ApiError, ApiResult};
-use super::repo::ProductRepo;
-use super::api::*;
-use super::domain::*;
 
 pub struct ProductService<R: ProductRepo> {
     repo: R,
@@ -15,18 +15,25 @@ impl<R: ProductRepo> ProductService<R> {
         Self { repo }
     }
 
-    pub async fn create(&self, business: BusinessSession, create_req: ProductCreateDto) -> ApiResult<ProductDto> {
+    pub async fn create(
+        &self,
+        business: BusinessSession,
+        create_req: ProductCreateDto,
+    ) -> ApiResult<ProductDto> {
         self.repo
-            .create(business.business_id.into_inner(), ProductRecord::new(
-                create_req.title,
-                create_req.description,
-                create_req.status.into(),
-                create_req.featured,
-                create_req.category,
-                create_req.images,
-                create_req.variants,
-                create_req.slug,
-            ))
+            .create(
+                business.business_id.into_inner(),
+                ProductRecord::new(
+                    create_req.title,
+                    create_req.description,
+                    create_req.status.into(),
+                    create_req.featured,
+                    create_req.category,
+                    create_req.images,
+                    create_req.variants,
+                    create_req.slug,
+                ),
+            )
             .await
             .map(Into::into)
     }

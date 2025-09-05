@@ -12,7 +12,7 @@ use crate::{
 };
 
 #[derive(Debug, Deserialize, TS)]
-#[ts(export, bound="")]
+#[ts(export, bound = "")]
 pub struct FileCreate {
     pub key: String,
     pub name: Name,
@@ -21,7 +21,7 @@ pub struct FileCreate {
 }
 
 #[derive(Debug, Serialize, o2o, TS)]
-#[ts(export, bound="")]
+#[ts(export, bound = "")]
 #[from_owned(FileRecord)]
 pub struct FileDto {
     #[from(@._id.into())]
@@ -46,7 +46,7 @@ pub struct FileListQuery {
 }
 
 #[derive(Debug, Serialize, TS)]
-#[ts(export, bound="")]
+#[ts(export, bound = "")]
 pub struct FileListResponse {
     pub files: Vec<FileDto>,
     pub total: u64,
@@ -55,7 +55,7 @@ pub struct FileListResponse {
 }
 
 #[derive(Debug, Serialize, TS)]
-#[ts(export, bound="")]
+#[ts(export, bound = "")]
 pub struct PresignedUrlResponse {
     pub url: String,
     pub fields: HashMap<String, String>,

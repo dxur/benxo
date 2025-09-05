@@ -3,10 +3,11 @@
     import { Button } from "$lib/components/ui/button/index";
     import * as Select from "$lib/components/ui/select/index";
     import { Label } from "$lib/components/ui/label/index";
-    import { EditIcon } from "lucide-svelte";
+    import { SquarePenIcon } from "@lucide/svelte";
     import type { Form } from "../../lib/utils/form";
     import type { StoreSchema } from "./service";
     import { snakeToTitleCase } from "../../lib/utils/fmt";
+    import { Input } from "@/lib/components/ui/input";
 
     let {
         form = $bindable(),
@@ -79,7 +80,7 @@
     <Card.Content>
         <div class="flex flex-col sm:flex-row gap-3">
             <Button onclick={openTemplateEditor} class="flex-1">
-                <EditIcon class="w-4 h-4 mr-2" />
+                <SquarePenIcon class="w-4 h-4 mr-2" />
                 Open Template Editor
             </Button>
             <!-- <Button variant="outline" class="flex-1">

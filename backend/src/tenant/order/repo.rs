@@ -1,14 +1,14 @@
 use async_trait::async_trait;
 use bigdecimal::BigDecimal;
-use bson::{doc, oid::ObjectId, to_bson, DateTime};
-use futures::stream::TryStreamExt;
-use mongodb::{options::FindOptions, Client, Collection};
-use chrono::Utc;
-use futures::StreamExt;
 use bigdecimal::FromPrimitive;
+use bson::{doc, oid::ObjectId, to_bson, DateTime};
+use chrono::Utc;
+use futures::stream::TryStreamExt;
+use futures::StreamExt;
+use mongodb::{options::FindOptions, Client, Collection};
 
-use super::domain::*;
 use super::api::OrderAnalytics;
+use super::domain::*;
 use crate::utils::error::{ApiError, ApiResult};
 
 #[async_trait]
@@ -309,7 +309,9 @@ impl OrderRepo for MongoOrderRepo {
             .await
             .map_err(|e| ApiError::internal(format!("Aggregation failed: {}", e)))?;
 
-        if let Some(result) = cursor.next().await.transpose().map_err(|e| ApiError::internal(format!("Failed to retrieve aggregation result: {}", e)))? {
+        if let Some(result) = cursor.next().await.transpose().map_err(|e| {
+            ApiError::internal(format!("Failed to retrieve aggregation result: {}", e))
+        })? {
             let total_orders = result.get_i32("total_orders").unwrap_or(0) as u64;
             let total_revenue = result
                 .get_f64("total_revenue")

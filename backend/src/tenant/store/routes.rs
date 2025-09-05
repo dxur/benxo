@@ -77,7 +77,20 @@ impl StoreRoutes {
             .map(Json)
     }
 
-    #[route(method=patch, path="/set-reg/{store_id}", res=StoreRegDto)]
+    #[route(method=post, path="/store-reg/{store_id}", res=StoreRegDto)]
+    async fn get_reg(
+        State(state): State<AppState>,
+        FromCookies(business): FromCookies<BusinessSession>,
+        #[path] store_id: Id,
+    ) -> ApiResult<Json<StoreRegDto>> {
+        state
+            .store_service
+            .get_reg(business, store_id)
+            .await
+            .map(Json)
+    }
+
+    #[route(method=patch, path="/store-reg/{store_id}", res=StoreRegDto)]
     async fn set_reg(
         State(state): State<AppState>,
         FromCookies(business): FromCookies<BusinessSession>,
@@ -121,10 +134,17 @@ impl PubStoreRoutes {
             .get(store.business_id.clone())
             .await
             .map_err(Into::<StatusCode>::into)?;
+
+        let store = state
+            .store_service
+            .get_active_store(store.business_id, store.store_id)
+            .await
+            .map_err(Into::<StatusCode>::into)?;
+
         let products = state
             .product_service
             .pub_list_products(
-                store.business_id,
+                business.id,
                 ProductListQuery {
                     page: None,
                     limit: None,

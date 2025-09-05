@@ -23,7 +23,7 @@ pub enum ProductStatusDto {
 
 #[derive(Debug, Deserialize, TS)]
 #[serde(rename_all = "snake_case")]
-#[ts(export, bound="")]
+#[ts(export, bound = "")]
 pub struct ProductCreateDto {
     pub title: Name,
     pub description: String,
@@ -36,7 +36,7 @@ pub struct ProductCreateDto {
 }
 
 #[derive(Debug, Serialize, o2o, TS)]
-#[ts(export, bound="")]
+#[ts(export, bound = "")]
 #[from_owned(ProductRecord)]
 pub struct ProductDto {
     #[from(@._id.into())]
@@ -68,7 +68,7 @@ pub struct ProductListQuery {
 }
 
 #[derive(Debug, Deserialize, TS)]
-#[ts(export, bound="")]
+#[ts(export, bound = "")]
 pub struct ProductUpdate {
     pub title: JsonOption<Name>,
     pub description: JsonOption<String>,
@@ -81,7 +81,7 @@ pub struct ProductUpdate {
 }
 
 #[derive(Debug, Serialize, TS)]
-#[ts(export, bound="")]
+#[ts(export, bound = "")]
 pub struct ProductListResponse {
     pub products: Vec<ProductDto>,
     pub total: u64,

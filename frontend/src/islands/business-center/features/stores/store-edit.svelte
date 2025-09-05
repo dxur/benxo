@@ -32,6 +32,7 @@
   import type { StoreUpdate } from "@bindings/StoreUpdate";
   import { snakeToTitleCase } from "../../lib/utils/fmt";
   import StoreFormGeneral from "./store-form-general.svelte";
+  import StoreDomain from "./store-domain.svelte";
   import StoreFormTemplate from "./store-form-template.svelte";
   import StoreFormExtra from "./store-form-extra.svelte";
   import { dialog } from "../../lib/components/alert-dialog.svelte";
@@ -40,7 +41,7 @@
   const { replace } = useNavigate();
 
   const { location } = useRoute();
-  const storeId = location?.params.id;
+  const storeId = location?.params.id as string;
 
   const query = createQuery(() => ({
     queryKey: ["store", storeId],
@@ -252,12 +253,16 @@
         <Tabs.Root value="general">
           <Tabs.List class="w-full">
             <Tabs.Trigger value="general">General</Tabs.Trigger>
+            <Tabs.Trigger value="domain">Domain & Access</Tabs.Trigger>
             <Tabs.Trigger value="template">Template</Tabs.Trigger>
             <Tabs.Trigger value="extra">Extra</Tabs.Trigger>
           </Tabs.List>
           <fieldset>
             <Tabs.Content value="general" class="tab-content">
               <StoreFormGeneral bind:form />
+            </Tabs.Content>
+            <Tabs.Content value="domain" class="tab-content">
+              <StoreDomain {storeId} bind:store={form} />
             </Tabs.Content>
             <Tabs.Content value="template" class="tab-content">
               <StoreFormTemplate bind:form />

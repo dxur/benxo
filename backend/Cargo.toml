@@ -53,3 +53,4 @@ smart-default = "0.7.1"
 bigdecimal = { version = "0.4.8", features = ["serde", "serde-json"] }
 rust-s3 = "0.35.1"
 sanitize-filename = "0.6.0"
+hickory-resolver = "0.25.2"

@@ -21,7 +21,11 @@ impl ProductRoutes {
         FromCookies(business): FromCookies<BusinessSession>,
         #[json] product: ProductCreateDto,
     ) -> ApiResult<Json<ProductDto>> {
-        state.product_service.create(business, product).await.map(Json)
+        state
+            .product_service
+            .create(business, product)
+            .await
+            .map(Json)
     }
 
     #[route(method=post, path="/{product_id}", res=ProductDto)]

@@ -1,5 +1,6 @@
 import * as yup from 'yup';
 import type { StoreDto } from "@bindings/StoreDto"
+import type { StoreRegDto } from "@bindings/StoreRegDto"
 import { nullIf } from '../../lib/utils/fmt';
 
 export {
@@ -7,7 +8,9 @@ export {
     create_store as createStore,
     list_stores as listStores,
     update_store as updateStore,
-    delete_store as deleteStore
+    delete_store as deleteStore,
+    set_reg as setStoreReg,
+    get_reg as getStoreReg,
 } from '@bindings/StoreRoutes';
 
 const nullStr = nullIf("");
@@ -185,9 +188,37 @@ export const StoreSchema = yup.object({
         .default({}),
 });
 
+// Domain Registration Schema
+export const DomainRegSchema = yup.object({
+    slug: yup
+        .string()
+        .required("Store slug is required.")
+        .matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug must contain only lowercase letters, numbers, and hyphens (no consecutive hyphens).")
+        .min(3, "Slug must be at least 3 characters long.")
+        .max(50, "Slug cannot exceed 50 characters."),
+
+    domain: yup
+        .string()
+        .nullable()
+        .matches(
+            /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?$/,
+            { message: "Please enter a valid domain name.", excludeEmptyString: true }
+        )
+        .transform(nullStr),
+});
+
 export function canBeDeleted(data?: StoreDto): boolean {
     if (!data) { return false }
     const oneMonthLater = new Date(data?.updated_at);
     oneMonthLater.setMonth(oneMonthLater.getMonth() + 1);
     return new Date() >= oneMonthLater && data.status === "archived";
+}
+
+export function generateSlugFromName(name: string): string {
+    return name
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '') // Remove special characters
+        .replace(/\s+/g, '-') // Replace spaces with hyphens
+        .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+        .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
 }

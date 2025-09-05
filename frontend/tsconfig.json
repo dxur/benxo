@@ -21,6 +21,8 @@
       "$lib/*": [
         "./src/lib/*"
       ]
-    }
+    },
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js"
   }
 }

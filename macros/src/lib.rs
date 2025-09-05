@@ -447,7 +447,8 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
 
                 let mut path_args = String::new();
                 for (pat, ty) in &path_types {
-                    full_path = full_path.replace(&format!("{{{}}}", pat), &format!("${{{}}}", pat));
+                    full_path =
+                        full_path.replace(&format!("{{{}}}", pat), &format!("${{{}}}", pat));
                     path_args += &format!("{}: {}, ", pat, ty);
                 }
 
