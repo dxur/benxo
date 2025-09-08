@@ -30,9 +30,9 @@
     let selectedTemplate = $state<
         | "homepage"
         | "product_page"
-        | "collection_page"
         | "cart_page"
         | "shop_page"
+        | "not_found_page"
     >("homepage");
     let selectedSnippet = $state<string>("");
     let selectedCustomPage = $state<string>("");
@@ -58,11 +58,6 @@
             value: "product_page",
             label: "Product Page Template",
             key: "product_page_template",
-        },
-        {
-            value: "collection_page",
-            label: "Collection Page Template",
-            key: "collection_page_template",
         },
         {
             value: "cart_page",

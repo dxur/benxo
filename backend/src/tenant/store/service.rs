@@ -52,6 +52,7 @@ impl<R: StoreRepo, Reg: StoreRegRepo> StoreService<R, Reg> {
                     create_req.menu_items,
                     create_req.featured_collections,
                     create_req.social_links,
+                    create_req.footer_lists,
                     create_req.google_analytics_id,
                     create_req.gtm_container_id,
                     create_req.tracking_pixels,
@@ -92,21 +93,21 @@ impl<R: StoreRepo, Reg: StoreRegRepo> StoreService<R, Reg> {
         update_req.address.ok_then(|v| record.address = v);
         update_req.city.ok_then(|v| record.city = v);
         update_req.zip_code.ok_then(|v| record.zip_code = v);
-        println!("Logo update: {:?}", update_req.logo);
         update_req.logo.ok_then(|v| record.logo = v);
         update_req.logo_alt.ok_then(|v| record.logo_alt = v);
         update_req.favicon.ok_then(|v| record.favicon = v);
         update_req.menu_items.map(|v| record.menu_items = v);
+        update_req
+            .featured_collections
+            .map(|v| record.featured_collections = v);
         update_req.social_links.map(|v| record.social_links = v);
+        update_req.footer_lists.map(|v| record.footer_lists = v);
         update_req
             .homepage_template
             .map(|v| record.homepage_template = v);
         update_req
             .product_page_template
             .map(|v| record.product_page_template = v);
-        update_req
-            .collection_page_template
-            .map(|v| record.collection_page_template = v);
         update_req
             .cart_page_template
             .map(|v| record.cart_page_template = v);

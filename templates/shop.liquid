@@ -38,7 +38,7 @@
           <!-- Dynamic headers -->
           <div class="search-results-info" id="search-results-info" style="display:none;">
             <h1>نتائج البحث عن "<span id="search-query-text"></span>"</h1>
-            <p class="results-count">تم العثور على <span id="results-count">{{ products.size | default: 0 }}</span> منتج</p>
+            <p class="results-count">تم العثور على <span id="results-count">24</span> منتج</p>
           </div>
 
           <div class="search-welcome" id="search-welcome">
@@ -54,43 +54,39 @@
           <h2>اقتراحات البحث</h2>
           <div class="suggestion-pills">
             <a href="/shop?q=ملابس" class="suggestion-pill">ملابس</a>
-            <a href="/shop?q=ألعاب" class="suggestion-pill">ألعاب</a>
-            <a href="/shop?q=إكسسوارات" class="suggestion-pill">إكسسوارات</a>
             <a href="/shop?q=أحذية" class="suggestion-pill">أحذية</a>
+            <a href="/shop?q=إكسسوارات" class="suggestion-pill">إكسسوارات</a>
             <a href="/shop?q=حقائب" class="suggestion-pill">حقائب</a>
             <a href="/shop?q=ساعات" class="suggestion-pill">ساعات</a>
+            <a href="/shop?q=عطور" class="suggestion-pill">عطور</a>
           </div>
         </div>
-
-        <div class="popular-searches">
-          <h2>عمليات البحث الشائعة</h2>
-          <div class="popular-list">
-            <a href="/shop?q=فستان">فستان</a>
-            <a href="/shop?q=حذاء رياضي">حذاء رياضي</a>
-            <a href="/shop?q=جاكيت">جاكيت</a>
-            <a href="/shop?q=حقيبة يد">حقيبة يد</a>
-            <a href="/shop?q=عطر">عطر</a>
+        
+          <div class="products-grid" id="search-products-grid">
+            {% for p in products %}
+              {% render "product-card.liquid", product: p %}
+            {% endfor %}
           </div>
-        </div>
 
         {% if store.featured_collections %}
         <div class="featured-categories-search">
           <h2>تصفح الفئات</h2>
-          <div class="categories-grid-search">
-            {% for category in store.featured_collections %}
-              <a href="/collections/{{ category | downcase | replace: ' ', '-' }}" class="category-card-search">
-                <div class="category-info-search">
-                  <h3>{{ category }}</h3>
-                </div>
-              </a>
-            {% endfor %}
+          <div class="categories-grid">
+              {% for coll in store.featured_collections %}
+                <a href="/shop?c={{ coll.label }}" class="category-card">
+                  <img src="{{ coll.img }}" loading="lazy" alt="{{ coll.label }}" />
+                  <div class="category-info">
+                    <h3>{{ coll.label }}</h3>
+                  </div>
+                </a>
+              {% endfor %}
           </div>
         </div>
         {% endif %}
       </div>
 
       <!-- Search Results (shown if query exists) -->
-      <div class="search-results" id="search-results" style="display:none;">
+      <div class="search-results" id="search-results">
         <div class="search-controls">
           <div class="search-filters-section">
             <button class="search-filters-toggle" onclick="toggleSearchFilters()">
@@ -119,36 +115,27 @@
         <div class="search-content">
           <!-- Sidebar Filters -->
           <aside class="search-filters-sidebar" id="search-filters-sidebar">
-            <!-- filters markup here (unchanged from your version) -->
+            <!-- filters markup here -->
           </aside>
 
-          <!-- Results grid -->
+          <!-- Results grid with mock data -->
           <div class="search-results-section">
-            {% if products.size > 0 %}
-              <div class="products-grid" id="search-products-grid">
-                {% for product in products %}
-                  {% render "product-card.liquid", product: product %}
-                {% endfor %}
-              </div>
-            {% else %}
-              <div class="no-search-results">
-                <div class="no-results-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <path d="m21 21-4.35-4.35"></path>
-                  </svg>
-                </div>
-                <h3>لم نجد أي نتائج لـ "<span id="search-query-text-empty"></span>"</h3>
-                <div class="search-suggestions-no-results">
-                  <p>جرب:</p>
-                  <ul>
-                    <li>تحقق من الإملاء</li>
-                    <li>استخدم كلمات أقل أو مختلفة</li>
-                    <li>استخدم مصطلحات أكثر عمومية</li>
-                  </ul>
-                </div>
-              </div>
-            {% endif %}
+            <div class="products-grid" id="search-products-grid">
+              {% for p in products %}
+                {% render "product-card.liquid", product: p %}
+              {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            <div class="pagination">
+              <a href="#" class="pagination-btn" disabled>السابق</a>
+              <a href="#" class="pagination-btn active">1</a>
+              <a href="#" class="pagination-btn">2</a>
+              <a href="#" class="pagination-btn">3</a>
+              <span class="pagination-dots">...</span>
+              <a href="#" class="pagination-btn">8</a>
+              <a href="#" class="pagination-btn">التالي</a>
+            </div>
           </div>
         </div>
       </div>
@@ -156,6 +143,332 @@
 
     {% include "footer.liquid" %}
   </div>
+
+  <style>
+    /* Shop Page Specific Styles */
+    .search-header-section {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      padding: 3rem 0;
+      margin-bottom: 3rem;
+      border-radius: 0 0 24px 24px;
+    }
+
+    .search-form-container {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .search-form-main {
+      margin-bottom: 2rem;
+    }
+
+    .search-input-group {
+      display: flex;
+      gap: 0.5rem;
+      background: white;
+      padding: 0.5rem;
+      margin-left: 0.5rem;
+      margin-right: 0.5rem;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e5e5e5;
+    }
+
+    .search-input-main {
+      flex: 1;
+      padding: 1rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .search-btn-main {
+      background: #ffd23d;
+      color: #333;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .search-btn-main:hover {
+      background: #333;
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    .search-welcome h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: #333;
+    }
+
+    .search-welcome p {
+      font-size: 1.1rem;
+      color: #666;
+    }
+
+    .search-results-info h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #333;
+    }
+
+    .results-count {
+      font-size: 1.1rem;
+      color: #666;
+    }
+
+    /* Suggestions */
+    .search-suggestions-main {
+      margin-bottom: 3rem;
+    }
+
+    #search-products-grid {
+      margin-top: 0;
+    }
+
+    .suggestions-section, #search-products-grid, .featured-categories-search {
+      margin-bottom: 3rem;
+    }
+
+    .suggestions-section h2, .popular-searches h2, .featured-categories-search h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      color: #333;
+    }
+
+    .suggestion-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+    }
+
+    .suggestion-pill {
+      background: white;
+      color: #333;
+      padding: 0.75rem 1.5rem;
+      border-radius: 25px;
+      text-decoration: none;
+      border: 1px solid #e5e5e5;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+
+    .suggestion-pill:hover {
+      background: #ffd23d;
+      color: #333;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .popular-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-width: 300px;
+      margin: 0 auto;
+    }
+
+    .popular-list a {
+      color: #666;
+      text-decoration: none;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #f0f0f0;
+      transition: color 0.2s;
+    }
+
+    .popular-list a:hover {
+      color: #ffd23d;
+    }
+
+    .categories-grid-search {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .category-card-search {
+      background: white;
+      border: 1px solid #e5e5e5;
+      border-radius: 12px;
+      padding: 2rem;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+
+    .category-card-search:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .category-info-search h3 {
+      color: #333;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    /* Search Results */
+    .search-results {
+      display: block;
+      margin-top: 2rem;
+    }
+
+    .search-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background: #f8f9fa;
+      border-radius: 12px;
+      border: 1px solid #e5e5e5;
+    }
+
+    .search-filters-toggle {
+      background: #333;
+      color: white;
+      border: none;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .search-filters-toggle:hover {
+      background: #ffd23d;
+      color: #333;
+    }
+
+    .search-sort-section {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .search-sort-section label {
+      font-weight: 500;
+      color: #333;
+    }
+
+    #search-sort-select {
+      padding: 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background: white;
+      cursor: pointer;
+    }
+
+    .search-content {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    /* Pagination */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 3rem;
+    }
+
+    .pagination-btn {
+      padding: 0.75rem 1rem;
+      background: white;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      text-decoration: none;
+      color: #333;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      min-width: 40px;
+      text-align: center;
+    }
+
+    .pagination-btn:hover {
+      background: #ffd23d;
+      color: #333;
+      border-color: #ffd23d;
+    }
+
+    .pagination-btn.active {
+      background: #333;
+      color: white;
+      border-color: #333;
+    }
+
+    .pagination-btn[disabled] {
+      opacity: 0.5;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .pagination-dots {
+      color: #666;
+      font-weight: bold;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      .search-input-group {
+        flex-direction: column;
+      }
+
+      .search-btn-main {
+        justify-content: center;
+      }
+
+      .search-controls {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+      }
+
+      .search-sort-section {
+        justify-content: space-between;
+      }
+
+      .suggestion-pills {
+        justify-content: flex-start;
+      }
+
+      .pagination {
+        gap: 0.5rem;
+      }
+
+      .pagination-btn {
+        padding: 0.5rem 0.75rem;
+        min-width: 35px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .search-header-section {
+        padding: 2rem 0;
+      }
+
+      .search-welcome h1 {
+        font-size: 2rem;
+      }
+    }
+  </style>
 
   <script>
     // Handle query and toggle sections
@@ -166,7 +479,6 @@
       const input = document.getElementById("search-query-input");
       const resultsInfo = document.getElementById("search-results-info");
       const queryText = document.getElementById("search-query-text");
-      const queryTextEmpty = document.getElementById("search-query-text-empty");
       const welcome = document.getElementById("search-welcome");
       const suggestions = document.getElementById("search-suggestions");
       const results = document.getElementById("search-results");
@@ -175,7 +487,6 @@
 
       if (query) {
         if (queryText) queryText.textContent = query;
-        if (queryTextEmpty) queryTextEmpty.textContent = query;
 
         resultsInfo.style.display = "block";
         results.style.display = "block";
@@ -190,9 +501,15 @@
     });
 
     function toggleSearchFilters() {
-      document.getElementById('search-filters-sidebar').classList.toggle('active');
+      const sidebar = document.getElementById('search-filters-sidebar');
+      if (sidebar) {
+        sidebar.classList.toggle('active');
+      }
     }
-    function sortSearchResults(sortBy) { console.log("Sort:", sortBy); }
+
+    function sortSearchResults(sortBy) { 
+      console.log("Sort:", sortBy); 
+    }
   </script>
 </body>
 </html>

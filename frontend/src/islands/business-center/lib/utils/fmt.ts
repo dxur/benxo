@@ -63,3 +63,15 @@ export function orIf<C, O>(c: C, o?: O) {
 export function nullIf<C>(c: C): ReturnType<typeof orIf<C, null>> {
     return orIf(c, null);
 }
+
+export function isValidHref(value: string | undefined | null): boolean {
+    if (!value) return true; // let Yup handle required()
+    try {
+        // absolute URL (http, https, mailto, etc.)
+        new URL(value);
+        return true;
+    } catch {
+        // relative path or hash link
+        return value.startsWith("/") || value.startsWith("#");
+    }
+}

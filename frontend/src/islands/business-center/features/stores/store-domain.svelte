@@ -102,7 +102,7 @@
 
     const slugPreviewUrl = $derived.by(() => {
         if (form.slug.initialValue) {
-            return `https://${form.slug.value}.${__APP_ENV__.STORE_PREFIX}/`;
+            return `https://${form.slug.value}.${__APP_ENV__.STORE_SUFFIX}/`;
         }
         return "";
     });
@@ -152,7 +152,7 @@
                         errors={form.slug.errors}
                     />
                     <span class="text-sm text-muted-foreground"
-                        >.{__APP_ENV__.STORE_PREFIX}</span
+                        >.{__APP_ENV__.STORE_SUFFIX}</span
                     >
                 </div>
                 {#if slugPreviewUrl}

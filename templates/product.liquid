@@ -14,39 +14,64 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 2rem;
-        margin: 4rem 0;
+        margin: 2rem 0;
       }
 
+      /* Gallery container */
       .product-gallery {
         display: flex;
         flex-direction: column;
         gap: 1rem;
       }
 
+      /* Hide radios */
+      .product-gallery input[type="radio"] {
+        display: none;
+      }
+
+      /* Main image */
       .product-gallery-main {
         width: 100%;
         aspect-ratio: 1 / 1;
         border-radius: 12px;
         overflow: hidden;
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        position: relative;
       }
 
+      /* All images stacked */
       .product-gallery-main img {
+        position: absolute;
+        inset: 0;
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: transform 0.3s ease;
+        opacity: 0;
+        transition: opacity 0.3s ease
+        , transform 0.3s ease;
       }
 
+      /* Optional hover effect */
       .product-gallery-main img:hover {
         transform: scale(1.05);
       }
 
+      /* Show image when corresponding radio is checked */
+      {% for img in product.images %}
+        {% assign id = 'img-' | append: forloop.index %}
+        #{{ id }}:checked ~ .product-gallery-main .{{ id }} {
+          opacity: 1;
+          z-index: 1;
+        }
+      {% endfor %}
+
+      /* Thumbnails row */
       .product-gallery-thumbs {
         display: flex;
         gap: 0.5rem;
       }
 
+      /* Thumbnails as labels for radios */
       .product-gallery-thumb {
         width: 60px;
         height: 60px;
@@ -54,17 +79,23 @@
         overflow: hidden;
         cursor: pointer;
         border: 2px solid transparent;
-        transition: border-color 0.2s;
+        transition: border-color 0.2s
+        , transform 0.2s;
       }
+
+      /* Highlight selected thumbnail */
+      {% for img in product.images %}
+        {% assign id = 'img-' | append: forloop.index %}
+        #{{ id }}:checked ~ .product-gallery-thumbs label[for="{{ id }}"] {
+          border-color: #ffd23d;
+          transform: translateY(-2px);
+        }
+      {% endfor %}
 
       .product-gallery-thumb img {
         width: 100%;
         height: 100%;
         object-fit: cover;
-      }
-
-      .product-gallery-thumb.active {
-        border-color: #ffd23d;
       }
 
       .product-details {
@@ -134,27 +165,45 @@
 
       /* Checkout Form */
       .checkout-form {
-        margin-top: 2rem;
         padding: 1.5rem;
         border: 1px solid #ddd;
         border-radius: 12px;
         background: #f9f9f9;
         display: flex;
         flex-direction: column;
-        gap: 1rem;
+        gap: 0.1rem;
       }
 
       .checkout-form h3 {
         font-size: 1.2rem;
+        margin-bottom: 0.8rem;
         color: #333;
       }
-
+      
       .checkout-form label {
+        margin-bottom: 0.4rem;
+      }
+
+      .checkout-form label span {
         font-size: 0.9rem;
         margin-bottom: 0.3rem;
         display: block;
       }
 
+      .checkout-form fieldset {
+        border: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        gap: 1rem;
+      }
+
+      .checkout-form fieldset label {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+        }
+      
       .checkout-form input,
       .checkout-form textarea {
         width: 100%;
@@ -179,10 +228,6 @@
         .product-detail {
           grid-template-columns: 1fr;
         }
-
-        .checkout-form {
-          gap: 0.8rem;
-        }
       }
     </style>
   </head>
@@ -193,21 +238,34 @@
       <div class="product-detail">
         <!-- Gallery -->
         <div class="product-gallery">
+          {% for img in product.images %}
+            <!-- Hidden radio input -->
+            <input
+              type="radio"
+              name="gallery"
+              id="img-{{ forloop.index }}"
+              {% if forloop.first %}
+              checked{% endif %}>
+          {% endfor %}
+
+          <!-- Main image container -->
           <div class="product-gallery-main">
-            <img
-              id="main-product-image"
-              src="{{ product.images[0] }}"
-              alt="{{ product.title }}">
+            {% for img in product.images %}
+              <img
+                src="{{ img }}"
+                alt="Product image"
+                class="img-{{ forloop.index }}">
+            {% endfor %}
           </div>
-          {% if product.images.size > 1 %}
+
+          <!-- Thumbnails -->
             <div class="product-gallery-thumbs">
               {% for img in product.images %}
-                <div class="product-gallery-thumb {% if forloop.first %}active{% endif %}" onclick="document.getElementById('main-product-image').src='{{ img }}'; setActiveThumb(this);">
+                <label for="img-{{ forloop.index }}" class="product-gallery-thumb">
                   <img src="{{ img }}" alt="Thumbnail">
-                </div>
+                </label>
               {% endfor %}
             </div>
-          {% endif %}
         </div>
 
         <!-- Details -->
@@ -278,62 +336,46 @@
 
           <!-- Checkout Form -->
           <form class="checkout-form">
-            <h3>معلومات العميل</h3>
-            <label for="name">الاسم الكامل:</label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              required>
+  <h3>معلومات العميل</h3>
 
-            <label for="phone">رقم الهاتف:</label>
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              required>
+  <!-- Full Name -->
+  <label for="name">
+    <span>الاسم الكامل:</span>
+    <input type="text" id="name" name="name" required>
+  </label>
 
-            <label for="email">البريد الإلكتروني:</label>
-            <input
-              type="email"
-              id="email"
-              name="email">
+  <!-- Phone -->
+  <label for="phone">
+    <span>رقم الهاتف:</span>
+    <input type="tel" id="phone" name="phone" required>
+  </label>
 
-            <h3>العنوان</h3>
-            <label for="city">المدينة:</label>
-            <input
-              type="text"
-              id="city"
-              name="city"
-              required>
+  <!-- City and Address side by side -->
+  <fieldset>
+    <label for="city">
+      <span>المدينة:</span>
+      <input type="text" id="city" name="city" required>
+    </label>
 
-            <label for="address">العنوان:</label>
-            <textarea
-              id="address"
-              name="address"
-              rows="2"
-              required></textarea>
+    <label for="address">
+      <span>العنوان:</span>
+      <input type="text" id="address" name="address" required>
+    </label>
+  </fieldset>
 
-            <label for="postal">الرمز البريدي:</label>
-            <input
-              type="text"
-              id="postal"
-              name="postal">
+  <h3>ملخص الطلب</h3>
+  <div class="order-summary">
+    <p>المنتج: {{ product.title }}</p>
+    <p>السعر: ${{ product.variants[0].price }}</p>
+  </div>
 
-            <h3>ملخص الطلب</h3>
-            <div class="order-summary">
-              <p>المنتج: {{ product.title }}</p>
-              <p>السعر: ${{ product.variants[0].price }}</p>
-            </div>
-
-            <button
-              type="submit"
-              class="btn btn-primary"
-              {% if product.variants[0].stocks == 0 %}
-              disabled{% endif %}>
-              تأكيد الطلب
-            </button>
-          </form>
+  <button
+    type="submit"
+    class="btn btn-primary"
+    {% if product.variants[0].stocks == 0 %}disabled{% endif %}>
+    تأكيد الطلب
+  </button>
+</form>
 
         </div>
       </div>

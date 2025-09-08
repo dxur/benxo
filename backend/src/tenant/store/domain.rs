@@ -32,6 +32,24 @@ pub struct MenuItem {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, TS)]
+pub struct FeaturedCollection {
+    pub label: String,
+    pub img: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, TS)]
+pub struct FooterItem {
+    pub label: String,
+    pub url: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, TS)]
+pub struct FooterList {
+    pub title: String,
+    pub items: Vec<FooterItem>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, TS)]
 pub struct TrackingPixel {
     pub platform: String,
     pub pixel_id: String,
@@ -57,13 +75,13 @@ pub struct StoreRecord {
     pub favicon: Option<String>,
 
     pub menu_items: Vec<MenuItem>,
-    pub featured_collections: IndexSet<String>,
+    pub featured_collections: Vec<FeaturedCollection>,
     pub social_links: Vec<SocialLink>,
+    pub footer_lists: Vec<FooterList>,
 
     // templates
     pub homepage_template: CowStr,
     pub product_page_template: CowStr,
-    pub collection_page_template: CowStr,
     pub cart_page_template: CowStr,
     pub shop_page_template: CowStr,
     pub not_found_page_template: CowStr,
@@ -100,8 +118,9 @@ impl StoreRecord {
         logo_alt: Option<String>,
         favicon: Option<String>,
         menu_items: Vec<MenuItem>,
-        featured_collections: IndexSet<String>,
+        featured_collections: Vec<FeaturedCollection>,
         social_links: Vec<SocialLink>,
+        footer_lists: Vec<FooterList>,
         google_analytics_id: Option<String>,
         gtm_container_id: Option<String>,
         tracking_pixels: Vec<TrackingPixel>,
@@ -121,11 +140,6 @@ impl StoreRecord {
         let product_page_template = include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/../templates/product.liquid"
-        ))
-        .into();
-        let collection_page_template = include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../templates/collection.liquid"
         ))
         .into();
         let cart_page_template = include_str!(concat!(
@@ -170,10 +184,10 @@ impl StoreRecord {
             menu_items,
             featured_collections,
             social_links,
+            footer_lists,
 
             homepage_template,
             product_page_template,
-            collection_page_template,
             cart_page_template,
             shop_page_template,
             not_found_page_template,

@@ -7,13 +7,15 @@ services:
     restart: always
     networks:
       - backend_net
-    expose:
-      - "8080"
     environment:
-      - MONGO_URI=mongodb://mongo:27017
-      - MINIO_ENDPOINT=minio:9000
-      - MINIO_ACCESS_KEY=minioadmin
-      - MINIO_SECRET_KEY=minioadmin
+      - STORE_SUFFIX=${STORE_SUFFIX}
+      - ROOT_DB_NAME=${ROOT_DB_NAME}
+      - ATLAS_URI=${ATLAS_URI}
+      - STORAGE_URI=${STORAGE_URI}
+      - STORAGE_REGION=${STORAGE_REGION}
+      - STORAGE_USER=${STORAGE_USER}
+      - STORAGE_PASSWORD=${STORAGE_PASSWORD}
+      - STORAGE_BUCKET_NAME=${STORAGE_BUCKET_NAME}
 
   varnish:
     image: varnish:6
@@ -21,8 +23,6 @@ services:
     restart: always
     networks:
       - backend_net
-    depends_on:
-      - backend
     volumes:
       - ./varnish.vcl:/etc/varnish/default.vcl:ro
 
@@ -48,7 +48,7 @@ services:
     volumes:
       - mongo_data:/data/db
 
-  caddy:
+  caddy: &caddy_base
     build:
       context: .
       target: proxy
@@ -61,7 +61,7 @@ services:
       - ACME_EMAIL=${ACME_EMAIL}
       - STORE_SUFFIX=${STORE_SUFFIX}
     labels:
-      - "traefik.enable=${CADDY_STANDALONE:-true}"
+      - "traefik.enable=true"
       - "traefik.tcp.routers.caddy.entrypoints=websecure"
       - "traefik.tcp.routers.caddy.rule=HostSNI(`benxo.test`) || HostSNIRegexp(`.*\\.mystore.benxo.test`)"
       - "traefik.tcp.routers.caddy.tls.passthrough=true"
@@ -71,20 +71,20 @@ services:
       - "traefik.tcp.routers.caddy-catchall.priority=1"
       - "traefik.tcp.routers.caddy-catchall.tls.passthrough=true"
       - "traefik.tcp.routers.caddy-catchall.service=caddy"
-      # HTTP configurations
-      # - "traefik.http.routers.http-catchall.entrypoints=web"
-      # - "traefik.http.routers.http-catchall.rule=PathPrefix(`/`)"
-      # - "traefik.http.routers.http-catchall.priority=1"
-      # - "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
-      # - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      # - "traefik.http.middlewares.redirect-to-https.redirectscheme.port=443"
+    # HTTP configurations
+    # - "traefik.http.routers.http-catchall.entrypoints=web"
+    # - "traefik.http.routers.http-catchall.rule=PathPrefix(`/`)"
+    # - "traefik.http.routers.http-catchall.priority=1"
+    # - "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
+    # - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+    # - "traefik.http.middlewares.redirect-to-https.redirectscheme.port=443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
+
   caddy-standalone:
-    extends:
-      service: caddy
+    <<: *caddy_base
     container_name: caddy-standalone
     ports:
       - "80:80"

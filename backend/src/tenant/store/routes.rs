@@ -163,6 +163,7 @@ impl PubStoreRoutes {
                 "menu_items": store.menu_items,
                 "featured_collections": store.featured_collections,
                 "social_links": store.social_links,
+                "footer_lists": store.footer_lists,
 
                 // SEO
                 "meta": {
@@ -315,56 +316,6 @@ impl PubStoreRoutes {
 
         let globals = Self::merge_globals(Self::base_store_globals(store), extras);
         std::fs::write("/tmp/debug.liquid", format!("{:#?}", globals)).ok();
-        let out =
-            Self::render_page(globals, snippets, &template).map_err(|e| {
-                error!("liquid render error: {:?}", e);
-                Into::<(StatusCode, Html<CowStr>)>::into(e)
-            })?;
-
-        Ok::<_, (StatusCode, Html<CowStr>)>(Html(out))
-    }
-
-    #[route(method=get, path="/collections/{handle}")]
-    pub async fn collection_page(
-        State(state): State<AppState>,
-        Store(store_key): Store,
-        Path(handle): Path<String>,
-    ) -> impl IntoResponse {
-        let mut store = state
-            .store_service
-            .get_active_store(store_key.business_id, store_key.store_id)
-            .await
-            .map_err(Into::<(StatusCode, Html<CowStr>)>::into)?;
-
-        // You can decide how to map handle -> category or a dedicated collections table
-        let products = state
-            .product_service
-            .pub_list_products(
-                store_key.business_id,
-                ProductListQuery {
-                    page: None,
-                    limit: None,
-                    status: None,
-                    category: Some(handle.clone()),
-                    featured: None,
-                    search: None,
-                },
-            )
-            .await
-            .map_err(Into::<(StatusCode, Html<CowStr>)>::into)?;
-
-        let extras = liquid::object!({
-            "collection": {
-                "handle": handle,
-            },
-            "products": products.products,
-        });
-
-        let template = mem::take(&mut store.collection_page_template);
-        let snippets = mem::take(&mut store.snippets);
-
-        let globals = Self::merge_globals(Self::base_store_globals(store), extras);
-
         let out =
             Self::render_page(globals, snippets, &template).map_err(|e| {
                 error!("liquid render error: {:?}", e);

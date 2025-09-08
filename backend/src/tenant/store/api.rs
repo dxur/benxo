@@ -41,8 +41,9 @@ pub struct StoreCreateDto {
     pub favicon: Option<String>,
 
     pub menu_items: Vec<MenuItem>,
-    pub featured_collections: IndexSet<String>,
+    pub featured_collections: Vec<FeaturedCollection>,
     pub social_links: Vec<SocialLink>,
+    pub footer_lists: Vec<FooterList>,
 
     pub google_analytics_id: Option<String>,
     pub gtm_container_id: Option<String>,
@@ -79,12 +80,12 @@ pub struct StoreDto {
     pub favicon: Option<String>,
 
     pub menu_items: Vec<MenuItem>,
-    pub featured_collections: IndexSet<String>,
+    pub featured_collections: Vec<FeaturedCollection>,
     pub social_links: Vec<SocialLink>,
+    pub footer_lists: Vec<FooterList>,
 
     pub homepage_template: CowStr,
     pub product_page_template: CowStr,
-    pub collection_page_template: CowStr,
     pub cart_page_template: CowStr,
     pub shop_page_template: CowStr,
     pub not_found_page_template: CowStr,
@@ -138,12 +139,12 @@ pub struct StoreUpdate {
     pub favicon: JsonOption<String>,
 
     pub menu_items: JsonOption<Vec<MenuItem>>,
-    pub featured_collections: JsonOption<IndexSet<String>>,
+    pub featured_collections: JsonOption<Vec<FeaturedCollection>>,
     pub social_links: JsonOption<Vec<SocialLink>>,
+    pub footer_lists: JsonOption<Vec<FooterList>>,
 
     pub homepage_template: JsonOption<CowStr>,
     pub product_page_template: JsonOption<CowStr>,
-    pub collection_page_template: JsonOption<CowStr>,
     pub cart_page_template: JsonOption<CowStr>,
     pub shop_page_template: JsonOption<CowStr>,
     pub not_found_page_template: JsonOption<CowStr>,

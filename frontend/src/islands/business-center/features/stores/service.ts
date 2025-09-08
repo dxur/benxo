@@ -1,7 +1,7 @@
 import * as yup from 'yup';
 import type { StoreDto } from "@bindings/StoreDto"
 import type { StoreRegDto } from "@bindings/StoreRegDto"
-import { nullIf } from '../../lib/utils/fmt';
+import { nullIf, isValidHref } from '../../lib/utils/fmt';
 
 export {
     get_store as fetchStore,
@@ -85,7 +85,7 @@ export const StoreSchema = yup.object({
 
                 url: yup
                     .string()
-                    .url("Social link must be a valid URL.")
+                    .test("is-valid-url", "Social link must be a valid URL.", isValidHref)
                     .required("URL is required."),
             })
         )
@@ -94,7 +94,7 @@ export const StoreSchema = yup.object({
 
     logo: yup
         .string()
-        .url("Logo URL must be a valid URL.")
+        .test("is-valid-url", "Logo URL must be a valid URL.", isValidHref)
         .nullable()
         .defined()
         .transform(nullStr),
@@ -108,7 +108,7 @@ export const StoreSchema = yup.object({
 
     favicon_url: yup
         .string()
-        .url("Favicon URL must be a valid URL.")
+        .test("is-valid-url", "Favicon URL must be a valid URL.", isValidHref)
         .nullable()
         .defined()
         .transform(nullStr),
@@ -124,7 +124,7 @@ export const StoreSchema = yup.object({
                 url: yup
                     .string()
                     .required("Menu item URL is required.")
-                    .matches(/^(\/|https?:\/\/)/, "URL must start with / or be a valid HTTP(S) URL."),
+                    .test("is-valid-url", "Menu item URL must be a valid URL.", isValidHref),
             })
         )
         .max(20, "You can only add up to 20 menu items.")
@@ -132,9 +132,50 @@ export const StoreSchema = yup.object({
 
     featured_collections: yup
         .array(
-            yup.string().max(100, "Collection ID cannot exceed 100 characters.")
+            yup.object({
+                label: yup
+                    .string()
+                    .required("Collection label is required.")
+                    .max(100, "Collection label cannot exceed 100 characters."),
+
+                img: yup
+                    .string()
+                    .test("is-valid-url", "Image must be a valid URL.", isValidHref)
+                    .nullable()
+                    .defined()
+                    .transform(nullStr),
+            })
         )
         .max(20, "You can only feature up to 20 collections.")
+        .default([]),
+
+    footer_lists: yup
+        .array(
+            yup.object({
+                title: yup
+                    .string()
+                    .required("Footer list title is required.")
+                    .max(50, "Footer list title cannot exceed 50 characters."),
+
+                items: yup
+                    .array(
+                        yup.object({
+                            label: yup
+                                .string()
+                                .required("Footer item label is required.")
+                                .max(50, "Footer item label cannot exceed 50 characters."),
+
+                            url: yup
+                                .string()
+                                .test("is-valid-url", "Footer item URL must be a valid URL.", isValidHref)
+                                .required("Footer item URL is required.")
+                        })
+                    )
+                    .max(20, "You can only add up to 20 items per footer list.")
+                    .required("Footer list items are required."),
+            })
+        )
+        .max(5, "You can only add up to 5 footer lists.")
         .default([]),
 
     homepage_template: yup
@@ -143,11 +184,6 @@ export const StoreSchema = yup.object({
         .transform(defaultStr),
 
     product_page_template: yup
-        .string()
-        .default("")
-        .transform(defaultStr),
-
-    collection_page_template: yup
         .string()
         .default("")
         .transform(defaultStr),
