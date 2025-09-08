@@ -67,6 +67,7 @@ pub struct ProductListQuery {
     pub search: Option<String>,
 }
 
+#[macros::json_option_serde]
 #[derive(Debug, Deserialize, TS)]
 #[ts(export, bound = "")]
 pub struct ProductUpdate {
@@ -80,7 +81,7 @@ pub struct ProductUpdate {
     pub slug: JsonOption<String>,
 }
 
-#[derive(Debug, Serialize, TS)]
+#[derive(Debug, Default, Serialize, TS)]
 #[ts(export, bound = "")]
 pub struct ProductListResponse {
     pub products: Vec<ProductDto>,

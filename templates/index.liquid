@@ -1,161 +1,106 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Haboob Kids - Premium Children's Clothing & Toys</title>
-    <style>
-      {% render '../templates/style.css.liquid' %}
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ store.meta.title | default: store.name }}</title>
+    {% if store.meta.description %}
+      <meta name="description" content="{{ store.meta.description }}">
+    {% endif %}
+    {% if store.meta.keywords %}
+      <meta name="keywords" content="{{ store.meta.keywords }}">
+    {% endif %}
+    {% include "style.liquid" %}
   </head>
   <body>
-    <!-- Announcement Bar -->
-    <div class="announcement-bar">
-      🚚 شحن مجاني على الطلبيات التي تتجاوز 5000 دج!
-    {% comment %} <a href="#">تسوق الآن ←</a> {% endcomment %}
-    </div>
-
     <div class="page">
-        <!-- Sidebar Toggle -->
-      <input
-        type="checkbox"
-        id="mobile-menu-toggle"
-        hidden />
+      {% include "header.liquid" %}
 
-      <!-- Navbar -->
-      <header class="navbar">
-        <div class="navbar-content">
-
-          <label for="mobile-menu-toggle" class="navbar-drawer nav-icon-btn">
-            <svg
-              class="icon"
-              viewBox="0 0 40 40"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              xmlns:svg="http://www.w3.org/2000/svg">
-              <g
-                id="g2"
-                transform="matrix(0.92570076,0,0,1,1.4859848,-0.39284585)"
-                style="stroke:#ffffff;stroke-opacity:1;stroke-width:2.39052079;stroke-dasharray:none">
-                <path
-                  style="fill:none;stroke:#ffffff;stroke-width:2.39052079;stroke-linecap:round;stroke-miterlimit:3.9;stroke-dasharray:none;stroke-opacity:1"
-                  d="M 4.194636,7.2134997 H 35.805364"
-                  id="path2" />
-                <path
-                  style="fill:none;stroke:#ffffff;stroke-width:2.39052;stroke-linecap:round;stroke-miterlimit:3.9;stroke-dasharray:none;stroke-opacity:1"
-                  d="M 4.194636,20.392846 H 35.805364"
-                  id="path2-5" />
-                <path
-                  style="fill:none;stroke:#ffffff;stroke-width:2.39052079;stroke-linecap:round;stroke-miterlimit:3.9;stroke-dasharray:none;stroke-opacity:1"
-                  d="M 4.194636,33.572192 H 35.805364"
-                  id="path2-7" />
-              </g>
-            </svg>
-
-          </label>
-
-          <a href="#" class="logo">
-            <img src="http://localhost:44507/api/v1/download-shared-object/aHR0cDovLzEyNy4wLjAuMTo5MDAwL3RleHQvZzE0LnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUkxRUlXWE5MQzA0RzVBTkpOTTFGJTJGMjAyNTA4MDUlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjUwODA1VDIyMTgwMVomWC1BbXotRXhwaXJlcz00MzIwMCZYLUFtei1TZWN1cml0eS1Ub2tlbj1leUpoYkdjaU9pSklVelV4TWlJc0luUjVjQ0k2SWtwWFZDSjkuZXlKaFkyTmxjM05MWlhraU9pSkpNVVZKVjFoT1RFTXdORWMxUVU1S1RrMHhSaUlzSW1WNGNDSTZNVGMxTkRRM05UUTJPU3dpY0dGeVpXNTBJam9pYldsdWFXOWhaRzFwYmlKOS5oOXZPRnNqOGtBSllfNERNWm55RmVpNUVCY1RvWFRDZi15SmxIUXFPRmotVmliVUYxZmVURklnUEJTZDd5UVlDRDBOX05PWTVPTlp4Zm1zcnNic2FLZyZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmdmVyc2lvbklkPW51bGwmWC1BbXotU2lnbmF0dXJlPTY1ZjI5YWYxNzUzNGZiM2MxOTRmNDZhZDZkMTZmYzExZmQ0MjRlNjM1ZjM2ZDM2ODQ0YzNjZjFjYmU0YzU1ZTg" alt="logo" />
-          </a>
-
-          <div class="navbar-items">
-            <nav>
-              <a href="#">الجديد</a>
-              <a href="#">الملابس</a>
-              <a href="#">الألعاب</a>
-              <a href="#">تخفيضات</a>
-              <a href="#">حولنا</a>
-              <a href="#">اتصل بنا</a>
-            </nav>
-          </div>
-
-          <div class="navbar-icons">
-            <a class="nav-icon-btn" aria-label="Search">
-              <svg
-                class="icon"
-                viewBox="0 0 40 40"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                xmlns:svg="http://www.w3.org/2000/svg">
-                <path
-                  d="m 38.095238,38.095238 -8.285715,-8.285713 m -12.666668,2.571428 a 15.238097,15.238095 0 1 1 0,-30.476189 15.238097,15.238095 0 0 1 0,30.476189 z"
-                  stroke="currentColor"
-                  stroke-width="3.80953"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  id="path1"
-                  style="stroke-width:2.3;stroke-dasharray:none;stroke:#ffffff;stroke-opacity:1" />
-              </svg>
-
-            </a>
-
-            <div class="cart-icon">
-              <a class="nav-icon-btn" aria-label="Cart">
-                <svg
-                  class="icon"
-                  viewBox="0 0 40 40"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  xmlns:svg="http://www.w3.org/2000/svg">
-                  <path
-                    d="m 15.75,11.8 h -3.16 l -0.77,11.6 a 5,5 0 0 0 4.99,5.34 h 7.38 a 5,5 0 0 0 4.99,-5.33 L 28.4,11.8 Z m 0,1 h -2.22 l -0.71,10.67 a 4,4 0 0 0 3.99,4.27 h 7.38 a 4,4 0 0 0 4,-4.27 L 27.47,12.8 h -2.22 v 0.63 a 4.75,4.75 0 1 1 -9.5,0 z m 8.5,0 h -7.5 v 0.63 a 3.75,3.75 0 1 0 7.5,0 z"
-                    fill="currentColor"
-                    fill-rule="evenodd"
-                    id="path1"
-                    style="display:none" />
-                  <path
-                    style="fill:none;fill-opacity:1;stroke:#ffffff;stroke-width:2.32394;stroke-miterlimit:3.9;stroke-dasharray:none;stroke-opacity:1"
-                    d="m 2.8818528,1.661588 c -1.719883,25.701388 0,0 -1.719883,25.701388 0,7.908294 3.9546935,10.975436 7.9093847,10.975436 3.9546915,0 17.9049145,0 21.8588355,0 3.95392,0 7.90784,-3.067142 7.90784,-10.975436 -1.741346,-25.701388 0,0 -1.741346,-25.701388 -6.166494,0 -28.0253295,0 -34.2148312,0 z"
-                    id="path16"
-                    sodipodi:nodetypes="ccccccc" />
-                  <path
-                    style="fill:none;fill-opacity:1;stroke:#ffffff;stroke-width:2.31117;stroke-miterlimit:3.9;stroke-dasharray:none;stroke-opacity:1"
-                    d="m 10.228396,1.6667283 v 3.8804402 c 0,0 -0.190725,8.4610785 9.665519,8.4595045 9.856238,-0.0016 9.856238,-8.4595045 9.856238,-8.4595045 l 0.02301,-3.8714643"
-                    id="path19"
-                    sodipodi:nodetypes="cczcc" />
-                </svg>
-              </a>
-              <span class="cart-count">2</span>
+      <!-- Hero Section -->
+      <section class="hero">
+        <div class="container">
+          <div class="hero-content">
+            <h1 class="hero-title">
+              {% if store.hero_title %}
+                {{ store.hero_title }}
+              {% else %}
+                مرحباً بكم في {{ store.name }}
+              {% endif %}
+            </h1>
+            <p class="hero-description">
+              {% if store.hero_description %}
+                {{ store.hero_description }}
+              {% else %}
+                اكتشف مجموعتنا المميزة من المنتجات عالية الجودة
+              {% endif %}
+            </p>
+            <div class="hero-actions">
+              <a href="/shop" class="btn btn-primary">تسوق الآن</a>
             </div>
           </div>
+          {% if store.hero_image %}
+            <div class="hero-image">
+              <img src="{{ store.hero_image }}" alt="Hero Image" />
+            </div>
+          {% endif %}
         </div>
-      </header>
+      </section>
 
-      <!-- Sidebar (Mobile) -->
-      <aside>
-        <div style="display: flex; align-items: center; justify-content: space-between;">
-          <img
-            src="http://localhost:44507/api/v1/download-shared-object/aHR0cDovLzEyNy4wLjAuMTo5MDAwL3RleHQvZzE0LnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUkxRUlXWE5MQzA0RzVBTkpOTTFGJTJGMjAyNTA4MDUlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjUwODA1VDIyMTgwMVomWC1BbXotRXhwaXJlcz00MzIwMCZYLUFtei1TZWN1cml0eS1Ub2tlbj1leUpoYkdjaU9pSklVelV4TWlJc0luUjVjQ0k2SWtwWFZDSjkuZXlKaFkyTmxjM05MWlhraU9pSkpNVVZKVjFoT1RFTXdORWMxUVU1S1RrMHhSaUlzSW1WNGNDSTZNVGMxTkRRM05UUTJPU3dpY0dGeVpXNTBJam9pYldsdWFXOWhaRzFwYmlKOS5oOXZPRnNqOGtBSllfNERNWm55RmVpNUVCY1RvWFRDZi15SmxIUXFPRmotVmliVUYxZmVURklnUEJTZDd5UVlDRDBOX05PWTVPTlp4Zm1zcnNic2FLZyZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QmdmVyc2lvbklkPW51bGwmWC1BbXotU2lnbmF0dXJlPTY1ZjI5YWYxNzUzNGZiM2MxOTRmNDZhZDZkMTZmYzExZmQ0MjRlNjM1ZjM2ZDM2ODQ0YzNjZjFjYmU0YzU1ZTg"
-            alt="logo"
-            height="36" />
-          <label for="mobile-menu-toggle" class="mobile-close">✕</label>
-        </div>
-        <nav>
-          <ul class="mobile-nav">
-            <li class="mobile-nav-item">
-              <a href="#" class="mobile-nav-link">New Arrivals</a>
-            </li>
-            <li class="mobile-nav-item">
-              <a href="#" class="mobile-nav-link">Clothing</a>
-            </li>
-            <li class="mobile-nav-item">
-              <a href="#" class="mobile-nav-link">Toys</a>
-            </li>
-            <li class="mobile-nav-item">
-              <a href="#" class="mobile-nav-link">Sale</a>
-            </li>
-            <li class="mobile-nav-item">
-              <a href="#" class="mobile-nav-link">About</a>
-            </li>
-            <li class="mobile-nav-item">
-              <a href="#" class="mobile-nav-link">Contact</a>
-            </li>
-          </ul>
-        </nav>
-      </aside>
+      <!-- Featured Products Section -->
+      <main class="container">
+        <section class="featured-products">
+          <div class="section-header">
+            <h2 class="section-title">المنتجات المميزة</h2>
+            <p class="section-description">اختيارنا المميز من أفضل المنتجات</p>
+          </div>
 
-      <!-- Main Content -->
-      <main></main>
+          {% if featured_products.size > 0 %}
+            <div class="products-grid">
+              {% for p in featured_products %}
+                {% render "product-card.liquid", product: p %}
+              {% endfor %}
+            </div>
+            
+            <div class="section-footer">
+              <a href="/shop" class="btn btn-outline">عرض جميع المنتجات</a>
+            </div>
+          {% else %}
+            <div class="empty-state">
+              <div class="empty-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+              </div>
+              <h3>لا توجد منتجات مميزة حالياً</h3>
+              <p>تابعونا قريباً لإضافة منتجات جديدة ومميزة!</p>
+            </div>
+          {% endif %}
+        </section>
+
+        <!-- Categories Section (Optional) -->
+        {% if store.featured_collections.size > 0 %}
+          <section class="featured-categories">
+            <div class="section-header">
+              <h2 class="section-title">تصفح الفئات</h2>
+              <p class="section-description">اختر الفئة التي تبحث عنها</p>
+            </div>
+            
+            <div class="categories-grid">
+              {% for category in store.featured_collections %}
+                <a href="/collections/{{ category }}" class="category-card">
+                  <div class="category-info">
+                    <h3>{{ category }}</h3>
+                  </div>
+                </a>
+              {% endfor %}
+            </div>
+          </section>
+        {% endif %}
+      </main>
+
+      {% include "footer.liquid" %}
     </div>
   </body>
 </html>

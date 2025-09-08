@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ collection.handle | capitalize }} - {{ store.name }}</title>
+    <style>
+      {% include "style.liquid" %}
+    </style>
+  </head>
+  <body>
+    {% include "header.liquid" %}
+
+    <main class="container">
+      <h2 class="page-title">{{ collection.handle | capitalize }}</h2>
+
+      {% if products.size > 0 %}
+        <div class="products-grid">
+          {% for product in products %}
+            <div class="product-card">
+              <div class="product-image">
+                {% if product.images.size > 0 %}
+                  <img src="{{ product.images[0] }}" alt="{{ product.title }}">
+                {% else %}
+                  No Image Available
+                {% endif %}
+              </div>
+              <div class="product-info">
+                {% if product.category %}
+                  <div class="product-category">{{ product.category }}</div>
+                {% endif %}
+                <h3 class="product-title">
+                  <a href="/products/{{ product.slug }}">{{ product.title }}</a>
+                </h3>
+                <div class="product-price">
+                  ${{ product.variants[0].price }}
+                  {% if product.variants[0].compare_at %}
+                    <span class="price-compare">${{ product.variants[0].compare_at }}</span>
+                  {% endif %}
+                </div>
+                <a href="/products/{{ product.slug }}" class="product-btn">View Product</a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state">
+          <h3>No products found</h3>
+          <p>This collection is empty.</p>
+        </div>
+      {% endif %}
+    </main>
+
+    {% include "footer.liquid" %}
+  </body>
+</html>

@@ -6,13 +6,17 @@
     import { Button } from "$lib/components/ui/button/index";
     import type { Form } from "../../lib/utils/form";
     import type { StoreSchema } from "./service";
-    import { TrashIcon, PlusIcon } from "@lucide/svelte";
+    import { TrashIcon, PlusIcon, GripVerticalIcon } from "@lucide/svelte";
 
     let {
         form = $bindable(),
     }: {
         form: Form<typeof StoreSchema>;
     } = $props();
+
+    // Drag and drop state
+    let draggedItemIndex = $state<number | null>(null);
+    let draggedItemType = $state<"social" | "menu" | "collection" | null>(null);
 
     function addSocialLink() {
         form.social_links.value.push({
@@ -23,6 +27,95 @@
 
     function removeSocialLink(index: number) {
         form.social_links.value.splice(index, 1);
+    }
+
+    function addMenuItem() {
+        form.menu_items.value.push({
+            label: "",
+            url: "",
+        });
+    }
+
+    function removeMenuItem(index: number) {
+        form.menu_items.value.splice(index, 1);
+    }
+
+    function addFeaturedCollection() {
+        form.featured_collections.value.push("");
+    }
+
+    function removeFeaturedCollection(index: number) {
+        form.featured_collections.value.splice(index, 1);
+    }
+
+    // Drag and drop handlers
+    function handleDragStart(
+        event: DragEvent,
+        index: number,
+        type: "social" | "menu" | "collection",
+    ) {
+        if (!event.dataTransfer) return;
+
+        draggedItemIndex = index;
+        draggedItemType = type;
+        event.dataTransfer.effectAllowed = "move";
+
+        // Add visual feedback
+        const target = event.target as HTMLElement;
+        target.style.opacity = "0.5";
+    }
+
+    function handleDragEnd(event: DragEvent) {
+        const target = event.target as HTMLElement;
+        target.style.opacity = "1";
+        draggedItemIndex = null;
+        draggedItemType = null;
+    }
+
+    function handleDragOver(event: DragEvent) {
+        event.preventDefault();
+        if (event.dataTransfer) {
+            event.dataTransfer.dropEffect = "move";
+        }
+    }
+
+    function handleDrop(
+        event: DragEvent,
+        dropIndex: number,
+        type: "social" | "menu" | "collection",
+    ) {
+        event.preventDefault();
+
+        if (
+            draggedItemIndex === null ||
+            draggedItemType !== type ||
+            draggedItemIndex === dropIndex
+        ) {
+            return;
+        }
+
+        // Reorder the array
+        let array: any[];
+        if (type === "social") {
+            array = form.social_links.value;
+        } else if (type === "menu") {
+            array = form.menu_items.value;
+        } else {
+            array = form.featured_collections.value;
+        }
+
+        const draggedItem = array[draggedItemIndex];
+        array.splice(draggedItemIndex, 1);
+        array.splice(dropIndex, 0, draggedItem);
+
+        // Update the form
+        if (type === "social") {
+            form.social_links.value = array;
+        } else if (type === "menu") {
+            form.menu_items.value = array;
+        } else {
+            form.featured_collections.value = array;
+        }
     }
 </script>
 
@@ -131,13 +224,200 @@
     </Card.Content>
 </Card.Root>
 
+<!-- Logo & Branding -->
+<Card.Root>
+    <Card.Header>
+        <Card.Title>Logo & Branding</Card.Title>
+        <Card.Description>
+            Configure your store's logo and branding elements.
+        </Card.Description>
+    </Card.Header>
+    <Card.Content class="space-y-4">
+        <div>
+            <Label for="logo">Logo URL</Label>
+            <Input
+                id="logo"
+                errors={form.logo.errors}
+                bind:value={form.logo.value}
+                placeholder="https://example.com/logo.png"
+            />
+        </div>
+        <div>
+            <Label for="logo_alt">Logo Alt Text</Label>
+            <Input
+                id="logo_alt"
+                errors={form.logo_alt.errors}
+                bind:value={form.logo_alt.value}
+                placeholder="Your Store Logo"
+            />
+        </div>
+        <div>
+            <Label for="favicon_url">Favicon URL</Label>
+            <Input
+                id="favicon_url"
+                errors={form.favicon_url.errors}
+                bind:value={form.favicon_url.value}
+                placeholder="https://example.com/favicon.ico"
+            />
+        </div>
+    </Card.Content>
+</Card.Root>
+
+<!-- Menu Items -->
+<Card.Root>
+    <Card.Header>
+        <Card.Title>Menu Items</Card.Title>
+        <Card.Description>
+            Configure your store's navigation menu items. Drag to reorder.
+        </Card.Description>
+        <Card.Action>
+            <Button variant="outline" size="sm" onclick={addMenuItem}>
+                <PlusIcon />
+                Add Menu Item
+            </Button>
+        </Card.Action>
+    </Card.Header>
+    <Card.Content>
+        {#if !form.menu_items.value.length}
+            <div
+                class="p-6 text-center text-gray-500 border border-dashed rounded-lg"
+            >
+                No menu items added yet.
+                <span class="block text-sm text-gray-400 mt-1">
+                    Add menu items to see them here.
+                </span>
+            </div>
+        {/if}
+
+        <div class="space-y-2">
+            {#each form.menu_items.value as item, index (index)}
+                <div
+                    class="border rounded-lg p-4 space-y-3 min-w-[280px] flex-1 cursor-move transition-all duration-200 hover:shadow-md"
+                    role="listitem"
+                    draggable="true"
+                    ondragstart={(e) => handleDragStart(e, index, "menu")}
+                    ondragend={handleDragEnd}
+                    ondragover={handleDragOver}
+                    ondrop={(e) => handleDrop(e, index, "menu")}
+                >
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
+                        >
+                            <GripVerticalIcon class="w-4 h-4" />
+                        </div>
+                        <div
+                            class="flex flex-wrap gap-2 items-center justify-between flex-1 [&>*]:space-y-2"
+                        >
+                            <div class="flex-1">
+                                <Label>Label</Label>
+                                <Input
+                                    bind:value={item.label}
+                                    placeholder="Home"
+                                />
+                            </div>
+                            <div class="flex-1">
+                                <Label>URL</Label>
+                                <Input bind:value={item.url} placeholder="/" />
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onclick={() => removeMenuItem(index)}
+                            >
+                                <TrashIcon />
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            {/each}
+        </div>
+        {#each form.menu_items.errors || [] as error}
+            <p class="text-red-500">{error}</p>
+        {/each}
+    </Card.Content>
+</Card.Root>
+
+<!-- Featured Collections -->
+<Card.Root>
+    <Card.Header>
+        <Card.Title>Featured Collections</Card.Title>
+        <Card.Description>
+            Select collections to feature on your homepage. Drag to reorder.
+        </Card.Description>
+        <Card.Action>
+            <Button variant="outline" size="sm" onclick={addFeaturedCollection}>
+                <PlusIcon />
+                Add Collection
+            </Button>
+        </Card.Action>
+    </Card.Header>
+    <Card.Content>
+        {#if !form.featured_collections.value.length}
+            <div
+                class="p-6 text-center text-gray-500 border border-dashed rounded-lg"
+            >
+                No featured collections added yet.
+                <span class="block text-sm text-gray-400 mt-1">
+                    Add collections to see them here.
+                </span>
+            </div>
+        {/if}
+
+        <div class="space-y-2">
+            {#each form.featured_collections.value as collection, index (index)}
+                <div
+                    class="border rounded-lg p-4 space-y-3 min-w-[280px] flex-1 cursor-move transition-all duration-200 hover:shadow-md"
+                    role="listitem"
+                    draggable="true"
+                    ondragstart={(e) => handleDragStart(e, index, "collection")}
+                    ondragend={handleDragEnd}
+                    ondragover={handleDragOver}
+                    ondrop={(e) => handleDrop(e, index, "collection")}
+                >
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
+                        >
+                            <GripVerticalIcon class="w-4 h-4" />
+                        </div>
+                        <div
+                            class="flex flex-wrap gap-2 items-center justify-between flex-1 [&>*]:space-y-2"
+                        >
+                            <div class="flex-1">
+                                <Label>Collection</Label>
+                                <Input
+                                    bind:value={
+                                        form.featured_collections.value[index]
+                                    }
+                                    placeholder="Summer Collection"
+                                />
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onclick={() => removeFeaturedCollection(index)}
+                            >
+                                <TrashIcon />
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            {/each}
+        </div>
+        {#each form.featured_collections.errors || [] as error}
+            <p class="text-red-500">{error}</p>
+        {/each}
+    </Card.Content>
+</Card.Root>
+
 <!-- Social Media Links -->
 <Card.Root>
     <Card.Header class="flex flex-row items-center justify-between">
         <div>
             <Card.Title>Social Media Links</Card.Title>
             <Card.Description>
-                Connect your store with social media platforms.
+                Connect your store with social media platforms. Drag to reorder.
             </Card.Description>
         </div>
         <Button variant="outline" size="sm" onclick={addSocialLink}>
@@ -157,35 +437,52 @@
             </div>
         {/if}
 
-        {#each form.social_links.value as link, index (index)}
-            <div class="border rounded-lg p-4 space-y-3 min-w-[280px] flex-1">
+        <div class="space-y-2">
+            {#each form.social_links.value as link, index (index)}
                 <div
-                    class="flex flex-wrap gap-2 items-center justify-between [&>*]:space-y-2"
+                    class="border rounded-lg p-4 space-y-3 min-w-[280px] flex-1 cursor-move transition-all duration-200 hover:shadow-md"
+                    role="listitem"
+                    draggable="true"
+                    ondragstart={(e) => handleDragStart(e, index, "social")}
+                    ondragend={handleDragEnd}
+                    ondragover={handleDragOver}
+                    ondrop={(e) => handleDrop(e, index, "social")}
                 >
-                    <div class="flex-1">
-                        <Label>Platform</Label>
-                        <Input
-                            bind:value={link.platform}
-                            placeholder="e.g. TikTok"
-                        />
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600"
+                        >
+                            <GripVerticalIcon class="w-4 h-4" />
+                        </div>
+                        <div
+                            class="flex flex-wrap gap-2 items-center justify-between flex-1 [&>*]:space-y-2"
+                        >
+                            <div class="flex-1">
+                                <Label>Platform</Label>
+                                <Input
+                                    bind:value={link.platform}
+                                    placeholder="e.g. TikTok"
+                                />
+                            </div>
+                            <div class="flex-1">
+                                <Label>URL</Label>
+                                <Input
+                                    bind:value={link.url}
+                                    placeholder="e.g. https://www.tiktok.com/@username"
+                                />
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onclick={() => removeSocialLink(index)}
+                            >
+                                <TrashIcon />
+                            </Button>
+                        </div>
                     </div>
-                    <div class="flex-1">
-                        <Label>URL</Label>
-                        <Input
-                            bind:value={link.url}
-                            placeholder="e.g. https://www.tiktok.com/@username"
-                        />
-                    </div>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onclick={() => removeSocialLink(index)}
-                    >
-                        <TrashIcon />
-                    </Button>
                 </div>
-            </div>
-        {/each}
+            {/each}
+        </div>
         {#each form.social_links.errors || [] as error}
             <p class="text-red-500">{error}</p>
         {/each}

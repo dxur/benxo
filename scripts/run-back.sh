@@ -1,4 +1,3 @@
 #!/usr/bin/env bash
 
-cd backend
-cargo-watch -x 'run'
+cargo-watch -x 'run -p backend' -w backend/src -w backend/Cargo.toml -w macros/src -w macros/Cargo.toml -w templates

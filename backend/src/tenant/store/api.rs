@@ -8,10 +8,9 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 use super::domain::*;
-use crate::{
-    types::{id::Id, name::Name},
-    utils::serde_helpers::JsonOption,
-};
+use crate::types::{id::Id, name::Name};
+use crate::utils::serde_helpers::JsonOption;
+use crate::utils::types::CowStr;
 
 #[derive(Debug, Clone, Deserialize, Serialize, o2o, TS)]
 #[serde(rename_all = "snake_case")]
@@ -37,11 +36,13 @@ pub struct StoreCreateDto {
     pub city: Option<String>,
     pub zip_code: Option<String>,
 
-    pub social_links: Vec<SocialLink>,
+    pub logo: Option<String>,
+    pub logo_alt: Option<String>,
+    pub favicon: Option<String>,
 
-    pub selected_theme: Option<String>,
-    pub color_scheme: Option<String>,
-    pub header_style: Option<String>,
+    pub menu_items: Vec<MenuItem>,
+    pub featured_collections: IndexSet<String>,
+    pub social_links: Vec<SocialLink>,
 
     pub google_analytics_id: Option<String>,
     pub gtm_container_id: Option<String>,
@@ -73,11 +74,22 @@ pub struct StoreDto {
     pub city: Option<String>,
     pub zip_code: Option<String>,
 
+    pub logo: Option<String>,
+    pub logo_alt: Option<String>,
+    pub favicon: Option<String>,
+
+    pub menu_items: Vec<MenuItem>,
+    pub featured_collections: IndexSet<String>,
     pub social_links: Vec<SocialLink>,
 
-    pub selected_theme: Option<String>,
-    pub color_scheme: Option<String>,
-    pub header_style: Option<String>,
+    pub homepage_template: CowStr,
+    pub product_page_template: CowStr,
+    pub collection_page_template: CowStr,
+    pub cart_page_template: CowStr,
+    pub shop_page_template: CowStr,
+    pub not_found_page_template: CowStr,
+    pub custom_pages: IndexMap<String, CowStr>,
+    pub snippets: IndexMap<String, CowStr>,
 
     pub google_analytics_id: Option<String>,
     pub gtm_container_id: Option<String>,
@@ -105,6 +117,7 @@ pub struct StoreListQuery {
     pub search: Option<String>,
 }
 
+#[macros::json_option_serde]
 #[derive(Debug, Deserialize, TS)]
 #[ts(export, bound = "")]
 pub struct StoreUpdate {
@@ -120,11 +133,22 @@ pub struct StoreUpdate {
     pub city: JsonOption<String>,
     pub zip_code: JsonOption<String>,
 
+    pub logo: JsonOption<String>,
+    pub logo_alt: JsonOption<String>,
+    pub favicon: JsonOption<String>,
+
+    pub menu_items: JsonOption<Vec<MenuItem>>,
+    pub featured_collections: JsonOption<IndexSet<String>>,
     pub social_links: JsonOption<Vec<SocialLink>>,
 
-    pub selected_theme: JsonOption<String>,
-    pub color_scheme: JsonOption<String>,
-    pub header_style: JsonOption<String>,
+    pub homepage_template: JsonOption<CowStr>,
+    pub product_page_template: JsonOption<CowStr>,
+    pub collection_page_template: JsonOption<CowStr>,
+    pub cart_page_template: JsonOption<CowStr>,
+    pub shop_page_template: JsonOption<CowStr>,
+    pub not_found_page_template: JsonOption<CowStr>,
+    pub custom_pages: JsonOption<IndexMap<String, CowStr>>,
+    pub snippets: JsonOption<IndexMap<String, CowStr>>,
 
     pub google_analytics_id: JsonOption<String>,
     pub gtm_container_id: JsonOption<String>,
@@ -163,6 +187,7 @@ pub struct StoreRegDto {
     pub updated_at: DateTime<Utc>,
 }
 
+#[macros::json_option_serde]
 #[derive(Debug, Deserialize, TS)]
 #[ts(export, bound = "")]
 pub struct StoreRegUpdate {

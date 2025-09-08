@@ -115,6 +115,7 @@ impl TryFrom<&Cookies> for UserSession {
     }
 }
 
+#[macros::json_option_serde]
 #[derive(Debug, Clone, Deserialize, TS)]
 #[ts(export, bound = "")]
 pub struct UserUpdate {

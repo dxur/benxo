@@ -9,7 +9,7 @@ use quote::{ToTokens, quote};
 use regex::Regex;
 use syn::{
     DeriveInput, FnArg, Ident, ImplItem, ImplItemFn, ItemImpl, LitStr, Meta, PatType, Path, Type,
-    meta, parse_macro_input, punctuated::Punctuated,
+    meta, parse_macro_input, punctuated::Punctuated, Fields, TypePath, ItemStruct
 };
 
 #[proc_macro_derive(Model, attributes(model))]
@@ -257,6 +257,7 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
             ));
         }
     };
+    let mut fallback_route = None;
 
     for item in &mut input_impl.items {
         if let ImplItem::Fn(ImplItemFn {
@@ -307,6 +308,19 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
                     }
 
                     route_info = Some((method, path, route_type, res_type));
+                    break;
+                } else if attr.path().is_ident("fallback") {
+                    if fallback_route.is_some() {
+                        panic!("Only one #[fallback] is allowed per impl block");
+                    }
+                    fallback_route = Some(sig.ident.clone());
+                    route_attr_index = Some(i);
+                    // remove fallback attribute
+                    attrs.remove(i);
+                    let fn_name = &sig.ident;
+                    route_entries.push(quote! {
+                        .fallback(Self::#fn_name)
+                    });
                     break;
                 }
             }
@@ -549,7 +563,7 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
         #input_impl
         #expanded_test
     };
-
+    
     expanded.into()
 }
 
@@ -625,3 +639,31 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
 //     println!("expanded: {}", expanded);
 //     expanded
 // }
+
+#[proc_macro_attribute]
+pub fn json_option_serde(_attr: TokenStream, item: TokenStream) -> TokenStream {
+    // Parse the input as a struct
+    let mut input = parse_macro_input!(item as ItemStruct);
+
+    if let Fields::Named(ref mut fields_named) = input.fields {
+        for field in fields_named.named.iter_mut() {
+            // Check if the field type is JsonOption<T>
+            let is_json_option = if let Type::Path(TypePath { path, .. }) = &field.ty {
+                path.segments.last().map(|seg| seg.ident == "JsonOption").unwrap_or(false)
+            } else {
+                false
+            };
+
+            if is_json_option {
+                field.attrs.push(syn::parse_quote!(
+                    #[serde(default, deserialize_with = "crate::utils::serde_helpers::json_option")]
+                ));
+            }
+        }
+    } else {
+        panic!("JsonOptionSerde requires named fields");
+    }
+
+    // Return the modified struct
+    TokenStream::from(quote! { #input })
+}

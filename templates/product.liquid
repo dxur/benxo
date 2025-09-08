@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.title }} - {{ store.name }}</title>
+    <meta name="description" content="{{ product.description | truncate: 160 }}">
+
+    {% include "style.liquid" %}
+
+    <style>
+      /* Product Page Styles */
+      .product-detail {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        margin: 4rem 0;
+      }
+
+      .product-gallery {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .product-gallery-main {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      }
+
+      .product-gallery-main img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+      }
+
+      .product-gallery-main img:hover {
+        transform: scale(1.05);
+      }
+
+      .product-gallery-thumbs {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .product-gallery-thumb {
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        overflow: hidden;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: border-color 0.2s;
+      }
+
+      .product-gallery-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .product-gallery-thumb.active {
+        border-color: #ffd23d;
+      }
+
+      .product-details {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .product-details h1 {
+        font-size: 2rem;
+        font-weight: 700;
+      }
+
+      .product-details .product-category {
+        color: #666;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+      }
+
+      .price {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+
+      .price-compare {
+        text-decoration: line-through;
+        font-weight: 400;
+        color: #999;
+        font-size: 1.2rem;
+      }
+
+      .variant-selector {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      .variant-option {
+        padding: 0.5rem 1rem;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .variant-option.selected {
+        border-color: #ffd23d;
+        background-color: #ffd23d;
+        color: #333;
+      }
+
+      .stock-status {
+        font-weight: 600;
+        margin-top: 0.5rem;
+      }
+
+      .out-of-stock {
+        color: #ff3b30;
+      }
+
+      .in-stock {
+        color: #28a745;
+      }
+
+      /* Checkout Form */
+      .checkout-form {
+        margin-top: 2rem;
+        padding: 1.5rem;
+        border: 1px solid #ddd;
+        border-radius: 12px;
+        background: #f9f9f9;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .checkout-form h3 {
+        font-size: 1.2rem;
+        color: #333;
+      }
+
+      .checkout-form label {
+        font-size: 0.9rem;
+        margin-bottom: 0.3rem;
+        display: block;
+      }
+
+      .checkout-form input,
+      .checkout-form textarea {
+        width: 100%;
+        padding: 0.6rem;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+      }
+
+      .order-summary {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 1rem;
+      }
+
+      .order-summary p {
+        margin: 0.3rem 0;
+      }
+
+      /* Mobile fix: form fields in column */
+      @media (max-width: 768px) {
+        .product-detail {
+          grid-template-columns: 1fr;
+        }
+
+        .checkout-form {
+          gap: 0.8rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    {% include "header.liquid" %}
+
+      <main class="container">
+      <div class="product-detail">
+        <!-- Gallery -->
+        <div class="product-gallery">
+          <div class="product-gallery-main">
+            <img
+              id="main-product-image"
+              src="{{ product.images[0] }}"
+              alt="{{ product.title }}">
+          </div>
+          {% if product.images.size > 1 %}
+            <div class="product-gallery-thumbs">
+              {% for img in product.images %}
+                <div class="product-gallery-thumb {% if forloop.first %}active{% endif %}" onclick="document.getElementById('main-product-image').src='{{ img }}'; setActiveThumb(this);">
+                  <img src="{{ img }}" alt="Thumbnail">
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Details -->
+        <div class="product-details">
+          <h1>{{ product.title }}</h1>
+          {% if product.category %}
+            <div class="product-category">{{ product.category }}</div>
+          {% endif %}
+
+          <div class="price">
+            ${{ product.variants[0].price }}
+            {% if product.variants[0].compare_at and product.variants[0].compare_at > product.variants[0].price %}
+              <span class="price-compare">${{ product.variants[0].compare_at }}</span>
+            {% endif %}
+          </div>
+
+          {% if product.description != "" %}
+            <div class="description">{{ product.description }}</div>
+          {% endif %}
+
+          <!-- Variant Selector -->
+          {% if product.variants.size > 1 %}
+            <div class="variant-selector">
+              {% assign first_variant = product.variants[0] %}
+              {% for option_name in first_variant.options %}
+                <div class="variant-group">
+                  <span class="option-label">{{ option_name[0] }}:</span>
+                  {% assign seen_values = '' | split: ',' %}
+                  {% for variant in product.variants %}
+                    {% assign value = variant.options[option_name[0]] %}
+                    {% unless seen_values contains value %}
+                      <label class="variant-option">
+                        <input
+                          type="radio"
+                          name="{{ option_name[0] }}"
+                          value="{{ value }}"
+                          {% if forloop.first %}
+                          checked{% endif %}
+                          onchange="selectVariantByOptions()">
+                        {{ value }}
+                      </label>
+                      {% assign seen_values = seen_values | append: value | append: ',' %}
+                    {% endunless %}
+                  {% endfor %}
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+
+          <!-- Stock Status -->
+          <div class="stock-status" id="stock-status">
+            {% if product.variants[0].stocks > 0 %}
+              <span class="in-stock">متوفر في المخزون</span>
+            {% else %}
+              <span class="out-of-stock">غير متوفر</span>
+            {% endif %}
+          </div>
+
+          <!-- Add to Cart -->
+          <button
+            class="btn"
+            id="add-to-cart"
+            {% if product.variants[0].stocks == 0 %}
+            disabled{% endif %}>
+            أضف إلى السلة
+          </button>
+
+          <!-- Checkout Form -->
+          <form class="checkout-form">
+            <h3>معلومات العميل</h3>
+            <label for="name">الاسم الكامل:</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              required>
+
+            <label for="phone">رقم الهاتف:</label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              required>
+
+            <label for="email">البريد الإلكتروني:</label>
+            <input
+              type="email"
+              id="email"
+              name="email">
+
+            <h3>العنوان</h3>
+            <label for="city">المدينة:</label>
+            <input
+              type="text"
+              id="city"
+              name="city"
+              required>
+
+            <label for="address">العنوان:</label>
+            <textarea
+              id="address"
+              name="address"
+              rows="2"
+              required></textarea>
+
+            <label for="postal">الرمز البريدي:</label>
+            <input
+              type="text"
+              id="postal"
+              name="postal">
+
+            <h3>ملخص الطلب</h3>
+            <div class="order-summary">
+              <p>المنتج: {{ product.title }}</p>
+              <p>السعر: ${{ product.variants[0].price }}</p>
+            </div>
+
+            <button
+              type="submit"
+              class="btn btn-primary"
+              {% if product.variants[0].stocks == 0 %}
+              disabled{% endif %}>
+              تأكيد الطلب
+            </button>
+          </form>
+
+        </div>
+      </div>
+
+      <!-- Related Products -->
+      {% if related_products.size > 0 %}
+        <h3 class="page-title">منتجات ذات صلة</h3>
+        <div class="products-grid">
+          {% for p in related_products %}
+            {% render "product-card.liquid"
+              , product: p %}
+          {% endfor %}
+        </div>
+      {% endif %}
+    </main>
+
+    {% include "footer.liquid" %}
+
+  </body>
+</html>

@@ -3,21 +3,19 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::json;
 use ts_rs::TS;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub enum JsonOption<T> {
+    #[default]
     Undefined,
     Null,
     Value(T),
-}
-
-pub struct JsonOptionVisitor<T> {
-    marker: std::marker::PhantomData<T>,
 }
 
 impl<T> JsonOption<T> {
     pub const fn is_undefined(&self) -> bool {
         matches!(*self, JsonOption::Undefined)
     }
+
     pub const fn undefined() -> Self {
         JsonOption::Undefined
     }
@@ -45,70 +43,39 @@ impl<T> JsonOption<T> {
     }
 }
 
-impl<T> Default for JsonOption<T> {
-    fn default() -> Self {
-        JsonOption::Undefined
-    }
-}
-
-impl<T> Serialize for JsonOption<T>
+pub fn json_option<'de, D, T>(deserializer: D) -> Result<JsonOption<T>, D::Error>
 where
-    T: Serialize,
+    D: Deserializer<'de>,
+    T: Deserialize<'de>,
 {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    struct Visitor<T>(std::marker::PhantomData<T>);
+
+    impl<'de, T> serde::de::Visitor<'de> for Visitor<T>
     where
-        S: Serializer,
+        T: Deserialize<'de>,
     {
-        match *self {
-            JsonOption::Undefined => serializer.serialize_none(), // Problem here, I can't figure out how to NOT serialize a null (or serialize nothing)
-            // the problem is solved by #[serde(skip_serializing_if = "JsonOption::is_undefined")] on the struct field
-            // however if we could return somethin here that is not an error and does not cause a serialization to occur, serde skip_serializing_if would not be necessary on the struct
-            JsonOption::Null => serializer.serialize_none(),
-            JsonOption::Value(ref value) => value.serialize(serializer),
+        type Value = JsonOption<T>;
+
+        fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            write!(f, "JsonOption<T>")
+        }
+
+        fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+        where
+            D: Deserializer<'de>,
+        {
+            T::deserialize(deserializer).map(JsonOption::Value)
+        }
+
+        fn visit_none<E>(self) -> Result<Self::Value, E>
+        where
+            E: serde::de::Error,
+        {
+            Ok(JsonOption::Null)
         }
     }
-}
 
-impl<'de, T> Deserialize<'de> for JsonOption<T>
-where
-    T: Deserialize<'de>,
-{
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserializer.deserialize_option(JsonOptionVisitor::<T> {
-            marker: std::marker::PhantomData,
-        })
-    }
-}
-
-impl<'de, T> serde::de::Visitor<'de> for JsonOptionVisitor<T>
-where
-    T: Deserialize<'de>,
-{
-    type Value = JsonOption<T>;
-
-    #[inline]
-    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-        formatter.write_str("JsonOption<T>")
-    }
-
-    #[inline]
-    fn visit_none<E>(self) -> Result<JsonOption<T>, E>
-    where
-        E: serde::de::Error,
-    {
-        Ok(JsonOption::Null)
-    }
-
-    #[inline]
-    fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        T::deserialize(deserializer).map(JsonOption::Value)
-    }
+    deserializer.deserialize_option(Visitor(std::marker::PhantomData))
 }
 
 impl<T: TS> TS for JsonOption<T> {

@@ -38,6 +38,9 @@
   import ProductFormMedia from "./product-form-media.svelte";
   import { dialog } from "../../lib/components/alert-dialog.svelte";
   import { Routes } from ".";
+  import LoadingSpinner from "../../lib/components/loading-spinner.svelte";
+  import LoadingError from "../../lib/components/loading-error.svelte";
+  import { Button } from "@/lib/components/ui/button";
 
   const { replace } = useNavigate();
 
@@ -213,9 +216,13 @@
 
 <div>
   {#if query.isLoading}
-    <p>Loading...</p>
+    <div class="h-56 flex items-center justify-center">
+      <LoadingSpinner text="Loading..." />
+    </div>
   {:else if query.isError}
-    <p>Error: {query.error.message}</p>
+    <LoadingError message={query.error.message}>
+      <Button onclick={() => query.refetch()}>Retry</Button>
+    </LoadingError>
   {:else if query.isSuccess}
     {@render body()}
   {/if}

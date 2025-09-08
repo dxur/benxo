@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
 COPY ./Cargo.toml ./Cargo.toml
 COPY ./macros ./macros
 COPY ./backend ./backend
+COPY ./templates ./templates
 
 RUN --mount=type=cache,id=cargo-git,target=/usr/local/cargo/git \
     --mount=type=cache,id=cargo-registry,target=/usr/local/cargo/registry \

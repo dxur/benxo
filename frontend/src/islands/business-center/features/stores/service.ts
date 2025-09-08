@@ -14,6 +14,7 @@ export {
 } from '@bindings/StoreRoutes';
 
 const nullStr = nullIf("");
+const defaultStr = (value: unknown) => value ?? "";
 
 export const StoreSchema = yup.object({
     name: yup
@@ -91,27 +92,102 @@ export const StoreSchema = yup.object({
         .max(10, "You can only add up to 10 social links.")
         .default([]),
 
-    selected_theme: yup
+    logo: yup
         .string()
+        .url("Logo URL must be a valid URL.")
         .nullable()
         .defined()
         .transform(nullStr),
 
-    color_scheme: yup
+    logo_alt: yup
         .string()
+        .max(100, "Logo alt text cannot exceed 100 characters.")
         .nullable()
         .defined()
         .transform(nullStr),
 
-    header_style: yup
+    favicon_url: yup
         .string()
+        .url("Favicon URL must be a valid URL.")
         .nullable()
         .defined()
         .transform(nullStr),
 
+    menu_items: yup
+        .array(
+            yup.object({
+                label: yup
+                    .string()
+                    .required("Menu item label is required.")
+                    .max(50, "Menu item label cannot exceed 50 characters."),
+
+                url: yup
+                    .string()
+                    .required("Menu item URL is required.")
+                    .matches(/^(\/|https?:\/\/)/, "URL must start with / or be a valid HTTP(S) URL."),
+            })
+        )
+        .max(20, "You can only add up to 20 menu items.")
+        .default([]),
+
+    featured_collections: yup
+        .array(
+            yup.string().max(100, "Collection ID cannot exceed 100 characters.")
+        )
+        .max(20, "You can only feature up to 20 collections.")
+        .default([]),
+
+    homepage_template: yup
+        .string()
+        .default("")
+        .transform(defaultStr),
+
+    product_page_template: yup
+        .string()
+        .default("")
+        .transform(defaultStr),
+
+    collection_page_template: yup
+        .string()
+        .default("")
+        .transform(defaultStr),
+
+    cart_page_template: yup
+        .string()
+        .default("")
+        .transform(defaultStr),
+
+    shop_page_template: yup
+        .string()
+        .default("")
+        .transform(defaultStr),
+
+    not_found_page_template: yup
+        .string()
+        .default("")
+        .transform(defaultStr),
+
+    custom_pages: yup
+        .object()
+        .test("values-are-strings", "All custom pages must be strings.", (obj) =>
+            obj ? Object.values(obj).every((v) => typeof v === "string") : true
+        )
+        .default({}),
+
+    snippets: yup
+        .object()
+        .test("values-are-strings", "All snippets must be strings.", (obj) =>
+            obj ? Object.values(obj).every((v) => typeof v === "string") : true
+        )
+        .default({}),
+
+    // Replace the existing google_analytics_id validation with:
     google_analytics_id: yup
         .string()
-        .matches(/^UA-\d{4,9}-\d+$/, { message: "Google Analytics ID must be in the format UA-XXXX-Y.", excludeEmptyString: true })
+        .matches(/^(UA-\d{4,9}-\d+|G-[A-Z0-9]+)$/, {
+            message: "Google Analytics ID must be in UA-XXXX-Y format (Universal Analytics) or G-XXXXXXXX format (GA4).",
+            excludeEmptyString: true
+        })
         .nullable()
         .defined()
         .transform(nullStr),

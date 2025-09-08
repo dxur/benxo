@@ -20,13 +20,16 @@
     import { snakeToTitleCase } from "../../lib/utils/fmt";
     import StoreFormGeneral from "./store-form-general.svelte";
     import type { StoreCreateDto } from "@bindings/StoreCreateDto";
+    import LoadingSpinner from "../../lib/components/loading-spinner.svelte";
+    import LoadingError from "../../lib/components/loading-error.svelte";
+    import { Button } from "@/lib/components/ui/button";
 
     const { replace } = useNavigate();
 
     const query = createQuery(() => ({
         queryKey: ["store-create"],
         queryFn: () => {
-            return <StoreDto>{
+            return <Partial<StoreDto>>{
                 id: "",
                 name: "Amazing Store",
                 description: "",
@@ -38,9 +41,7 @@
                 city: null,
                 zip_code: null,
                 social_links: [],
-                selected_theme: null,
-                color_scheme: null,
-                header_style: null,
+
                 google_analytics_id: null,
                 gtm_container_id: null,
                 tracking_pixels: [],
@@ -98,9 +99,13 @@
 
 <div>
     {#if query.isLoading}
-        <p>Loading...</p>
+        <div class="h-56 flex items-center justify-center">
+            <LoadingSpinner text="Loading..." />
+        </div>
     {:else if query.isError}
-        <p>Error: {query.error.message}</p>
+        <LoadingError message={query.error.message}>
+            <Button onclick={() => query.refetch()}>Retry</Button>
+        </LoadingError>
     {:else if query.isSuccess}
         {@render body()}
     {/if}

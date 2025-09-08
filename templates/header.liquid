@@ -1,0 +1,89 @@
+<!-- Announcement Bar -->
+<div class="announcement-bar">
+  {% if store.announcement_text %}
+    {{ store.announcement_text }}
+  {% else %}
+    🚚 شحن مجاني على الطلبيات التي تتجاوز 5000 دج!
+  {% endif %}
+</div>
+
+<!-- Sidebar Toggle -->
+<input type="checkbox" id="mobile-menu-toggle" hidden />
+
+<!-- Navbar -->
+<header class="navbar">
+  <div class="navbar-content">
+    <!-- Mobile Menu Button -->
+    <label for="mobile-menu-toggle" class="navbar-drawer nav-icon-btn">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </label>
+
+    <!-- Logo -->
+    <a href="/" class="logo">
+      {% if store.logo %}
+        <img src="{{ store.logo }}" alt="{{ store.name }}" />
+      {% else %}
+        <span class="logo-text">{{ store.name }}</span>
+      {% endif %}
+    </a>
+
+    <!-- Desktop Navigation -->
+    <div class="navbar-items">
+      <nav>
+        {% if store.menu_items.size > 0 %}
+          {% for item in store.menu_items %}
+            <a href="{{ item.url }}">{{ item.label }}</a>
+          {% endfor %}
+        {% else %}
+          <a href="/">الرئيسية</a>
+        {% endif %}
+      </nav>
+    </div>
+
+    <!-- Navbar Icons -->
+    <div class="navbar-icons">
+      <!-- Cart Icon -->
+      <div class="cart-icon">
+        <a href="/cart" class="nav-icon-btn" aria-label="Cart">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <path d="M16 10a4 4 0 0 1-8 0"></path>
+          </svg>
+        </a>
+        <span class="cart-count">2</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile Sidebar -->
+<aside class="mobile-sidebar">
+  <div class="mobile-sidebar-header">
+    {% if store.logo %}
+      <img src="{{ store.logo }}" alt="{{ store.name }}" height="36" />
+    {% else %}
+      <span class="logo-text">{{ store.name }}</span>
+    {% endif %}
+    <label for="mobile-menu-toggle" class="mobile-close">✕</label>
+  </div>
+  <nav>
+    <ul class="mobile-nav">
+      {% if store.menu_items.size > 0 %}
+        {% for item in store.menu_items %}
+          <li class="mobile-nav-item">
+            <a href="{{ item.url }}" class="mobile-nav-link">{{ item.label }}</a>
+          </li>
+        {% endfor %}
+      {% else %}
+        <li class="mobile-nav-item">
+          <a href="/" class="mobile-nav-link">الرئيسية</a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+</aside>

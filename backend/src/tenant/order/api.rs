@@ -128,6 +128,7 @@ pub struct OrderListQuery {
     pub date_to: Option<DateTime<Utc>>,
 }
 
+#[macros::json_option_serde]
 #[derive(Debug, Deserialize, TS)]
 #[ts(export, bound = "")]
 pub struct OrderUpdate {

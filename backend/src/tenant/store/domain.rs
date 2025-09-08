@@ -2,12 +2,13 @@ use std::collections::HashMap;
 
 use bigdecimal::BigDecimal;
 use bson::{oid::ObjectId, DateTime, Decimal128};
-use indexmap::{IndexMap, IndexSet};
+use indexmap::{indexmap, IndexMap, IndexSet};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 use crate::types::id::Id;
 use crate::types::name::Name;
+use crate::utils::types::CowStr;
 
 #[derive(Debug, Clone, Default, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -21,6 +22,12 @@ pub enum StoreStatus {
 #[derive(Debug, Clone, Deserialize, Serialize, TS)]
 pub struct SocialLink {
     pub platform: String,
+    pub url: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, TS)]
+pub struct MenuItem {
+    pub label: String,
     pub url: String,
 }
 
@@ -45,11 +52,23 @@ pub struct StoreRecord {
     pub city: Option<String>,
     pub zip_code: Option<String>,
 
+    pub logo: Option<String>,
+    pub logo_alt: Option<String>,
+    pub favicon: Option<String>,
+
+    pub menu_items: Vec<MenuItem>,
+    pub featured_collections: IndexSet<String>,
     pub social_links: Vec<SocialLink>,
 
-    pub selected_theme: Option<String>,
-    pub color_scheme: Option<String>,
-    pub header_style: Option<String>,
+    // templates
+    pub homepage_template: CowStr,
+    pub product_page_template: CowStr,
+    pub collection_page_template: CowStr,
+    pub cart_page_template: CowStr,
+    pub shop_page_template: CowStr,
+    pub not_found_page_template: CowStr,
+    pub custom_pages: IndexMap<String, CowStr>,
+    pub snippets: IndexMap<String, CowStr>,
 
     pub google_analytics_id: Option<String>,
     pub gtm_container_id: Option<String>,
@@ -77,10 +96,12 @@ impl StoreRecord {
         address: Option<String>,
         city: Option<String>,
         zip_code: Option<String>,
+        logo: Option<String>,
+        logo_alt: Option<String>,
+        favicon: Option<String>,
+        menu_items: Vec<MenuItem>,
+        featured_collections: IndexSet<String>,
         social_links: Vec<SocialLink>,
-        selected_theme: Option<String>,
-        color_scheme: Option<String>,
-        header_style: Option<String>,
         google_analytics_id: Option<String>,
         gtm_container_id: Option<String>,
         tracking_pixels: Vec<TrackingPixel>,
@@ -90,6 +111,45 @@ impl StoreRecord {
         custom_key_values: HashMap<String, String>,
     ) -> Self {
         let now = DateTime::now();
+
+        // Default templates
+        let homepage_template = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../templates/index.liquid"
+        ))
+        .into();
+        let product_page_template = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../templates/product.liquid"
+        ))
+        .into();
+        let collection_page_template = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../templates/collection.liquid"
+        ))
+        .into();
+        let cart_page_template = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../templates/cart.liquid"
+        ))
+        .into();
+        let shop_page_template = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../templates/shop.liquid"
+        ))
+        .into();
+        let not_found_page_template = include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../templates/404.liquid"
+        ))
+        .into();
+        let custom_pages = Default::default();
+        let snippets = indexmap! {
+            "style.liquid".into() => include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../templates/style.liquid")).into(),
+            "header.liquid".into() => include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../templates/header.liquid")).into(),
+            "footer.liquid".into() => include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../templates/footer.liquid")).into(),
+            "product-card.liquid".into() => include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../templates/product-card.liquid")).into(),
+        };
 
         Self {
             _id: Default::default(),
@@ -102,10 +162,24 @@ impl StoreRecord {
             address,
             city,
             zip_code,
+            
+            logo,
+            logo_alt,
+            favicon,
+            
+            menu_items,
+            featured_collections,
             social_links,
-            selected_theme,
-            color_scheme,
-            header_style,
+
+            homepage_template,
+            product_page_template,
+            collection_page_template,
+            cart_page_template,
+            shop_page_template,
+            not_found_page_template,
+            custom_pages,
+            snippets,
+
             google_analytics_id,
             gtm_container_id,
             tracking_pixels,

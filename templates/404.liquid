@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الصفحة غير موجودة - {{ store.name }}</title>
+    <meta name="description" content="لم يتم العثور على الصفحة المطلوبة">
+    {% include "style.liquid" %}
+  </head>
+  <body>
+    <div class="page">
+      {% include "header.liquid" %}
+
+      <main class="container">
+        <div class="error-page">
+          <div class="error-icon">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor">
+              <circle
+                cx="12"
+                cy="12"
+                r="10"></circle>
+              <line
+                x1="12"
+                y1="8"
+                x2="12"
+                y2="12"></line>
+              <line
+                x1="12"
+                y1="16"
+                x2="12"
+                y2="16"></line>
+            </svg>
+          </div>
+          <h1>خطأ 404</h1>
+          <h2>الصفحة غير موجودة</h2>
+          <p>عذرًا، الصفحة التي تبحث عنها غير متوفرة.</p>
+          <a href="/" class="btn btn-primary">العودة إلى الصفحة الرئيسية</a>
+        </div>
+      </main>
+
+      {% include "footer.liquid" %}
+    </div>
+
+    <style>
+      /* 404 Page Styles */
+      .error-page {
+        text-align: center;
+        padding: 5rem 2rem;
+        color: #666;
+      }
+
+      .error-icon {
+        margin: 0 auto 2rem;
+        width: 120px;
+        height: 120px;
+        opacity: 0.3;
+      }
+
+      .error-icon svg {
+        width: 100%;
+        height: 100%;
+      }
+
+      .error-page h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #333;
+      }
+
+      .error-page h2 {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+        color: #333;
+      }
+
+      .error-page p {
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+      }
+
+      .error-page .btn {
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        border-radius: 8px;
+        text-decoration: none;
+      }
+
+      @media (max-width: 768px) {
+        .error-page {
+          padding: 3rem 1.5rem;
+        }
+        .error-page h1 {
+          font-size: 2.5rem;
+        }
+        .error-page h2 {
+          font-size: 1.5rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .error-page h1 {
+          font-size: 2rem;
+        }
+        .error-page h2 {
+          font-size: 1.2rem;
+        }
+      }
+    </style>
+  </body>
+</html>

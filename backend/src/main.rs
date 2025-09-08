@@ -177,6 +177,7 @@ async fn main() {
     });
 
     let api = Router::new()
+        .route("/api/v1/health", axum::routing::get(|| async { "OK" }))
         .nest_packed(UserRoutes::make_router())
         .nest_packed(BusinessRoutes::make_router())
         // .nest_packed(DnsRoutes::make_router())

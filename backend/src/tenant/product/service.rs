@@ -86,6 +86,14 @@ impl<R: ProductRepo> ProductService<R> {
             .map(Into::into)
     }
 
+    pub async fn pub_get_product(&self, business_id: Id, product_slug: &str) -> ApiResult<ProductDto> {
+        self.repo
+            .find_active_by_slug(business_id.into_inner(), product_slug)
+            .await?
+            .ok_or(ApiError::not_found("product", product_slug.to_string()))
+            .map(Into::into)
+    }
+
     pub async fn get_variant_by_sku(
         &self,
         business: BusinessSession,
@@ -146,7 +154,7 @@ impl<R: ProductRepo> ProductService<R> {
         } = query;
 
         let filter = ProductFilter {
-            status: status.map(Into::into),
+            status: ProductStatus::Active.into(),
             category,
             featured,
             search,
@@ -166,5 +174,41 @@ impl<R: ProductRepo> ProductService<R> {
             page,
             limit,
         })
+    }
+
+    pub async fn pub_list_related_products(
+        &self,
+        business_id: Id,
+        slug: &str,
+    ) -> ApiResult<Vec<ProductDto>> {
+        let product = self
+            .repo
+            .find_active_by_slug(business_id.into_inner(), slug)
+            .await?
+            .ok_or(ApiError::not_found("product", slug.to_string()))?;
+
+        let category = match product.category.len() {
+            0 => return Ok(vec![]),
+            _ => product.category,
+        };
+
+        let filter = ProductFilter {
+            status: ProductStatus::Active.into(),
+            category: Some(category),
+            featured: None,
+            search: None,
+        };
+
+        let (products, _) = self
+            .repo
+            .list(business_id.into_inner(), filter, 1, 8)
+            .await?;
+
+        let views: Vec<_> = products
+            .into_iter()
+            .filter(|p| p._id != product._id)
+            .map(Into::into)
+            .collect();
+        Ok(views)
     }
 }

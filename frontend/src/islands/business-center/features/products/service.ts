@@ -227,12 +227,14 @@ export function generateVariantsFromOptions(options: Record<string, string[]>): 
 }
 
 export function useProductListQuery(getParams: () => ProductListQuery) {
-    const params = getParams();
-    return createQuery(() => ({
-        queryKey: ["products", params],
-        queryFn: () => listProducts(params),
-        placeholderData: (prev) => prev,
-    }));
+    return createQuery(() => {
+        const params = getParams();
+        return {
+            queryKey: ["products", params],
+            queryFn: () => listProducts(params),
+            placeholderData: (prev) => prev,
+        };
+    });
 }
 
 export function useProductQuery(productId: string) {

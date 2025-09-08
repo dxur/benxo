@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>البحث - {{ store.name }}</title>
+  <meta name="description" content="ابحث عن المنتجات في {{ store.name }}">
+  {% include "style.liquid" %}
+</head>
+<body>
+  <div class="page">
+    {% include "header.liquid" %}
+
+    <main class="container">
+      <!-- Search Header -->
+      <div class="search-header-section">
+        <div class="search-form-container">
+          <form class="search-form-main" action="/shop" method="get">
+            <div class="search-input-group">
+              <input 
+                type="text" 
+                name="q" 
+                id="search-query-input"
+                placeholder="ابحث عن المنتجات..." 
+                class="search-input-main"
+                autocomplete="off"
+              />
+              <button type="submit" class="search-btn-main">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                بحث
+              </button>
+            </div>
+          </form>
+          
+          <!-- Dynamic headers -->
+          <div class="search-results-info" id="search-results-info" style="display:none;">
+            <h1>نتائج البحث عن "<span id="search-query-text"></span>"</h1>
+            <p class="results-count">تم العثور على <span id="results-count">{{ products.size | default: 0 }}</span> منتج</p>
+          </div>
+
+          <div class="search-welcome" id="search-welcome">
+            <h1>البحث في المتجر</h1>
+            <p>ابحث عن المنتجات التي تحتاجها</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Suggestions (shown if no query) -->
+      <div class="search-suggestions-main" id="search-suggestions">
+        <div class="suggestions-section">
+          <h2>اقتراحات البحث</h2>
+          <div class="suggestion-pills">
+            <a href="/shop?q=ملابس" class="suggestion-pill">ملابس</a>
+            <a href="/shop?q=ألعاب" class="suggestion-pill">ألعاب</a>
+            <a href="/shop?q=إكسسوارات" class="suggestion-pill">إكسسوارات</a>
+            <a href="/shop?q=أحذية" class="suggestion-pill">أحذية</a>
+            <a href="/shop?q=حقائب" class="suggestion-pill">حقائب</a>
+            <a href="/shop?q=ساعات" class="suggestion-pill">ساعات</a>
+          </div>
+        </div>
+
+        <div class="popular-searches">
+          <h2>عمليات البحث الشائعة</h2>
+          <div class="popular-list">
+            <a href="/shop?q=فستان">فستان</a>
+            <a href="/shop?q=حذاء رياضي">حذاء رياضي</a>
+            <a href="/shop?q=جاكيت">جاكيت</a>
+            <a href="/shop?q=حقيبة يد">حقيبة يد</a>
+            <a href="/shop?q=عطر">عطر</a>
+          </div>
+        </div>
+
+        {% if store.featured_collections %}
+        <div class="featured-categories-search">
+          <h2>تصفح الفئات</h2>
+          <div class="categories-grid-search">
+            {% for category in store.featured_collections %}
+              <a href="/collections/{{ category | downcase | replace: ' ', '-' }}" class="category-card-search">
+                <div class="category-info-search">
+                  <h3>{{ category }}</h3>
+                </div>
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Search Results (shown if query exists) -->
+      <div class="search-results" id="search-results" style="display:none;">
+        <div class="search-controls">
+          <div class="search-filters-section">
+            <button class="search-filters-toggle" onclick="toggleSearchFilters()">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46"></polygon>
+              </svg>
+              التصفية
+            </button>
+            <div class="search-active-filters" id="search-active-filters"></div>
+          </div>
+
+          <div class="search-sort-section">
+            <label for="search-sort-select">ترتيب حسب:</label>
+            <select id="search-sort-select" onchange="sortSearchResults(this.value)">
+              <option value="relevance">الأكثر صلة</option>
+              <option value="price-asc">السعر: من الأقل إلى الأعلى</option>
+              <option value="price-desc">السعر: من الأعلى إلى الأقل</option>
+              <option value="title-asc">الاسم: أ - ي</option>
+              <option value="title-desc">الاسم: ي - أ</option>
+              <option value="created-desc">الأحدث</option>
+              <option value="created-asc">الأقدم</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="search-content">
+          <!-- Sidebar Filters -->
+          <aside class="search-filters-sidebar" id="search-filters-sidebar">
+            <!-- filters markup here (unchanged from your version) -->
+          </aside>
+
+          <!-- Results grid -->
+          <div class="search-results-section">
+            {% if products.size > 0 %}
+              <div class="products-grid" id="search-products-grid">
+                {% for product in products %}
+                  {% render "product-card.liquid", product: product %}
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="no-search-results">
+                <div class="no-results-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                  </svg>
+                </div>
+                <h3>لم نجد أي نتائج لـ "<span id="search-query-text-empty"></span>"</h3>
+                <div class="search-suggestions-no-results">
+                  <p>جرب:</p>
+                  <ul>
+                    <li>تحقق من الإملاء</li>
+                    <li>استخدم كلمات أقل أو مختلفة</li>
+                    <li>استخدم مصطلحات أكثر عمومية</li>
+                  </ul>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </main>
+
+    {% include "footer.liquid" %}
+  </div>
+
+  <script>
+    // Handle query and toggle sections
+    document.addEventListener("DOMContentLoaded", function() {
+      const params = new URLSearchParams(window.location.search);
+      const query = params.get("q") || "";
+
+      const input = document.getElementById("search-query-input");
+      const resultsInfo = document.getElementById("search-results-info");
+      const queryText = document.getElementById("search-query-text");
+      const queryTextEmpty = document.getElementById("search-query-text-empty");
+      const welcome = document.getElementById("search-welcome");
+      const suggestions = document.getElementById("search-suggestions");
+      const results = document.getElementById("search-results");
+
+      if (input) input.value = query;
+
+      if (query) {
+        if (queryText) queryText.textContent = query;
+        if (queryTextEmpty) queryTextEmpty.textContent = query;
+
+        resultsInfo.style.display = "block";
+        results.style.display = "block";
+        welcome.style.display = "none";
+        suggestions.style.display = "none";
+      } else {
+        resultsInfo.style.display = "none";
+        results.style.display = "none";
+        welcome.style.display = "block";
+        suggestions.style.display = "block";
+      }
+    });
+
+    function toggleSearchFilters() {
+      document.getElementById('search-filters-sidebar').classList.toggle('active');
+    }
+    function sortSearchResults(sortBy) { console.log("Sort:", sortBy); }
+  </script>
+</body>
+</html>

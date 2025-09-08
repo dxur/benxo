@@ -1,0 +1,136 @@
+<footer class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <!-- Footer Logo & Description -->
+      <div class="footer-section">
+        {% if store.logo %}
+          <img
+            src="{{ store.logo }}"
+            alt="{{ store.name }}"
+            class="footer-logo" />
+        {% else %}
+          <h3 class="footer-brand">{{ store.name }}</h3>
+        {% endif %}
+        {% if store.description %}
+          <p class="footer-description">{{ store.description }}</p>
+        {% else %}
+          <p class="footer-description">متجرك المفضل للتسوق الإلكتروني في الجزائر</p>
+        {% endif %}
+      </div>
+
+      <!-- Quick Links -->
+      <div class="footer-section">
+        <h4 class="footer-title">روابط سريعة</h4>
+        <ul class="footer-links">
+          <li>
+            <a href="/">الرئيسية</a>
+          </li>
+          <li>
+            <a href="/collections">المجموعات</a>
+          </li>
+          <li>
+            <a href="/about">حولنا</a>
+          </li>
+          <li>
+            <a href="/contact">اتصل بنا</a>
+          </li>
+          <li>
+            <a href="/shipping">الشحن والتوصيل</a>
+          </li>
+          <li>
+            <a href="/returns">سياسة الاستبدال</a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Customer Service -->
+      <div class="footer-section">
+        <h4 class="footer-title">خدمة العملاء</h4>
+        <ul class="footer-links">
+          <li>
+            <a href="/help">المساعدة</a>
+          </li>
+          <li>
+            <a href="/faq">الأسئلة الشائعة</a>
+          </li>
+          <li>
+            <a href="/terms">الشروط والأحكام</a>
+          </li>
+          <li>
+            <a href="/privacy">سياسة الخصوصية</a>
+          </li>
+          <li>
+            <a href="/track-order">تتبع الطلب</a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Contact Info -->
+      <div class="footer-section">
+        <h4 class="footer-title">تواصل معنا</h4>
+        <div class="contact-info">
+          {% if store.phone %}
+            <p>📞 {{ store.phone }}</p>
+          {% endif %}
+          {% if store.email %}
+            <p>✉️ {{ store.email }}</p>
+          {% endif %}
+          {% if store.address %}
+            <p>📍 {{ store.address }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Social Links -->
+        {% if store.social_links.size > 0 %}
+          <div class="social-links">
+            {% for link in store.social_links %}
+              <a
+                href="{{ link.url }}"
+                target="_blank"
+                aria-label="{{ link.platform }}">
+                {% case link.platform %}
+                  {% when 'facebook' %}
+                    <svg
+                      class="social-icon"
+                      viewBox="0 0 24 24"
+                      fill="currentColor">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                    </svg>
+                  {% when 'instagram' %}
+                    <svg
+                      class="social-icon"
+                      viewBox="0 0 24 24"
+                      fill="currentColor">
+                      <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 6.621 5.367 11.988 11.988 11.988s11.987-5.367 11.987-11.988C24.014 5.367 18.647.001 12.017.001zM8.449 16.988c-2.458 0-4.467-2.01-4.467-4.468s2.009-4.467 4.467-4.467c2.459 0 4.468 2.009 4.468 4.467s-2.009 4.468-4.468 4.468zm7.519 0c-2.458 0-4.467-2.01-4.467-4.468s2.009-4.467 4.467-4.467c2.459 0 4.468 2.009 4.468 4.467s-2.009 4.468-4.468 4.468z" />
+                    </svg>
+                  {% when 'twitter' %}
+                    <svg
+                      class="social-icon"
+                      viewBox="0 0 24 24"
+                      fill="currentColor">
+                      <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
+                    </svg>
+                  {% else %}
+                    {{ link.platform }}
+                {% endcase %}
+              </a>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Footer Bottom -->
+    <div class="footer-bottom">
+      <p>&copy; {{ "now" | date: "%Y" }} {{ store.name }}. جميع الحقوق محفوظة.</p>
+      <div class="payment-methods">
+        <span>طرق الدفع المقبولة:</span>
+        <div class="payment-icons">
+          <span class="payment-icon">💳</span>
+          <span class="payment-icon">🏦</span>
+          <span class="payment-icon">📱</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>

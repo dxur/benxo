@@ -1,9 +1,12 @@
 use std::{borrow::Cow, collections::HashMap, convert::Infallible};
 
 use axum::http::StatusCode;
+use axum::response::{Html, IntoResponse};
 use bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
+
+use crate::utils::types::CowStr;
 
 /// RFC 7807 Problem Details for HTTP APIs
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -67,69 +70,69 @@ impl ProblemDetails {
 pub enum ApiError {
     #[error("Validation failed")]
     ValidationError {
-        field: Cow<'static, str>,
-        message: Cow<'static, str>,
+        field: CowStr,
+        message: CowStr,
     },
 
     #[error("Resource not found")]
     NotFound {
-        resource: Cow<'static, str>,
-        id: Cow<'static, str>,
+        resource: CowStr,
+        id: CowStr,
     },
 
     #[error("Authentication failed")]
-    Unauthorized { reason: Cow<'static, str> },
+    Unauthorized { reason: CowStr },
 
     #[error("Access denied")]
     Forbidden {
-        resource: Cow<'static, str>,
-        action: Cow<'static, str>,
+        resource: CowStr,
+        action: CowStr,
     },
 
     #[error("Conflict occurred")]
     Conflict {
-        resource: Cow<'static, str>,
-        reason: Cow<'static, str>,
+        resource: CowStr,
+        reason: CowStr,
     },
 
     #[error("Rate limit exceeded")]
     RateLimitExceeded { retry_after: u64 },
 
     #[error("Internal server error")]
-    InternalError { message: Cow<'static, str> },
+    InternalError { message: CowStr },
 
     #[error("Service unavailable")]
     ServiceUnavailable {
-        service: Cow<'static, str>,
+        service: CowStr,
         retry_after: Option<u64>,
     },
 
     #[error("Database error: {0}")]
-    DatabaseError(Cow<'static, str>),
+    DatabaseError(CowStr),
 
     #[error("External service error: {0}")]
-    ExternalServiceError(Cow<'static, str>),
+    ExternalServiceError(CowStr),
 
     #[error("Invalid JSON syntax")]
     InvalidJson {
-        message: Cow<'static, str>,
+        message: CowStr,
         line: Option<usize>,
         column: Option<usize>,
     },
 
     #[error("Invalid request body")]
     InvalidRequestBody {
-        expected: Cow<'static, str>,
-        message: Cow<'static, str>,
+        expected: CowStr,
+        message: CowStr,
     },
 
     #[error("Missing required field")]
-    MissingField { field: Cow<'static, str> },
+    MissingField { field: CowStr },
 
     #[error("Invalid content type")]
     InvalidContentType {
-        expected: Cow<'static, str>,
-        received: Cow<'static, str>,
+        expected: CowStr,
+        received: CowStr,
     },
 
     #[error("Request body too large")]
@@ -140,24 +143,24 @@ pub enum ApiError {
 
     #[error("Invalid query parameter")]
     InvalidQueryParam {
-        param: Cow<'static, str>,
-        message: Cow<'static, str>,
+        param: CowStr,
+        message: CowStr,
     },
 
     #[error("Invalid path parameter")]
     InvalidPathParam {
-        param: Cow<'static, str>,
-        message: Cow<'static, str>,
+        param: CowStr,
+        message: CowStr,
     },
 
     #[error("Invalid header")]
     InvalidHeader {
-        header: Cow<'static, str>,
-        message: Cow<'static, str>,
+        header: CowStr,
+        message: CowStr,
     },
 
     #[error("Malformed request")]
-    MalformedRequest { message: Cow<'static, str> },
+    MalformedRequest { message: CowStr },
 }
 
 impl ApiError {
@@ -165,8 +168,8 @@ impl ApiError {
 
     /// Create a validation error with static strings
     pub fn validation(
-        field: impl Into<Cow<'static, str>>,
-        message: impl Into<Cow<'static, str>>,
+        field: impl Into<CowStr>,
+        message: impl Into<CowStr>,
     ) -> Self {
         Self::ValidationError {
             field: field.into(),
@@ -175,7 +178,7 @@ impl ApiError {
     }
 
     /// Create a validation error for a required field
-    pub fn required_field(field: impl Into<Cow<'static, str>>) -> Self {
+    pub fn required_field(field: impl Into<CowStr>) -> Self {
         let field = field.into();
         Self::ValidationError {
             message: format!("Field '{}' is required", field).into(),
@@ -184,7 +187,7 @@ impl ApiError {
     }
 
     /// Create a validation error for invalid field format
-    pub fn invalid_format(field: impl Into<Cow<'static, str>>, expected: &'static str) -> Self {
+    pub fn invalid_format(field: impl Into<CowStr>, expected: &'static str) -> Self {
         let field = field.into();
         Self::ValidationError {
             message: format!(
@@ -198,7 +201,7 @@ impl ApiError {
 
     /// Create a validation error for field length
     pub fn invalid_length(
-        field: impl Into<Cow<'static, str>>,
+        field: impl Into<CowStr>,
         min: Option<usize>,
         max: Option<usize>,
     ) -> Self {
@@ -223,8 +226,8 @@ impl ApiError {
 
     /// Create a not found error
     pub fn not_found(
-        resource: impl Into<Cow<'static, str>>,
-        id: impl Into<Cow<'static, str>>,
+        resource: impl Into<CowStr>,
+        id: impl Into<CowStr>,
     ) -> Self {
         Self::NotFound {
             resource: resource.into(),
@@ -235,7 +238,7 @@ impl ApiError {
     // === Authentication & Authorization ===
 
     /// Create an unauthorized error
-    pub fn unauthorized(reason: impl Into<Cow<'static, str>>) -> Self {
+    pub fn unauthorized(reason: impl Into<CowStr>) -> Self {
         Self::Unauthorized {
             reason: reason.into(),
         }
@@ -258,8 +261,8 @@ impl ApiError {
 
     /// Create a forbidden error
     pub fn forbidden(
-        resource: impl Into<Cow<'static, str>>,
-        action: impl Into<Cow<'static, str>>,
+        resource: impl Into<CowStr>,
+        action: impl Into<CowStr>,
     ) -> Self {
         Self::Forbidden {
             resource: resource.into(),
@@ -275,7 +278,7 @@ impl ApiError {
     // === Request Format Errors ===
 
     /// Create an invalid JSON error
-    pub fn invalid_json(message: impl Into<Cow<'static, str>>) -> Self {
+    pub fn invalid_json(message: impl Into<CowStr>) -> Self {
         Self::InvalidJson {
             message: message.into(),
             line: None,
@@ -285,7 +288,7 @@ impl ApiError {
 
     /// Create an invalid JSON error with position
     pub fn invalid_json_at(
-        message: impl Into<Cow<'static, str>>,
+        message: impl Into<CowStr>,
         line: usize,
         column: usize,
     ) -> Self {
@@ -298,8 +301,8 @@ impl ApiError {
 
     /// Create an invalid request body error
     pub fn invalid_body(
-        expected: impl Into<Cow<'static, str>>,
-        message: impl Into<Cow<'static, str>>,
+        expected: impl Into<CowStr>,
+        message: impl Into<CowStr>,
     ) -> Self {
         Self::InvalidRequestBody {
             expected: expected.into(),
@@ -308,7 +311,7 @@ impl ApiError {
     }
 
     /// Create a missing field error
-    pub fn missing_field(field: impl Into<Cow<'static, str>>) -> Self {
+    pub fn missing_field(field: impl Into<CowStr>) -> Self {
         Self::MissingField {
             field: field.into(),
         }
@@ -316,8 +319,8 @@ impl ApiError {
 
     /// Create an invalid content type error
     pub fn invalid_content_type(
-        expected: impl Into<Cow<'static, str>>,
-        received: impl Into<Cow<'static, str>>,
+        expected: impl Into<CowStr>,
+        received: impl Into<CowStr>,
     ) -> Self {
         Self::InvalidContentType {
             expected: expected.into(),
@@ -326,7 +329,7 @@ impl ApiError {
     }
 
     /// Create a JSON content type expected error
-    pub fn json_expected(received: impl Into<Cow<'static, str>>) -> Self {
+    pub fn json_expected(received: impl Into<CowStr>) -> Self {
         Self::invalid_content_type("application/json", received)
     }
 
@@ -342,8 +345,8 @@ impl ApiError {
 
     /// Create an invalid query parameter error
     pub fn invalid_query(
-        param: impl Into<Cow<'static, str>>,
-        message: impl Into<Cow<'static, str>>,
+        param: impl Into<CowStr>,
+        message: impl Into<CowStr>,
     ) -> Self {
         Self::InvalidQueryParam {
             param: param.into(),
@@ -353,7 +356,7 @@ impl ApiError {
 
     /// Create an invalid query parameter type error
     pub fn invalid_query_type(
-        param: impl Into<Cow<'static, str>>,
+        param: impl Into<CowStr>,
         expected_type: &'static str,
     ) -> Self {
         let param = param.into();
@@ -365,8 +368,8 @@ impl ApiError {
 
     /// Create an invalid path parameter error
     pub fn invalid_path(
-        param: impl Into<Cow<'static, str>>,
-        message: impl Into<Cow<'static, str>>,
+        param: impl Into<CowStr>,
+        message: impl Into<CowStr>,
     ) -> Self {
         Self::InvalidPathParam {
             param: param.into(),
@@ -375,7 +378,7 @@ impl ApiError {
     }
 
     /// Create an invalid UUID path parameter error
-    pub fn invalid_uuid(param: impl Into<Cow<'static, str>>) -> Self {
+    pub fn invalid_uuid(param: impl Into<CowStr>) -> Self {
         let param = param.into();
         Self::InvalidPathParam {
             message: format!("Parameter '{}' must be a valid UUID", param).into(),
@@ -385,8 +388,8 @@ impl ApiError {
 
     /// Create an invalid header error
     pub fn invalid_header(
-        header: impl Into<Cow<'static, str>>,
-        message: impl Into<Cow<'static, str>>,
+        header: impl Into<CowStr>,
+        message: impl Into<CowStr>,
     ) -> Self {
         Self::InvalidHeader {
             header: header.into(),
@@ -395,7 +398,7 @@ impl ApiError {
     }
 
     /// Create a missing header error
-    pub fn missing_header(header: impl Into<Cow<'static, str>>) -> Self {
+    pub fn missing_header(header: impl Into<CowStr>) -> Self {
         let header = header.into();
         Self::InvalidHeader {
             message: format!("Header '{}' is required", header).into(),
@@ -407,8 +410,8 @@ impl ApiError {
 
     /// Create a conflict error
     pub fn conflict(
-        resource: impl Into<Cow<'static, str>>,
-        reason: impl Into<Cow<'static, str>>,
+        resource: impl Into<CowStr>,
+        reason: impl Into<CowStr>,
     ) -> Self {
         Self::Conflict {
             resource: resource.into(),
@@ -417,7 +420,7 @@ impl ApiError {
     }
 
     /// Create a duplicate resource error
-    pub fn duplicate(resource: impl Into<Cow<'static, str>>, field: &'static str) -> Self {
+    pub fn duplicate(resource: impl Into<CowStr>, field: &'static str) -> Self {
         let resource = resource.into();
         Self::Conflict {
             reason: format!("{} with this {} already exists", resource, field).into(),
@@ -435,25 +438,25 @@ impl ApiError {
     // === Server Errors ===
 
     /// Create an internal error
-    pub fn internal(message: impl Into<Cow<'static, str>>) -> Self {
+    pub fn internal(message: impl Into<CowStr>) -> Self {
         Self::InternalError {
             message: message.into(),
         }
     }
 
     /// Create a database error
-    pub fn database(message: impl Into<Cow<'static, str>>) -> Self {
+    pub fn database(message: impl Into<CowStr>) -> Self {
         Self::DatabaseError(message.into())
     }
 
     /// Create an external service error
-    pub fn external_service(message: impl Into<Cow<'static, str>>) -> Self {
+    pub fn external_service(message: impl Into<CowStr>) -> Self {
         Self::ExternalServiceError(message.into())
     }
 
     /// Create a service unavailable error
     pub fn service_unavailable(
-        service: impl Into<Cow<'static, str>>,
+        service: impl Into<CowStr>,
         retry_after: Option<u64>,
     ) -> Self {
         Self::ServiceUnavailable {
@@ -463,7 +466,7 @@ impl ApiError {
     }
 
     /// Create a malformed request error
-    pub fn malformed(message: impl Into<Cow<'static, str>>) -> Self {
+    pub fn malformed(message: impl Into<CowStr>) -> Self {
         Self::MalformedRequest {
             message: message.into(),
         }
@@ -474,8 +477,8 @@ impl ApiError {
     /// Create an invalid request body error (legacy)
     #[deprecated(since = "0.1.0", note = "Use `invalid_body` instead")]
     pub fn invalid_request_body(
-        expected: impl Into<Cow<'static, str>>,
-        message: impl Into<Cow<'static, str>>,
+        expected: impl Into<CowStr>,
+        message: impl Into<CowStr>,
     ) -> Self {
         Self::invalid_body(expected, message)
     }
@@ -747,6 +750,21 @@ impl Into<StatusCode> for ApiError {
             ApiError::InvalidPathParam { .. } => StatusCode::BAD_REQUEST,
             ApiError::InvalidHeader { .. } => StatusCode::BAD_REQUEST,
             ApiError::MalformedRequest { .. } => StatusCode::BAD_REQUEST,
+        }
+    }
+}
+
+
+impl Into<(StatusCode, Html<CowStr>)> for ApiError {
+    fn into(self) -> (StatusCode, Html<CowStr>) {
+        match self {
+            ApiError::NotFound { .. } => (StatusCode::NOT_FOUND, Html(CowStr::from("404 Not Found"))),
+            ApiError::Unauthorized { .. } => (StatusCode::UNAUTHORIZED, Html(CowStr::from("401 Unauthorized"))),
+            ApiError::Forbidden { .. } => (StatusCode::FORBIDDEN, Html(CowStr::from("403 Forbidden"))),
+            ApiError::RateLimitExceeded { .. } => (StatusCode::TOO_MANY_REQUESTS, Html(CowStr::from("429 Too Many Requests"))),
+            ApiError::InternalError { .. } => (StatusCode::INTERNAL_SERVER_ERROR, Html(CowStr::from("500 Internal Server Error"))),
+            ApiError::ServiceUnavailable { .. } => (StatusCode::SERVICE_UNAVAILABLE, Html(CowStr::from("503 Service Unavailable"))),
+            _ => (StatusCode::INTERNAL_SERVER_ERROR, Html(CowStr::from("An error occurred"))),
         }
     }
 }

@@ -71,7 +71,7 @@
 
     const query = useProductListQuery(() => fetchParams);
 
-    // TODO
+    // TODO : fetch categories from API
     let availableCategories = $derived.by(() => {
         const products = query.data?.products || [];
         const categories = new Set(
