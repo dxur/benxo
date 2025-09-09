@@ -3,7 +3,6 @@
 		ask "http://backend:2000/api/v1/tls"
 	}
 	email {$ACME_EMAIL}
-	acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
 }
 
 {$DOMAIN}, www.{$DOMAIN} {

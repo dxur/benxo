@@ -59,7 +59,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.tcp.routers.caddy.entrypoints=websecure"
-      - "traefik.tcp.routers.caddy.rule=HostSNI(`benxo.test`) || HostSNIRegexp(`.*\\.mystore.benxo.test`)"
+      - "traefik.tcp.routers.caddy.rule=HostSNI(`${DOMAIN}`) || HostSNIRegexp(`.*\\.${STORE_SUFFIX}`)"
       - "traefik.tcp.routers.caddy.tls.passthrough=true"
       - "traefik.tcp.services.caddy.loadbalancer.server.port=443"
       - "traefik.tcp.routers.caddy-catchall.entrypoints=websecure"
