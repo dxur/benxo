@@ -38,6 +38,12 @@ WORKDIR /app
 COPY --from=backend-builder /app/backend/bindings ./backend/bindings
 COPY ./frontend ./frontend
 
+ARG STORE_SUFFIX
+ARG DOMAIN
+
+ENV STORE_SUFFIX=${STORE_SUFFIX}
+ENV DOMAIN=${DOMAIN}
+
 RUN --mount=type=cache,target=/app/frontend/node_modules cd frontend && bun install && bun run build
 
 # --- Stage 4: Caddy proxy ---

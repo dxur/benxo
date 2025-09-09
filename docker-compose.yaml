@@ -29,8 +29,8 @@ services:
     networks:
       - backend_net
     environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+      - MINIO_ROOT_USER=${STORAGE_USER}
+      - MINIO_ROOT_PASSWORD=${STORAGE_PASSWORD}
     command: server /data
     volumes:
       - minio_data:/data
@@ -43,6 +43,8 @@ services:
       - backend_net
     volumes:
       - mongo_data:/data/db
+    profiles:
+      - "mongo-local"
 
   caddy: &caddy_base
     image: ${IMAGE_NAMESPACE}/proxy:latest

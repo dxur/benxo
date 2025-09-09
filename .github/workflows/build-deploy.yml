@@ -50,6 +50,9 @@ jobs:
           tags: ${{ env.IMAGE_NAMESPACE }}/proxy:latest
           cache-from: type=registry,ref=${{ env.BUILD_CACHE }}
           cache-to: type=registry,ref=${{ env.BUILD_CACHE }},mode=max
+          build-args: |
+            STORE_SUFFIX=${{ vars.STORE_SUFFIX }}
+            DOMAIN=${{ vars.DOMAIN }}
 
       - name: Build cache
         uses: docker/build-push-action@v4
@@ -69,8 +72,8 @@ jobs:
       - name: Copy docker-compose to server
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
+          host: ${{ vars.VPS_HOST }}
+          username: ${{ vars.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           source: "docker-compose.yml"
           target: "/srv/${{ github.event.repository.name }}/"
@@ -78,23 +81,23 @@ jobs:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
+          host: ${{ vars.VPS_HOST }}
+          username: ${{ vars.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             cd /srv/${{ github.event.repository.name }}
             cat > .env <<EOF
             IMAGE_NAMESPACE=${{ env.IMAGE_NAMESPACE }}
-            STORE_SUFFIX=${{ secrets.STORE_SUFFIX }}
-            ROOT_DB_NAME=${{ secrets.ROOT_DB_NAME }}
+            STORE_SUFFIX=${{ vars.STORE_SUFFIX }}
+            ROOT_DB_NAME=${{ vars.ROOT_DB_NAME }}
             ATLAS_URI=${{ secrets.ATLAS_URI }}
             STORAGE_URI=${{ secrets.STORAGE_URI }}
-            STORAGE_REGION=${{ secrets.STORAGE_REGION }}
+            STORAGE_REGION=${{ vars.STORAGE_REGION }}
             STORAGE_USER=${{ secrets.STORAGE_USER }}
             STORAGE_PASSWORD=${{ secrets.STORAGE_PASSWORD }}
-            STORAGE_BUCKET_NAME=${{ secrets.STORAGE_BUCKET_NAME }}
-            DOMAIN=${{ secrets.DOMAIN }}
-            ACME_EMAIL=${{ secrets.ACME_EMAIL }}
+            STORAGE_BUCKET_NAME=${{ vars.STORAGE_BUCKET_NAME }}
+            DOMAIN=${{ vars.DOMAIN }}
+            ACME_EMAIL=${{ vars.ACME_EMAIL }}
             EOF
             docker compose --env-file .env pull
             docker compose --env-file .env up -d
