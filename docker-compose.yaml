@@ -6,6 +6,8 @@ services:
     networks:
       - backend_net
     environment:
+      - DOMAIN=${DOMAIN}
+      - MAIL_SERVER="mailpit:1025"
       - STORE_SUFFIX=${STORE_SUFFIX}
       - ROOT_DB_NAME=${ROOT_DB_NAME}
       - ATLAS_URI=${ATLAS_URI}
@@ -88,6 +90,15 @@ services:
     labels: []
     profiles:
       - "standalone"
+
+  mailpit:
+    image: mailpit/mailpit:latest
+    container_name: mailpit
+    restart: always
+    environment:
+      - MP_UI_AUTH=${MP_UI_AUTH}
+    networks:
+      - backend_net
 
 networks:
   backend_net:

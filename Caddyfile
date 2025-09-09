@@ -19,6 +19,10 @@ cdn.{$DOMAIN} {
 	reverse_proxy http://minio:9000
 }
 
+mail.dev.{$DOMAIN} {
+	reverse_proxy http://localhost:8025
+}
+
 *.{$STORE_SUFFIX} {
 	handle /api* {
 		reverse_proxy http://backend:3000

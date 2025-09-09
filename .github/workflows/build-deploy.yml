@@ -111,6 +111,7 @@ jobs:
             STORAGE_USER=${{ secrets.STORAGE_USER }}
             STORAGE_PASSWORD=${{ secrets.STORAGE_PASSWORD }}
             STORAGE_BUCKET_NAME=${{ vars.STORAGE_BUCKET_NAME }}
+            MP_UI_AUTH=${{ secrets.MP_UI_AUTH }}
             DOMAIN=${{ vars.DOMAIN }}
             ACME_EMAIL=${{ vars.ACME_EMAIL }}
             ACME_CA=${{ vars.ACME_CA }}
