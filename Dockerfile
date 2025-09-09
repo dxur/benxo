@@ -7,6 +7,8 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     libssl-dev \
     ca-certificates \
+    clang \
+    lld \
     && rm -rf /var/lib/apt/lists/*
 
 COPY ./Cargo.toml ./Cargo.toml

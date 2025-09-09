@@ -2,7 +2,6 @@
 /logs
 /dist
 /bench
-/.cargo
 /.trash
 /.vscode
 /.devbox
