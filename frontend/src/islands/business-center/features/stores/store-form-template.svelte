@@ -10,7 +10,7 @@
         TrashIcon,
         CopyIcon,
         RotateCcwIcon,
-    } from "lucide-svelte";
+    } from "@lucide/svelte";
     import { onMount } from "svelte";
     import { EditorView } from "codemirror";
     import { basicSetup } from "codemirror";

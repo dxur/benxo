@@ -11,7 +11,8 @@
     "varnish@latest",
     "cargo-watch@latest",
     "minio@latest",
-    "minio-client@latest"
+    "minio-client@latest",
+    "mold@latest"
   ],
   "shell": {
     "scripts": {

@@ -68,9 +68,9 @@ jobs:
           push: true
           tags: ${{ env.IMAGE_NAMESPACE }}/cache:latest
           cache-from: type=local,src=/tmp/.buildx-cache-app
-          cache-to: type=local,dest=/tmp/.buildx-cache-app-new,mode
+          cache-to: type=local,dest=/tmp/.buildx-cache-app-new,mode=max
 
-      - name: APP::Move cache
+      - name: Move cache
         run: |
           rm -rf /tmp/.buildx-cache-app
           mv /tmp/.buildx-cache-app-new /tmp/.buildx-cache-app
