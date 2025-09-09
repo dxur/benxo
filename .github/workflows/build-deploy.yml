@@ -114,5 +114,6 @@ jobs:
             DOMAIN=${{ vars.DOMAIN }}
             ACME_EMAIL=${{ vars.ACME_EMAIL }}
             EOF
+            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
             docker compose --env-file .env pull
             docker compose --env-file .env up -d

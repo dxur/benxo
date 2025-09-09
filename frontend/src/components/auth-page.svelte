@@ -6,7 +6,7 @@
 
   import { auth, me } from "@bindings/UserRoutes";
   import { navigate } from "astro:transitions/client";
-  import { ModeWatcher } from "mode-watcher";
+  // import { ModeWatcher } from "mode-watcher";
   import { untrack } from "svelte";
 
   let email = $state("");
@@ -94,7 +94,7 @@
   {/if}
 {/snippet}
 
-<ModeWatcher />
+<!-- <ModeWatcher /> -->
 
 <div class="flex flex-col gap-6">
   <Card.Root class="overflow-hidden p-0">
