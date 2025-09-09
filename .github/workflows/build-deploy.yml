@@ -6,8 +6,8 @@ on:
       - main
 
 env:
-  IMAGE_NAMESPACE: ghcr.io/${{ github.repository_owner }}/\${{ github.event.repository.name }}
-  BUILD_CACHE: ghcr.io/${{ github.repository_owner }}/\${{ github.event.repository.name }}/buildcache
+  IMAGE_NAMESPACE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
+  BUILD_CACHE: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}/buildcache
 
 jobs:
   build:
