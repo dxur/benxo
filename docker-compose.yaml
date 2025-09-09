@@ -55,6 +55,7 @@ services:
     environment:
       - DOMAIN=${DOMAIN}
       - ACME_EMAIL=${ACME_EMAIL}
+      - ACME_CA=${ACME_CA}
       - STORE_SUFFIX=${STORE_SUFFIX}
     labels:
       - "traefik.enable=true"

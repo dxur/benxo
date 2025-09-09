@@ -113,6 +113,7 @@ jobs:
             STORAGE_BUCKET_NAME=${{ vars.STORAGE_BUCKET_NAME }}
             DOMAIN=${{ vars.DOMAIN }}
             ACME_EMAIL=${{ vars.ACME_EMAIL }}
+            ACME_CA=${{ vars.ACME_CA }}
             EOF
             echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
             docker compose --env-file .env pull
