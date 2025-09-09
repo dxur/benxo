@@ -92,7 +92,7 @@ services:
       - "standalone"
 
   mailpit:
-    image: mailpit/mailpit:latest
+    image: axllent/mailpit:latest
     container_name: mailpit
     restart: always
     environment:
