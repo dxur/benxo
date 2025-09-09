@@ -6,7 +6,7 @@
 }
 
 {$DOMAIN}, www.{$DOMAIN} {
-	handle_path /api* {
+	handle /api* {
 		reverse_proxy http://backend:3000
 	}
 
@@ -19,7 +19,7 @@ cdn.{$DOMAIN} {
 }
 
 *.{$STORE_SUFFIX} {
-	handle_path /api* {
+	handle /api* {
 		reverse_proxy http://backend:3000
 	}
 
@@ -37,7 +37,7 @@ https:// {
 		on_demand
 	}
 
-	handle_path /api* {
+	handle /api* {
 		reverse_proxy http://backend:3000
 	}
 
