@@ -38,13 +38,14 @@ WORKDIR /app
 COPY --from=backend-builder /app/backend/bindings ./backend/bindings
 COPY ./frontend ./frontend
 
-RUN --mount=type=cache,target=/app/frontend/node_modules cd frontend && bun install
-RUN cd frontend && bun run build
+RUN --mount=type=cache,target=/app/frontend/node_modules cd frontend && bun install && bun run build
 
+# --- Stage 4: Caddy proxy ---
 FROM caddy AS proxy
 WORKDIR /srv
 COPY --from=frontend-builder /app/frontend/dist ./www
 COPY ./Caddyfile /etc/caddy/Caddyfile
 
+# --- Stage 5: Varnish cache ---
 FROM varnish AS cache
 COPY ./varnish.vcl /etc/varnish/default.vcl
