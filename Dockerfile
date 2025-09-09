@@ -44,3 +44,7 @@ RUN cd frontend && bun run build
 FROM caddy AS proxy
 WORKDIR /srv
 COPY --from=frontend-builder /app/frontend/dist ./www
+COPY ./Caddyfile /etc/caddy/Caddyfile
+
+FROM varnish AS cache
+COPY ./varnish.vcl /etc/varnish/default.vcl

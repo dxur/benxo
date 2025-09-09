@@ -1,8 +1,6 @@
 services:
   backend:
-    build:
-      context: .
-      target: backend
+    image: ${IMAGE_NAMESPACE}/backend:latest
     container_name: backend
     restart: always
     networks:
@@ -17,14 +15,12 @@ services:
       - STORAGE_PASSWORD=${STORAGE_PASSWORD}
       - STORAGE_BUCKET_NAME=${STORAGE_BUCKET_NAME}
 
-  varnish:
-    image: varnish:6
-    container_name: varnish
+  cache:
+    image: ${IMAGE_NAMESPACE}/cache:latest
+    container_name: cache
     restart: always
     networks:
       - backend_net
-    volumes:
-      - ./varnish.vcl:/etc/varnish/default.vcl:ro
 
   minio:
     image: minio/minio:latest
@@ -49,9 +45,7 @@ services:
       - mongo_data:/data/db
 
   caddy: &caddy_base
-    build:
-      context: .
-      target: proxy
+    image: ${IMAGE_NAMESPACE}/proxy:latest
     container_name: proxy
     restart: always
     networks:
@@ -79,7 +73,6 @@ services:
     # - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
     # - "traefik.http.middlewares.redirect-to-https.redirectscheme.port=443"
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
 
