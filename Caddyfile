@@ -20,7 +20,7 @@ cdn.{$DOMAIN} {
 	reverse_proxy http://minio:9000
 }
 
-mail.dev.{$DOMAIN} {
+mail.{$DOMAIN} {
 	tls internal
 	reverse_proxy http://localhost:8025
 }
@@ -32,7 +32,7 @@ mail.dev.{$DOMAIN} {
 	}
 
 	handle {
-		reverse_proxy http://varnish:6080
+		reverse_proxy http://cache:80
 	}
 }
 
@@ -52,6 +52,6 @@ https:// {
 	}
 
 	handle {
-		reverse_proxy http://varnish:6080
+		reverse_proxy http://cache:80
 	}
 }

@@ -37,6 +37,19 @@ services:
     volumes:
       - minio_data:/data
 
+  createbuckets:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5 && mc alias set myminio http://minio:9000 ${STORAGE_USER} ${STORAGE_PASSWORD} &&
+      mc mb -p myminio/${STORAGE_BUCKET_NAME} || true &&
+      mc anonymous set download myminio/${STORAGE_BUCKET_NAME}
+      "
+    networks:
+      - backend_net
+
   mongo:
     image: mongo:latest
     container_name: mongo
