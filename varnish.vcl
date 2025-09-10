@@ -3,7 +3,7 @@ vcl 4.1;
 import std;
 
 backend default {
-    .host = "localhost";
+    .host = "backend";
     .port = "5080";
 }
 

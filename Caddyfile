@@ -3,10 +3,10 @@
 		ask "http://backend:2000/api/v1/tls"
 	}
 	email {$ACME_EMAIL}
-	acme_ca {$ACME_CA}
 }
 
 {$DOMAIN}, www.{$DOMAIN} {
+	tls internal
 	handle /api* {
 		reverse_proxy http://backend:3000
 	}
@@ -16,14 +16,17 @@
 }
 
 cdn.{$DOMAIN} {
+	tls internal
 	reverse_proxy http://minio:9000
 }
 
 mail.dev.{$DOMAIN} {
+	tls internal
 	reverse_proxy http://localhost:8025
 }
 
 *.{$STORE_SUFFIX} {
+	tls internal
 	handle /api* {
 		reverse_proxy http://backend:3000
 	}
@@ -34,11 +37,13 @@ mail.dev.{$DOMAIN} {
 }
 
 *.{$DOMAIN} {
+	tls internal
 	redir https://{$DOMAIN}
 }
 
 https:// {
 	tls {
+		ca {$ACME_CA}
 		on_demand
 	}
 

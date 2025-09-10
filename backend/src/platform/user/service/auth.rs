@@ -65,7 +65,7 @@ impl<R: UserRepo> UserService<R> {
 
     #[instrument(skip(self), fields(email = %email))]
     async fn handle_email_step(&self, email: Email) -> ApiResult<(UserToken, MessageResponse)> {
-        let otp = "555555".to_string(); // generate_otp()?;
+        let otp = generate_otp()?;
         let otp_hash = blake3::hash(otp.as_bytes());
 
         let count = self
@@ -79,12 +79,12 @@ impl<R: UserRepo> UserService<R> {
         if count > 0 {
             warn!("Email already exists");
         } else {
-            // send_verification_email(&email, &otp, Duration::hours(1))
-            //     .await
-            //     .map_err(|e| {
-            //         error!(error = ?e, "Failed to send verification email");
-            //         e
-            //     })?;
+            send_verification_email(&email, &otp, Duration::hours(1))
+                .await
+                .map_err(|e| {
+                    error!(error = ?e, "Failed to send verification email");
+                    e
+                })?;
             info!("Verification email sent");
         }
 
@@ -110,7 +110,7 @@ impl<R: UserRepo> UserService<R> {
             return Err(ApiError::unauthorized("Invalid OTP"));
         }
 
-        let otp = "666666".to_string(); // generate_otp()?;
+        let otp = generate_otp()?;
         let otp_hash = blake3::hash(otp.as_bytes());
 
         let count = self
@@ -122,10 +122,11 @@ impl<R: UserRepo> UserService<R> {
             .await?;
 
         if count == 0 {
-            // send_verification_otp(&phone, &otp).await.map_err(|e| {
-            //     error!(error = ?e, "Failed to send verification OTP");
-            //     e
-            // })?;
+            send_verification_otp(&phone, &otp).await.map_err(|e| {
+                error!(error = ?e, "Failed to send verification OTP");
+                e
+            })?;
+
             info!("Verification code sent");
         } else {
             warn!("Phone already exists");
@@ -207,7 +208,7 @@ impl<R: UserRepo> UserService<R> {
         &self,
         email: Email,
     ) -> ApiResult<(UserToken, MessageResponse)> {
-        let otp = "777777".to_string(); // generate_otp()?;
+        let otp = generate_otp()?;
         let otp_hash = blake3::hash(otp.as_bytes());
 
         let count = self
@@ -221,12 +222,12 @@ impl<R: UserRepo> UserService<R> {
         if count == 0 {
             warn!("Email does not exists");
         } else {
-            // send_reset_email(&email, &otp, Duration::minutes(15))
-            //     .await
-            //     .map_err(|e| {
-            //         error!(error = ?e, "Failed to send reset email");
-            //         e
-            //     })?;
+            send_reset_email(&email, &otp, Duration::minutes(15))
+                .await
+                .map_err(|e| {
+                    error!(error = ?e, "Failed to send reset email");
+                    e
+                })?;
             info!("reset email sent");
         }
 
