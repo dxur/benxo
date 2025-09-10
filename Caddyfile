@@ -22,7 +22,7 @@ cdn.{$DOMAIN} {
 
 mail.{$DOMAIN} {
 	tls internal
-	reverse_proxy http://localhost:8025
+	reverse_proxy http://mail:8025
 }
 
 *.{$STORE_SUFFIX} {

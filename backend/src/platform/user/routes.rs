@@ -1,4 +1,5 @@
 use axum::extract::State;
+use axum::http::StatusCode;
 use macros::routes;
 use tower_cookies::Cookies;
 
@@ -22,6 +23,15 @@ impl UserRoutes {
         let (token, msg) = state.user_service.auth(auth_req, token).await?;
         cookies.add(token.try_into()?);
         Ok(Json(msg))
+    }
+
+    #[route(method = delete, path = "/logout")]
+    async fn logout(
+        State(state): State<AppState>,
+        cookies: Cookies,
+    ) -> ApiResult<StatusCode> {
+        cookies.add(UserToken::None.try_into()?);
+        Ok(StatusCode::OK)
     }
 
     #[route(method = post, path = "/me", res = UserDto)]

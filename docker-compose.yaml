@@ -7,7 +7,7 @@ services:
       - backend_net
     environment:
       - DOMAIN=${DOMAIN}
-      - MAIL_SERVER="mailpit:1025"
+      - MAIL_SERVER="mail:1025"
       - STORE_SUFFIX=${STORE_SUFFIX}
       - ROOT_DB_NAME=${ROOT_DB_NAME}
       - ATLAS_URI=${ATLAS_URI}
@@ -104,9 +104,9 @@ services:
     profiles:
       - "standalone"
 
-  mailpit:
+  mail:
     image: axllent/mailpit:latest
-    container_name: mailpit
+    container_name: mail
     restart: always
     environment:
       - MP_UI_AUTH=${MP_UI_AUTH}

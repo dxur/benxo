@@ -19,6 +19,7 @@
     CheckIcon,
     XIcon,
     ExternalLinkIcon,
+    LogOutIcon,
   } from "@lucide/svelte";
 
   import {
@@ -34,6 +35,7 @@
     remove_member,
     update_settings,
   } from "@bindings/BusinessRoutes";
+  import { logout } from "@bindings/UserRoutes";
   import { me } from "@bindings/UserRoutes";
   import type { BusinessDto } from "@bindings/BusinessDto";
   import type { InvitationDto } from "@bindings/InvitationDto";
@@ -202,6 +204,18 @@
       loading = false;
     }
   }
+
+  async function handleLogout() {
+    loading = true;
+    try {
+      await logout();
+      navigate("/");
+    } catch (err) {
+      error = (err as string) || "Failed to logout";
+    } finally {
+      loading = false;
+    }
+  }
 </script>
 
 <!-- <ModeWatcher /> -->
@@ -220,11 +234,18 @@
       {/if}
 
       <!-- Header -->
-      <div class="flex flex-col gap-2">
-        <h1 class="text-3xl font-bold">User Center</h1>
-        <p class="text-muted-foreground">
-          Manage your businesses, invitations, and account settings
-        </p>
+      <div class="flex justify-between items-center">
+        <div class="flex flex-col gap-2">
+          <h1 class="text-3xl font-bold">User Center</h1>
+          <p class="text-muted-foreground">
+            Manage your businesses, invitations, and account settings
+          </p>
+        </div>
+        <div>
+          <Button variant="destructive" onclick={handleLogout}
+            ><LogOutIcon /></Button
+          >
+        </div>
       </div>
 
       <Tabs.Root value="businesses" class="w-full">
@@ -240,7 +261,7 @@
               <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold">Your Businesses</h2>
                 <Button onclick={() => (createBusinessOpen = true)}>
-                  <PlusIcon class="w-4 h-4 mr-2" />
+                  <PlusIcon class="w-4 h-4" />
                   Create Business
                 </Button>
               </div>
@@ -248,7 +269,9 @@
               {#if currentBusiness}
                 <Card.Root>
                   <Card.Header>
-                    <div class="flex items-center justify-between">
+                    <div
+                      class="flex flex-col md:flex-row gap-4 md:gap-1 items-center justify-between"
+                    >
                       <div class="flex items-center gap-2">
                         <BuildingIcon class="w-5 h-5 text-green-600" />
                         <div class="space-y-1">
@@ -260,7 +283,9 @@
                           >
                         </div>
                       </div>
-                      <div class="flex gap-2">
+                      <div
+                        class="flex flex-col md:flex-row gap-2 w-full justify-center md:w-auto"
+                      >
                         <Button
                           variant="outline"
                           size="sm"
