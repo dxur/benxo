@@ -32,7 +32,7 @@
         queryFn: () => {
             return <Partial<StoreDto>>{
                 id: "",
-                name: "Amazing Store",
+                name: "",
                 description: "",
                 category: null,
                 status: "inactive",

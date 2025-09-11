@@ -30,7 +30,7 @@
         useState(
             createForm(ProductSchema, <ProductCreateDto>{
                 id: "",
-                title: "Amazing Product",
+                title: "",
                 description: "",
                 status: "inactive",
                 featured: false,
