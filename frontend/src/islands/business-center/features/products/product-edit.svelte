@@ -41,6 +41,7 @@
   import LoadingSpinner from "../../lib/components/loading-spinner.svelte";
   import LoadingError from "../../lib/components/loading-error.svelte";
   import { Button } from "@/lib/components/ui/button";
+  import { single } from "@/lib/event";
 
   const { replace } = useNavigate();
 

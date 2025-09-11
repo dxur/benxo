@@ -37,6 +37,7 @@
     import type { StoreRegUpdate } from "@bindings/StoreRegUpdate";
     import type { StoreRegDto } from "@bindings/StoreRegDto";
     import { formatDateTime } from "../../lib/utils/fmt";
+    import { single } from "@/lib/event";
 
     let {
         storeId,

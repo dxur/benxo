@@ -8,6 +8,7 @@
   import { navigate } from "astro:transitions/client";
   // import { ModeWatcher } from "mode-watcher";
   import { untrack } from "svelte";
+  import { single } from "@/lib/event";
 
   let email = $state("");
   let email_otp = $state("");

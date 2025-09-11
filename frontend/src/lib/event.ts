@@ -16,15 +16,27 @@ export function debounce<T extends (...args: any[]) => void>(
     };
 }
 
+function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 export function single(handler: (event: Event) => any | Promise<any>) {
     let running = false;
+
     return async (event: Event) => {
         if (running) return;
+
         running = true;
+
+        const el = event.currentTarget as HTMLButtonElement;
+        if (el) el.disabled = true;
+
         try {
             await handler(event);
+            await sleep(500);
         } finally {
             running = false;
+            if (el) el.disabled = false;
         }
     };
 }
