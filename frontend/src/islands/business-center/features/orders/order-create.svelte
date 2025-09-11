@@ -41,6 +41,7 @@
     import { toast } from "svelte-sonner";
     import { snakeToTitleCase } from "../../lib/utils/fmt";
     import type { OrderCreate } from "@bindings/OrderCreate";
+    import { single } from "../../lib/utils/event";
 
     const { replace } = useNavigate();
 
@@ -231,7 +232,7 @@
                     <PackageIcon class="w-5 h-5" />
                     Order Items
                 </Card.Title>
-                <Button onclick={addOrderItem} size="sm">
+                <Button onclick={single(addOrderItem)} size="sm">
                     <PlusIcon class="w-4 h-4 mr-2" />
                     Add Item
                 </Button>
@@ -246,7 +247,7 @@
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                onclick={() => removeOrderItem(index)}
+                                onclick={single(() => removeOrderItem(index))}
                             >
                                 <TrashIcon class="w-4 h-4" />
                             </Button>
@@ -384,7 +385,7 @@
                     <Button
                         variant="outline"
                         size="sm"
-                        onclick={copyShippingToBilling}
+                        onclick={single(copyShippingToBilling)}
                         type="button"
                     >
                         Copy from shipping address

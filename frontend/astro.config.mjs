@@ -15,7 +15,7 @@ export default defineConfig({
   vite: {
     define: {
       __APP_ENV__: {
-        STORE_SUFFIX: process.env.STORE_SUFFIX
+        STORE_SUFFIX: JSON.stringify("__STORE_SUFFIX__")
       }
     },
     build: {

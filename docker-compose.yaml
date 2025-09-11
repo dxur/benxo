@@ -1,6 +1,6 @@
 services:
   backend:
-    image: ${IMAGE_NAMESPACE}/backend:latest
+    image: ${IMAGE_NAMESPACE}/backend:${IMAGE_TAG}
     container_name: backend
     restart: always
     networks:
@@ -18,7 +18,7 @@ services:
       - STORAGE_BUCKET_NAME=${STORAGE_BUCKET_NAME}
 
   cache:
-    image: ${IMAGE_NAMESPACE}/cache:latest
+    image: ${IMAGE_NAMESPACE}/cache:${IMAGE_TAG}
     container_name: cache
     restart: always
     networks:
@@ -62,7 +62,7 @@ services:
       - "mongo-local"
 
   caddy: &caddy_base
-    image: ${IMAGE_NAMESPACE}/proxy:latest
+    image: ${IMAGE_NAMESPACE}/proxy:${IMAGE_TAG}
     container_name: proxy
     restart: always
     networks:

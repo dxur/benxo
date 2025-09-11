@@ -15,3 +15,16 @@ export function debounce<T extends (...args: any[]) => void>(
         timer = setTimeout(() => fn(...args), delay);
     };
 }
+
+export function single(handler: (event: Event) => void | Promise<void>) {
+    let running = false;
+    return async (event: Event) => {
+        if (running) return;
+        running = true;
+        try {
+            await handler(event);
+        } finally {
+            running = false;
+        }
+    };
+}

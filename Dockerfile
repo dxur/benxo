@@ -38,12 +38,6 @@ WORKDIR /app
 COPY --from=backend-builder /app/backend/bindings ./backend/bindings
 COPY ./frontend ./frontend
 
-ARG STORE_SUFFIX
-ARG DOMAIN
-
-ENV STORE_SUFFIX=${STORE_SUFFIX}
-ENV DOMAIN=${DOMAIN}
-
 RUN --mount=type=cache,target=/app/frontend/node_modules cd frontend && bun install && bun run build
 
 # --- Stage 4: Caddy proxy ---
@@ -51,6 +45,25 @@ FROM caddy AS proxy
 WORKDIR /srv
 COPY --from=frontend-builder /app/frontend/dist ./www
 COPY ./Caddyfile /etc/caddy/Caddyfile
+
+RUN printf '%s\n' \
+  '#!/bin/sh' \
+  'set -e' \
+  '' \
+  'if [ -z "$STORE_SUFFIX" ]; then' \
+  '  echo "STORE_SUFFIX is not set" >&2' \
+  '  exit 1' \
+  'fi' \
+  '' \
+  'echo "Replacing placeholder with STORE_SUFFIX=$STORE_SUFFIX"' \
+  'find /srv/www -type f -exec sed -i "s/__STORE_SUFFIX__/$STORE_SUFFIX/g" {} +' \
+  '' \
+  'exec caddy "$@"' \
+  > /entrypoint.sh \
+  && chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
 
 # --- Stage 5: Varnish cache ---
 FROM varnish AS cache
