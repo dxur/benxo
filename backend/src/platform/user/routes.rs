@@ -26,10 +26,7 @@ impl UserRoutes {
     }
 
     #[route(method = delete, path = "/logout")]
-    async fn logout(
-        State(state): State<AppState>,
-        cookies: Cookies,
-    ) -> ApiResult<StatusCode> {
+    async fn logout(State(state): State<AppState>, cookies: Cookies) -> ApiResult<StatusCode> {
         cookies.add(UserToken::None.try_into()?);
         Ok(StatusCode::OK)
     }

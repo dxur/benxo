@@ -1,11 +1,11 @@
-use std::str::FromStr;
 use std::mem;
+use std::str::FromStr;
 
 use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use axum::response::{Html, IntoResponse};
-use chrono::Utc;
 use chrono::Datelike;
+use chrono::Utc;
 use hyper::{header, HeaderMap};
 use indexmap::IndexMap;
 use liquid::partials::{EagerCompiler, InMemorySource, PartialSource};
@@ -21,8 +21,8 @@ use crate::platform::business::api::BusinessSession;
 use crate::platform::user::api::MessageResponse;
 use crate::tenant::product::api::ProductListQuery;
 use crate::types::id::Id;
-use crate::utils::error::ApiResult;
 use crate::utils::error::ApiError;
+use crate::utils::error::ApiResult;
 use crate::utils::types::CowStr;
 use crate::AppState;
 
@@ -195,7 +195,8 @@ impl PubStoreRoutes {
     fn parser_for(snippets: IndexMap<String, CowStr>) -> ApiResult<Parser> {
         ParserBuilder::with_stdlib()
             .partials(Self::build_partials(snippets))
-            .build().map_err(|e| ApiError::internal(format!("Failed to build liquid parser: {}", e)))
+            .build()
+            .map_err(|e| ApiError::internal(format!("Failed to build liquid parser: {}", e)))
     }
 
     fn render_page(
@@ -204,11 +205,18 @@ impl PubStoreRoutes {
         template_src: &str,
     ) -> ApiResult<String> {
         let parser = Self::parser_for(snippets)?;
-        let template = parser.parse(template_src).map_err(|e| ApiError::internal(format!("Failed to parse template: {}", e)))?;
-        template.render(&globals).map_err(|e| ApiError::internal(format!("Failed to render template: {}", e)))
+        let template = parser
+            .parse(template_src)
+            .map_err(|e| ApiError::internal(format!("Failed to parse template: {}", e)))?;
+        template
+            .render(&globals)
+            .map_err(|e| ApiError::internal(format!("Failed to render template: {}", e)))
     }
 
-    fn store_not_found_page(mut store: StoreDto, slug: Option<String>) -> (StatusCode, Html<CowStr>) {
+    fn store_not_found_page(
+        mut store: StoreDto,
+        slug: Option<String>,
+    ) -> (StatusCode, Html<CowStr>) {
         let template = mem::take(&mut store.not_found_page_template);
         let snippets = mem::take(&mut store.snippets);
 
@@ -224,7 +232,9 @@ impl PubStoreRoutes {
             Ok(out) => (StatusCode::NOT_FOUND, Html(CowStr::from(out))),
             Err(e) => {
                 error!("404 render error: {:?}", e);
-                    Into::<(StatusCode, Html<CowStr>)>::into(ApiError::internal("Failed to render page"))
+                Into::<(StatusCode, Html<CowStr>)>::into(ApiError::internal(
+                    "Failed to render page",
+                ))
             }
         }
     }
@@ -253,7 +263,8 @@ impl PubStoreRoutes {
                 },
             )
             .await
-            .map_err(Into::<(StatusCode, Html<CowStr>)>::into)?.products;
+            .map_err(Into::<(StatusCode, Html<CowStr>)>::into)?
+            .products;
 
         let extras = liquid::object!({
             "featured_products": featured,
@@ -264,10 +275,12 @@ impl PubStoreRoutes {
 
         let globals = Self::merge_globals(Self::base_store_globals(store), extras);
 
-        let out = Self::render_page(globals, snippets, &template).map_err(|e| {
-            error!("liquid render error: {:?}", e);
-            ApiError::internal("Failed to render page")
-        }).map_err(Into::<(StatusCode, Html<CowStr>)>::into)?;
+        let out = Self::render_page(globals, snippets, &template)
+            .map_err(|e| {
+                error!("liquid render error: {:?}", e);
+                ApiError::internal("Failed to render page")
+            })
+            .map_err(Into::<(StatusCode, Html<CowStr>)>::into)?;
 
         Ok::<_, (StatusCode, Html<CowStr>)>(Html(out))
     }
@@ -287,22 +300,20 @@ impl PubStoreRoutes {
         let product = match state
             .product_service
             .pub_get_product(store_key.business_id, &slug)
-            .await {
-                Err(ApiError::NotFound { .. }) => {
-                    return Err(Self::store_not_found_page(store, Some(slug)));
-                }
-                Err(e) => {
-                    return Err(Into::<(StatusCode, Html<CowStr>)>::into(e));
-                }
-                Ok(p) => p,
-            };
+            .await
+        {
+            Err(ApiError::NotFound { .. }) => {
+                return Err(Self::store_not_found_page(store, Some(slug)));
+            }
+            Err(e) => {
+                return Err(Into::<(StatusCode, Html<CowStr>)>::into(e));
+            }
+            Ok(p) => p,
+        };
 
         let related = state
             .product_service
-            .pub_list_related_products(
-                store_key.business_id,
-                &slug,
-            )
+            .pub_list_related_products(store_key.business_id, &slug)
             .await
             .unwrap_or_default();
 
@@ -316,11 +327,10 @@ impl PubStoreRoutes {
 
         let globals = Self::merge_globals(Self::base_store_globals(store), extras);
         std::fs::write("/tmp/debug.liquid", format!("{:#?}", globals)).ok();
-        let out =
-            Self::render_page(globals, snippets, &template).map_err(|e| {
-                error!("liquid render error: {:?}", e);
-                Into::<(StatusCode, Html<CowStr>)>::into(e)
-            })?;
+        let out = Self::render_page(globals, snippets, &template).map_err(|e| {
+            error!("liquid render error: {:?}", e);
+            Into::<(StatusCode, Html<CowStr>)>::into(e)
+        })?;
 
         Ok::<_, (StatusCode, Html<CowStr>)>(Html(out))
     }
@@ -375,7 +385,8 @@ impl PubStoreRoutes {
                 },
             )
             .await
-            .map_err(Into::<(StatusCode, Html<CowStr>)>::into)?.products;
+            .map_err(Into::<(StatusCode, Html<CowStr>)>::into)?
+            .products;
 
         let extras = liquid::object!({
             "query": None::<String>,

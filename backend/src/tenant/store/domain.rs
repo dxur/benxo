@@ -176,11 +176,11 @@ impl StoreRecord {
             address,
             city,
             zip_code,
-            
+
             logo,
             logo_alt,
             favicon,
-            
+
             menu_items,
             featured_collections,
             social_links,

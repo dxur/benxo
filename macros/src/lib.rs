@@ -8,8 +8,8 @@ use proc_macro2::Span;
 use quote::{ToTokens, quote};
 use regex::Regex;
 use syn::{
-    DeriveInput, FnArg, Ident, ImplItem, ImplItemFn, ItemImpl, LitStr, Meta, PatType, Path, Type,
-    meta, parse_macro_input, punctuated::Punctuated, Fields, TypePath, ItemStruct
+    DeriveInput, Fields, FnArg, Ident, ImplItem, ImplItemFn, ItemImpl, ItemStruct, LitStr, Meta,
+    PatType, Path, Type, TypePath, meta, parse_macro_input, punctuated::Punctuated,
 };
 
 #[proc_macro_derive(Model, attributes(model))]
@@ -563,7 +563,7 @@ pub fn routes(args: TokenStream, input: TokenStream) -> TokenStream {
         #input_impl
         #expanded_test
     };
-    
+
     expanded.into()
 }
 
@@ -649,7 +649,10 @@ pub fn json_option_serde(_attr: TokenStream, item: TokenStream) -> TokenStream {
         for field in fields_named.named.iter_mut() {
             // Check if the field type is JsonOption<T>
             let is_json_option = if let Type::Path(TypePath { path, .. }) = &field.ty {
-                path.segments.last().map(|seg| seg.ident == "JsonOption").unwrap_or(false)
+                path.segments
+                    .last()
+                    .map(|seg| seg.ident == "JsonOption")
+                    .unwrap_or(false)
             } else {
                 false
             };

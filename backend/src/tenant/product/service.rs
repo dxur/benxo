@@ -86,7 +86,11 @@ impl<R: ProductRepo> ProductService<R> {
             .map(Into::into)
     }
 
-    pub async fn pub_get_product(&self, business_id: Id, product_slug: &str) -> ApiResult<ProductDto> {
+    pub async fn pub_get_product(
+        &self,
+        business_id: Id,
+        product_slug: &str,
+    ) -> ApiResult<ProductDto> {
         self.repo
             .find_active_by_slug(business_id.into_inner(), product_slug)
             .await?

@@ -4,8 +4,8 @@ use axum::{http::StatusCode, response::Html};
 
 use super::api::*;
 use crate::utils::error::ApiError;
-use crate::AppState;
 use crate::utils::types::CowStr;
+use crate::AppState;
 
 pub struct Store(pub StoreRegDto);
 
@@ -20,14 +20,23 @@ impl FromRequestParts<AppState> for Store {
             .headers
             .get(HOST)
             .and_then(|v| v.to_str().ok())
-            .ok_or(ApiError::invalid_header(
-                "Host",
-                "Host header must be included",
-            ).into())?;
+            .ok_or(ApiError::invalid_header("Host", "Host header must be included").into())?;
         if let Some(slug) = host.strip_suffix(&state.store_suffix) {
-            Ok(Store(state.store_service.get_slug(slug).await.map_err(Into::into)?))
+            Ok(Store(
+                state
+                    .store_service
+                    .get_slug(slug)
+                    .await
+                    .map_err(Into::into)?,
+            ))
         } else {
-            Ok(Store(state.store_service.get_domain(host).await.map_err(Into::into)?))
+            Ok(Store(
+                state
+                    .store_service
+                    .get_domain(host)
+                    .await
+                    .map_err(Into::into)?,
+            ))
         }
     }
 }

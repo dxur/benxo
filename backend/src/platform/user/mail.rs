@@ -24,7 +24,8 @@ pub async fn send_verification_email(to: &Email, otp: &str, ttl: Duration) -> Ap
         from, to_header, subject, content_type, blank_line, msg_body
     );
 
-    let mail_server = std::env::var("MAIL_SERVER").map_err(|_| ApiError::internal("Can't get mail server"))?;
+    let mail_server =
+        std::env::var("MAIL_SERVER").map_err(|_| ApiError::internal("Can't get mail server"))?;
     let stream = TcpStream::connect(&mail_server)
         .await
         .map_err(|_| ApiError::internal("Can't connect to SMTP server"))?;
@@ -69,7 +70,8 @@ pub async fn send_reset_email(to: &Email, otp: &str, ttl: Duration) -> ApiResult
         from, to_header, subject, content_type, blank_line, msg_body
     );
 
-    let mail_server = std::env::var("MAIL_SERVER").map_err(|_| ApiError::internal("Can't get mail server"))?;
+    let mail_server =
+        std::env::var("MAIL_SERVER").map_err(|_| ApiError::internal("Can't get mail server"))?;
     let stream = TcpStream::connect(&mail_server)
         .await
         .map_err(|_| ApiError::internal("Can't connect to SMTP server"))?;

@@ -69,31 +69,19 @@ impl ProblemDetails {
 #[derive(Debug, thiserror::Error)]
 pub enum ApiError {
     #[error("Validation failed")]
-    ValidationError {
-        field: CowStr,
-        message: CowStr,
-    },
+    ValidationError { field: CowStr, message: CowStr },
 
     #[error("Resource not found")]
-    NotFound {
-        resource: CowStr,
-        id: CowStr,
-    },
+    NotFound { resource: CowStr, id: CowStr },
 
     #[error("Authentication failed")]
     Unauthorized { reason: CowStr },
 
     #[error("Access denied")]
-    Forbidden {
-        resource: CowStr,
-        action: CowStr,
-    },
+    Forbidden { resource: CowStr, action: CowStr },
 
     #[error("Conflict occurred")]
-    Conflict {
-        resource: CowStr,
-        reason: CowStr,
-    },
+    Conflict { resource: CowStr, reason: CowStr },
 
     #[error("Rate limit exceeded")]
     RateLimitExceeded { retry_after: u64 },
@@ -121,19 +109,13 @@ pub enum ApiError {
     },
 
     #[error("Invalid request body")]
-    InvalidRequestBody {
-        expected: CowStr,
-        message: CowStr,
-    },
+    InvalidRequestBody { expected: CowStr, message: CowStr },
 
     #[error("Missing required field")]
     MissingField { field: CowStr },
 
     #[error("Invalid content type")]
-    InvalidContentType {
-        expected: CowStr,
-        received: CowStr,
-    },
+    InvalidContentType { expected: CowStr, received: CowStr },
 
     #[error("Request body too large")]
     RequestTooLarge {
@@ -142,22 +124,13 @@ pub enum ApiError {
     },
 
     #[error("Invalid query parameter")]
-    InvalidQueryParam {
-        param: CowStr,
-        message: CowStr,
-    },
+    InvalidQueryParam { param: CowStr, message: CowStr },
 
     #[error("Invalid path parameter")]
-    InvalidPathParam {
-        param: CowStr,
-        message: CowStr,
-    },
+    InvalidPathParam { param: CowStr, message: CowStr },
 
     #[error("Invalid header")]
-    InvalidHeader {
-        header: CowStr,
-        message: CowStr,
-    },
+    InvalidHeader { header: CowStr, message: CowStr },
 
     #[error("Malformed request")]
     MalformedRequest { message: CowStr },
@@ -167,10 +140,7 @@ impl ApiError {
     // === Validation Errors ===
 
     /// Create a validation error with static strings
-    pub fn validation(
-        field: impl Into<CowStr>,
-        message: impl Into<CowStr>,
-    ) -> Self {
+    pub fn validation(field: impl Into<CowStr>, message: impl Into<CowStr>) -> Self {
         Self::ValidationError {
             field: field.into(),
             message: message.into(),
@@ -225,10 +195,7 @@ impl ApiError {
     // === Resource Errors ===
 
     /// Create a not found error
-    pub fn not_found(
-        resource: impl Into<CowStr>,
-        id: impl Into<CowStr>,
-    ) -> Self {
+    pub fn not_found(resource: impl Into<CowStr>, id: impl Into<CowStr>) -> Self {
         Self::NotFound {
             resource: resource.into(),
             id: id.into(),
@@ -260,10 +227,7 @@ impl ApiError {
     }
 
     /// Create a forbidden error
-    pub fn forbidden(
-        resource: impl Into<CowStr>,
-        action: impl Into<CowStr>,
-    ) -> Self {
+    pub fn forbidden(resource: impl Into<CowStr>, action: impl Into<CowStr>) -> Self {
         Self::Forbidden {
             resource: resource.into(),
             action: action.into(),
@@ -287,11 +251,7 @@ impl ApiError {
     }
 
     /// Create an invalid JSON error with position
-    pub fn invalid_json_at(
-        message: impl Into<CowStr>,
-        line: usize,
-        column: usize,
-    ) -> Self {
+    pub fn invalid_json_at(message: impl Into<CowStr>, line: usize, column: usize) -> Self {
         Self::InvalidJson {
             message: message.into(),
             line: Some(line),
@@ -300,10 +260,7 @@ impl ApiError {
     }
 
     /// Create an invalid request body error
-    pub fn invalid_body(
-        expected: impl Into<CowStr>,
-        message: impl Into<CowStr>,
-    ) -> Self {
+    pub fn invalid_body(expected: impl Into<CowStr>, message: impl Into<CowStr>) -> Self {
         Self::InvalidRequestBody {
             expected: expected.into(),
             message: message.into(),
@@ -318,10 +275,7 @@ impl ApiError {
     }
 
     /// Create an invalid content type error
-    pub fn invalid_content_type(
-        expected: impl Into<CowStr>,
-        received: impl Into<CowStr>,
-    ) -> Self {
+    pub fn invalid_content_type(expected: impl Into<CowStr>, received: impl Into<CowStr>) -> Self {
         Self::InvalidContentType {
             expected: expected.into(),
             received: received.into(),
@@ -344,10 +298,7 @@ impl ApiError {
     // === Parameter Errors ===
 
     /// Create an invalid query parameter error
-    pub fn invalid_query(
-        param: impl Into<CowStr>,
-        message: impl Into<CowStr>,
-    ) -> Self {
+    pub fn invalid_query(param: impl Into<CowStr>, message: impl Into<CowStr>) -> Self {
         Self::InvalidQueryParam {
             param: param.into(),
             message: message.into(),
@@ -355,10 +306,7 @@ impl ApiError {
     }
 
     /// Create an invalid query parameter type error
-    pub fn invalid_query_type(
-        param: impl Into<CowStr>,
-        expected_type: &'static str,
-    ) -> Self {
+    pub fn invalid_query_type(param: impl Into<CowStr>, expected_type: &'static str) -> Self {
         let param = param.into();
         Self::InvalidQueryParam {
             message: format!("Parameter '{}' must be of type {}", param, expected_type).into(),
@@ -367,10 +315,7 @@ impl ApiError {
     }
 
     /// Create an invalid path parameter error
-    pub fn invalid_path(
-        param: impl Into<CowStr>,
-        message: impl Into<CowStr>,
-    ) -> Self {
+    pub fn invalid_path(param: impl Into<CowStr>, message: impl Into<CowStr>) -> Self {
         Self::InvalidPathParam {
             param: param.into(),
             message: message.into(),
@@ -387,10 +332,7 @@ impl ApiError {
     }
 
     /// Create an invalid header error
-    pub fn invalid_header(
-        header: impl Into<CowStr>,
-        message: impl Into<CowStr>,
-    ) -> Self {
+    pub fn invalid_header(header: impl Into<CowStr>, message: impl Into<CowStr>) -> Self {
         Self::InvalidHeader {
             header: header.into(),
             message: message.into(),
@@ -409,10 +351,7 @@ impl ApiError {
     // === Business Logic Errors ===
 
     /// Create a conflict error
-    pub fn conflict(
-        resource: impl Into<CowStr>,
-        reason: impl Into<CowStr>,
-    ) -> Self {
+    pub fn conflict(resource: impl Into<CowStr>, reason: impl Into<CowStr>) -> Self {
         Self::Conflict {
             resource: resource.into(),
             reason: reason.into(),
@@ -455,10 +394,7 @@ impl ApiError {
     }
 
     /// Create a service unavailable error
-    pub fn service_unavailable(
-        service: impl Into<CowStr>,
-        retry_after: Option<u64>,
-    ) -> Self {
+    pub fn service_unavailable(service: impl Into<CowStr>, retry_after: Option<u64>) -> Self {
         Self::ServiceUnavailable {
             service: service.into(),
             retry_after,
@@ -476,10 +412,7 @@ impl ApiError {
 
     /// Create an invalid request body error (legacy)
     #[deprecated(since = "0.1.0", note = "Use `invalid_body` instead")]
-    pub fn invalid_request_body(
-        expected: impl Into<CowStr>,
-        message: impl Into<CowStr>,
-    ) -> Self {
+    pub fn invalid_request_body(expected: impl Into<CowStr>, message: impl Into<CowStr>) -> Self {
         Self::invalid_body(expected, message)
     }
 
@@ -754,17 +687,35 @@ impl Into<StatusCode> for ApiError {
     }
 }
 
-
 impl Into<(StatusCode, Html<CowStr>)> for ApiError {
     fn into(self) -> (StatusCode, Html<CowStr>) {
         match self {
-            ApiError::NotFound { .. } => (StatusCode::NOT_FOUND, Html(CowStr::from("404 Not Found"))),
-            ApiError::Unauthorized { .. } => (StatusCode::UNAUTHORIZED, Html(CowStr::from("401 Unauthorized"))),
-            ApiError::Forbidden { .. } => (StatusCode::FORBIDDEN, Html(CowStr::from("403 Forbidden"))),
-            ApiError::RateLimitExceeded { .. } => (StatusCode::TOO_MANY_REQUESTS, Html(CowStr::from("429 Too Many Requests"))),
-            ApiError::InternalError { .. } => (StatusCode::INTERNAL_SERVER_ERROR, Html(CowStr::from("500 Internal Server Error"))),
-            ApiError::ServiceUnavailable { .. } => (StatusCode::SERVICE_UNAVAILABLE, Html(CowStr::from("503 Service Unavailable"))),
-            _ => (StatusCode::INTERNAL_SERVER_ERROR, Html(CowStr::from("An error occurred"))),
+            ApiError::NotFound { .. } => {
+                (StatusCode::NOT_FOUND, Html(CowStr::from("404 Not Found")))
+            }
+            ApiError::Unauthorized { .. } => (
+                StatusCode::UNAUTHORIZED,
+                Html(CowStr::from("401 Unauthorized")),
+            ),
+            ApiError::Forbidden { .. } => {
+                (StatusCode::FORBIDDEN, Html(CowStr::from("403 Forbidden")))
+            }
+            ApiError::RateLimitExceeded { .. } => (
+                StatusCode::TOO_MANY_REQUESTS,
+                Html(CowStr::from("429 Too Many Requests")),
+            ),
+            ApiError::InternalError { .. } => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Html(CowStr::from("500 Internal Server Error")),
+            ),
+            ApiError::ServiceUnavailable { .. } => (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Html(CowStr::from("503 Service Unavailable")),
+            ),
+            _ => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Html(CowStr::from("An error occurred")),
+            ),
         }
     }
 }
