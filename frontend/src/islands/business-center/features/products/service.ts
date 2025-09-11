@@ -48,7 +48,10 @@ const ProductVariantSchema = yup.object({
         .required("Stock quantity is required."),
 
     images: yup
-        .array(yup.string().url("Image must be a valid URL.").defined())
+        .array(yup.string().matches(
+            /^(https?:\/\/|data:image\/[a-zA-Z]+;base64,)/,
+            "Must be a valid URL or data:image URI"
+        ).defined())
         .max(10, "You can only add up to 10 images per variant.")
         .default([]),
 
@@ -103,7 +106,10 @@ export const ProductSchema = yup.object({
         .default(false),
 
     images: yup
-        .array(yup.string().url("Image must be a valid URL.").defined())
+        .array(yup.string().matches(
+            /^(https?:\/\/|data:image\/[a-zA-Z]+;base64,)/,
+            "Must be a valid URL or data:image URI"
+        ).defined())
         .max(20, "You can only add up to 20 images.")
         .default([]),
 
