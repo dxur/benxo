@@ -26,6 +26,7 @@
     import { formatCurrency, snakeToTitleCase } from "../../lib/utils/fmt";
     import { Routes } from ".";
     import type { OrderAnalytics } from "@bindings/OrderAnalytics";
+    import { single } from "../../../../lib/event";
 
     const { replace } = useNavigate();
 
@@ -97,7 +98,9 @@
     {:else if analyticsQuery.isError}
         <div class="flex justify-center items-center h-64">
             <LoadingError message={analyticsQuery.error.message}>
-                <Button onclick={() => analyticsQuery.refetch()}>Retry</Button>
+                <Button onclick={single(() => analyticsQuery.refetch())}
+                    >Retry</Button
+                >
             </LoadingError>
         </div>
     {:else if analyticsQuery.isSuccess}
@@ -109,7 +112,7 @@
     <Column class="[&>*]:w-full items-center">
         <Group>
             <div class="flex items-center gap-4">
-                <!-- <Button variant="ghost" size="icon" onclick={goBack}>
+                <!-- <Button variant="ghost" size="icon" onclick={single(goBack)}>
                     <ArrowLeftIcon />
                 </Button> -->
                 <SectionHeader
@@ -120,13 +123,13 @@
             </div>
 
             <Group class="md:flex-row-reverse flex-wrap justify-start">
-                <ActionButton variant="outline" onclick={exportData}>
+                <ActionButton variant="outline" onclick={single(exportData)}>
                     <DownloadIcon />
                     Export Data
                 </ActionButton>
                 <ActionButton
                     variant="outline"
-                    onclick={refreshData}
+                    onclick={single(refreshData)}
                     disabled={analyticsQuery.isRefetching}
                 >
                     <RefreshCwIcon />

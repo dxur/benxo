@@ -7,6 +7,7 @@
     import type { Form } from "../../lib/utils/form";
     import type { StoreSchema } from "./service";
     import { TrashIcon, PlusIcon, GripVerticalIcon } from "@lucide/svelte";
+    import { single } from "@/lib/event";
 
     let {
         form = $bindable(),
@@ -331,8 +332,8 @@
             <Label for="favicon_url">Favicon URL</Label>
             <Input
                 id="favicon_url"
-                errors={form.favicon_url.errors}
-                bind:value={form.favicon_url.value}
+                errors={form.favicon.errors}
+                bind:value={form.favicon.value}
                 placeholder="https://example.com/favicon.ico"
             />
         </div>
@@ -347,7 +348,7 @@
             Configure your store's navigation menu items. Drag to reorder.
         </Card.Description>
         <Card.Action>
-            <Button variant="outline" size="sm" onclick={addMenuItem}>
+            <Button variant="outline" size="sm" onclick={single(addMenuItem)}>
                 <PlusIcon />
                 Add Menu Item
             </Button>
@@ -399,7 +400,7 @@
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                onclick={() => removeMenuItem(index)}
+                                onclick={single(() => removeMenuItem(index))}
                             >
                                 <TrashIcon />
                             </Button>
@@ -422,7 +423,11 @@
             Select collections to feature on your homepage. Drag to reorder.
         </Card.Description>
         <Card.Action>
-            <Button variant="outline" size="sm" onclick={addFeaturedCollection}>
+            <Button
+                variant="outline"
+                size="sm"
+                onclick={single(addFeaturedCollection)}
+            >
                 <PlusIcon />
                 Add Collection
             </Button>
@@ -483,7 +488,9 @@
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                onclick={() => removeFeaturedCollection(index)}
+                                onclick={single(() =>
+                                    removeFeaturedCollection(index),
+                                )}
                             >
                                 <TrashIcon />
                             </Button>
@@ -507,7 +514,7 @@
                 Connect your store with social media platforms. Drag to reorder.
             </Card.Description>
         </div>
-        <Button variant="outline" size="sm" onclick={addSocialLink}>
+        <Button variant="outline" size="sm" onclick={single(addSocialLink)}>
             <PlusIcon class="w-4 h-4 mr-2" />
             Add Platform
         </Button>
@@ -561,7 +568,7 @@
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                onclick={() => removeSocialLink(index)}
+                                onclick={single(() => removeSocialLink(index))}
                             >
                                 <TrashIcon />
                             </Button>
@@ -586,7 +593,7 @@
                 reorder lists and items.
             </Card.Description>
         </div>
-        <Button variant="outline" size="sm" onclick={addFooterList}>
+        <Button variant="outline" size="sm" onclick={single(addFooterList)}>
             <PlusIcon class="w-4 h-4 mr-2" />
             Add List
         </Button>
@@ -636,7 +643,9 @@
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    onclick={() => removeFooterList(listIndex)}
+                                    onclick={single(() =>
+                                        removeFooterList(listIndex),
+                                    )}
                                 >
                                     <TrashIcon />
                                 </Button>
@@ -699,7 +708,9 @@
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onclick={() => addFooterItem(listIndex)}
+                                    onclick={single(() =>
+                                        addFooterItem(listIndex),
+                                    )}
                                 >
                                     <PlusIcon class="w-4 h-4 mr-2" />
                                     Add Item

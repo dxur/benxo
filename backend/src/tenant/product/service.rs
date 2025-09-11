@@ -86,7 +86,7 @@ impl<R: ProductRepo> ProductService<R> {
             .map(Into::into)
     }
 
-    pub async fn pub_get_product(
+    pub async fn pub_get_product_by_slug(
         &self,
         business_id: Id,
         product_slug: &str,
@@ -95,6 +95,19 @@ impl<R: ProductRepo> ProductService<R> {
             .find_active_by_slug(business_id.into_inner(), product_slug)
             .await?
             .ok_or(ApiError::not_found("product", product_slug.to_string()))
+            .map(Into::into)
+    }
+
+    pub async fn pub_get_product(
+        &self,
+        business_id: Id,
+        product_id: Id,
+    ) -> ApiResult<ProductDto> {
+        let id = product_id.into_inner();
+        self.repo
+            .find_active_by_id(business_id.into_inner(), id)
+            .await?
+            .ok_or(ApiError::not_found("product", id.to_hex()))
             .map(Into::into)
     }
 

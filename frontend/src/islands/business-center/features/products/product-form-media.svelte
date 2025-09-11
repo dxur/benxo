@@ -18,6 +18,7 @@
     import type { Form } from "../../lib/utils/form";
     import type { ProductSchema } from "./service";
     import { snakeToTitleCase } from "../../lib/utils/fmt";
+    import { single } from "@/lib/event";
 
     let {
         form = $bindable(),
@@ -94,7 +95,7 @@
                                 variant="secondary"
                                 size="icon"
                                 class="h-8 w-8 shadow-md"
-                                onclick={() => moveImageUp(index)}
+                                onclick={single(() => moveImageUp(index))}
                                 title="Move up"
                             >
                                 <MoveUpIcon class="h-4 w-4" />
@@ -105,7 +106,7 @@
                                 variant="secondary"
                                 size="icon"
                                 class="h-8 w-8 shadow-md"
-                                onclick={() => moveImageDown(index)}
+                                onclick={single(() => moveImageDown(index))}
                                 title="move Down"
                             >
                                 <MoveDownIcon class="h-4 w-4" />
@@ -115,7 +116,7 @@
                             variant="destructive"
                             size="icon"
                             class="h-8 w-8 shadow-md"
-                            onclick={() => removeImage(index)}
+                            onclick={single(() => removeImage(index))}
                             title="Remove image"
                         >
                             <TrashIcon class="h-4 w-4" />
@@ -134,7 +135,7 @@
             {/each}
 
             <button
-                onclick={addImage}
+                onclick={single(addImage)}
                 class="aspect-square rounded-lg border-2 border-dashed border-border hover:border-primary hover:bg-accent/50 transition-colors flex items-center justify-center text-muted-foreground hover:text-primary"
             >
                 <div class="text-center">

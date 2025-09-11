@@ -135,7 +135,7 @@
 
           <p class="text-sm text-center">
             Don’t have an account? <button
-              onclick={() => (step = "signup")}
+              onclick={single(() => (step = "signup"))}
               class="underline underline-offset-4">Sign up</button
             >
           </p>
@@ -209,7 +209,7 @@
           <Button type="submit" class="w-full">Next</Button>
           <p class="text-sm text-center">
             Have an account? <button
-              onclick={() => (step = "login")}
+              onclick={single(() => (step = "login"))}
               class="underline underline-offset-4">Login</button
             >
           </p>

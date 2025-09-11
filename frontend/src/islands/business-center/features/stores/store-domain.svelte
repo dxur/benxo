@@ -136,7 +136,7 @@
                         type="button"
                         variant="ghost"
                         size="sm"
-                        onclick={generateSlug}
+                        onclick={single(generateSlug)}
                         disabled={!store.name.value}
                     >
                         <WandIcon size={14} />
@@ -270,7 +270,7 @@
             <RefreshCwIcon size={16} />
             Reset
         </Button>
-        <Button type="button" onclick={handleSubmit}>
+        <Button type="button" onclick={single(handleSubmit)}>
             {#if regMutation.isPending}
                 <RefreshCwIcon size={16} class="animate-spin" />
                 Updating...

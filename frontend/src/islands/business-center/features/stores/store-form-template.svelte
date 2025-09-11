@@ -18,6 +18,7 @@
     import { oneDark } from "@codemirror/theme-one-dark";
     import type { Form } from "../../lib/utils/form";
     import type { StoreSchema } from "./service";
+    import { single } from "@/lib/event";
 
     let {
         form = $bindable(),
@@ -381,7 +382,7 @@
     </Card.Header>
     <Card.Content class="space-y-6">
         <div class="flex flex-col sm:flex-row gap-3">
-            <Button onclick={toggleTemplateEditor} class="flex-1">
+            <Button onclick={single(toggleTemplateEditor)} class="flex-1">
                 <SquarePenIcon class="w-4 h-4 mr-2" />
                 {isTemplateEditorOpen ? "Close" : "Open"} Template Editor
             </Button>
@@ -432,13 +433,13 @@
                             <div class="flex flex-wrap gap-2">
                                 <Button
                                     variant="outline"
-                                    onclick={() => reset("template")}
+                                    onclick={single(() => reset("template"))}
                                 >
                                     <RotateCcwIcon />
                                 </Button>
                                 <Button
                                     variant="outline"
-                                    onclick={copyTemplate}
+                                    onclick={single(copyTemplate)}
                                 >
                                     <CopyIcon />
                                 </Button>
@@ -499,7 +500,7 @@
                                     class="w-full lg:w-48"
                                 />
                                 <Button
-                                    onclick={addSnippet}
+                                    onclick={single(addSnippet)}
                                     disabled={!newSnippetName.trim()}
                                 >
                                     <PlusIcon />
@@ -510,7 +511,7 @@
                         <div class="flex gap-2">
                             <Button
                                 variant="outline"
-                                onclick={() => reset("snippet")}
+                                onclick={single(() => reset("snippet"))}
                                 disabled={!selectedSnippet}
                             >
                                 <RotateCcwIcon />
@@ -572,7 +573,7 @@
                                     class="w-48"
                                 />
                                 <Button
-                                    onclick={addCustomPage}
+                                    onclick={single(addCustomPage)}
                                     disabled={!newCustomPageName.trim()}
                                 >
                                     <PlusIcon />
@@ -583,7 +584,7 @@
                         <div class="flex gap-2">
                             <Button
                                 variant="outline"
-                                onclick={() => reset("page")}
+                                onclick={single(() => reset("page"))}
                                 disabled={!selectedCustomPage}
                             >
                                 <RotateCcwIcon />

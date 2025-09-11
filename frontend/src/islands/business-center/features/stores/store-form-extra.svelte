@@ -10,6 +10,7 @@
     import { PlusIcon, TrashIcon } from "@lucide/svelte";
     import { snakeToTitleCase } from "../../lib/utils/fmt";
     import { untrack } from "svelte";
+    import { single } from "@/lib/event";
 
     let {
         form = $bindable(),
@@ -103,7 +104,7 @@
             Configure tracking pixels for advertising platforms.
         </Card.Description>
         <Card.Action>
-            <Button variant="outline" size="sm" onclick={addPixel}>
+            <Button variant="outline" size="sm" onclick={single(addPixel)}>
                 <PlusIcon />
                 Add Pixel
             </Button>
@@ -177,7 +178,7 @@
                     <Button
                         variant="ghost"
                         size="sm"
-                        onclick={() => removePixel(index)}
+                        onclick={single(() => removePixel(index))}
                     >
                         <TrashIcon />
                     </Button>
@@ -219,7 +220,7 @@
                     <Button
                         variant="ghost"
                         size="sm"
-                        onclick={() => conversionEvents.splice(index, 1)}
+                        onclick={single(() => conversionEvents.splice(index, 1))}
                     >
                         <TrashIcon />
                     </Button>
@@ -277,7 +278,7 @@
             configurations.
         </Card.Description>
         <Card.Action>
-            <Button variant="outline" size="sm" onclick={addCustomPair}>
+            <Button variant="outline" size="sm" onclick={single(addCustomPair)}>
                 <PlusIcon />
                 Add Key Pair
             </Button>
@@ -317,7 +318,7 @@
                     <Button
                         variant="ghost"
                         size="sm"
-                        onclick={() => removeCustomPair(index)}
+                        onclick={single(() => removeCustomPair(index))}
                     >
                         <TrashIcon />
                     </Button>

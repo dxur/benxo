@@ -5,8 +5,6 @@ processes:
     command: "sudo gost -L=tsp://:80/:8080 -L=tsp://:443/:8443"
   proxy:
     command: "./scripts/run-proxy.sh"
-  cache:
-    command: "./scripts/run-cache.sh"
   database:
     command: "./scripts/run-db.sh"
   minio:

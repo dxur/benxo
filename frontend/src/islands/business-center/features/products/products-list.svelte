@@ -32,7 +32,7 @@
     import { formatDateTime, snakeToTitleCase } from "../../lib/utils/fmt";
     import type { ProductDto } from "@bindings/ProductDto";
     import type { ProductListQuery } from "@bindings/ProductListQuery";
-    import { debounce } from "../../lib/utils/event";
+    import { debounce, single } from "@/lib/event";
 
     let activeTab = $state<ProductDto["status"] | "">("");
     let searchInput = $state("");
@@ -196,7 +196,9 @@
         <Table.Row>
             <Table.Cell colspan={10} class="h-56 text-center">
                 <LoadingError message={query.error.message}>
-                    <Button onclick={() => query.refetch()}>Retry</Button>
+                    <Button onclick={single(() => query.refetch())}
+                        >Retry</Button
+                    >
                 </LoadingError>
             </Table.Cell>
         </Table.Row>

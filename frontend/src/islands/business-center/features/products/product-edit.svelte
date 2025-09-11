@@ -221,7 +221,7 @@
     </div>
   {:else if query.isError}
     <LoadingError message={query.error.message}>
-      <Button onclick={() => query.refetch()}>Retry</Button>
+      <Button onclick={single(() => query.refetch())}>Retry</Button>
     </LoadingError>
   {:else if query.isSuccess}
     {@render body()}
@@ -270,13 +270,16 @@
         {#if form.status.initialValue === "archived"}
           <ActionButton
             variant="default"
-            onclick={() => handleAction("restore")}
+            onclick={single(() => handleAction("restore"))}
           >
             <RefreshCwIcon />
             Restore Product
           </ActionButton>
         {:else}
-          <ActionButton variant="default" onclick={() => handleAction("save")}>
+          <ActionButton
+            variant="default"
+            onclick={single(() => handleAction("save"))}
+          >
             <SaveIcon />
             Save Changes
           </ActionButton>
@@ -285,7 +288,7 @@
         {#if form.status.initialValue === "inactive"}
           <ActionButton
             variant="secondary"
-            onclick={() => handleAction("publish")}
+            onclick={single(() => handleAction("publish"))}
           >
             <SendIcon />
             Publish Product
@@ -293,7 +296,7 @@
         {:else if form.status.initialValue === "active"}
           <ActionButton
             variant="destructive"
-            onclick={() => handleAction("unpublish")}
+            onclick={single(() => handleAction("unpublish"))}
           >
             <PauseIcon />
             Unpublish Product
@@ -302,7 +305,7 @@
           <ActionButton
             variant="destructive"
             disabled={!canBeDeleted(data)}
-            onclick={() => handleAction("delete")}
+            onclick={single(() => handleAction("delete"))}
           >
             <TrashIcon />
             Delete Product
@@ -311,7 +314,7 @@
 
         <ActionButton
           variant="outline"
-          onclick={() => handleAction("toggle_featured")}
+          onclick={single(() => handleAction("toggle_featured"))}
         >
           <StarIcon />
           {form.featured.value ? "Remove from Featured" : "Mark as Featured"}
@@ -319,7 +322,7 @@
 
         <ActionButton
           variant="outline"
-          onclick={() => handleAction("duplicate")}
+          onclick={single(() => handleAction("duplicate"))}
         >
           <CopyIcon />
           Duplicate
@@ -328,7 +331,7 @@
         {#if form.status.initialValue === "inactive"}
           <ActionButton
             variant="destructive"
-            onclick={() => handleAction("archive")}
+            onclick={single(() => handleAction("archive"))}
           >
             <ArchiveIcon />
             Archive Product

@@ -16,7 +16,7 @@ export function debounce<T extends (...args: any[]) => void>(
     };
 }
 
-export function single(handler: (event: Event) => void | Promise<void>) {
+export function single(handler: (event: Event) => any | Promise<any>) {
     let running = false;
     return async (event: Event) => {
         if (running) return;

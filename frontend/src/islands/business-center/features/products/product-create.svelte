@@ -22,6 +22,7 @@
     import type { ProductCreateDto } from "@bindings/ProductCreateDto";
     import ProductFormVariants from "./product-form-variants.svelte";
     import ProductFormMedia from "./product-form-media.svelte";
+    import { single } from "../../../../lib/event";
 
     const { replace } = useNavigate();
 
@@ -89,13 +90,13 @@
             />
         </div>
         <Group class="md:flex-row-reverse flex-wrap justify-start">
-            <ActionButton onclick={() => handleCreate("active")}>
+            <ActionButton onclick={single(() => handleCreate("active"))}>
                 <SendIcon />
                 Publish
             </ActionButton>
             <ActionButton
                 variant="secondary"
-                onclick={() => handleCreate("inactive")}
+                onclick={single(() => handleCreate("inactive"))}
             >
                 <PlusIcon />
                 Create

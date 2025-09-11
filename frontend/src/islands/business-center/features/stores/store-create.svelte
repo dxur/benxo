@@ -23,6 +23,7 @@
     import LoadingSpinner from "../../lib/components/loading-spinner.svelte";
     import LoadingError from "../../lib/components/loading-error.svelte";
     import { Button } from "@/lib/components/ui/button";
+    import { single } from "@/lib/event";
 
     const { replace } = useNavigate();
 
@@ -104,7 +105,7 @@
         </div>
     {:else if query.isError}
         <LoadingError message={query.error.message}>
-            <Button onclick={() => query.refetch()}>Retry</Button>
+            <Button onclick={single(() => query.refetch())}>Retry</Button>
         </LoadingError>
     {:else if query.isSuccess}
         {@render body()}
@@ -122,13 +123,13 @@
                 />
             </div>
             <Group class="md:flex-row-reverse flex-wrap justify-start">
-                <ActionButton onclick={() => handleCreate("active")}>
+                <ActionButton onclick={single(() => handleCreate("active"))}>
                     <SendIcon />
                     Publish
                 </ActionButton>
                 <ActionButton
                     variant="secondary"
-                    onclick={() => handleCreate("inactive")}
+                    onclick={single(() => handleCreate("inactive"))}
                 >
                     <PlusIcon />
                     Create

@@ -46,9 +46,9 @@ use crate::tenant::file::repo::MongoFileRepo;
 use crate::tenant::file::routes::FileRoutes;
 use crate::tenant::file::service::FileService;
 use crate::tenant::order::repo::MongoOrderRepo;
-use crate::tenant::order::routes::OrderRoutes;
+use crate::tenant::order::routes::{PubOrderRoutes, OrderRoutes};
 use crate::tenant::product::repo::MongoProductRepo;
-use crate::tenant::product::routes::ProductRoutes;
+use crate::tenant::product::routes::{PubProductRoutes, ProductRoutes};
 use crate::tenant::product::service::ProductService;
 use crate::tenant::store::repo::{MongoStoreRegRepo, MongoStoreRepo};
 use crate::tenant::store::routes::{PubStoreRoutes, StoreRoutes};
@@ -196,6 +196,9 @@ async fn main() {
 
     let www = Router::new()
         .merge(PubStoreRoutes::make_router().1)
+        .nest_packed(PubProductRoutes::make_router())
+        .nest_packed(PubOrderRoutes::make_router())
+        // .layer(CookieManagerLayer::new())
         .layer(TraceLayer::new_for_http())
         .with_state(state);
 

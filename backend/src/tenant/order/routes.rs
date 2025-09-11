@@ -2,6 +2,7 @@ use axum::extract::{Path, Query, State};
 use macros::routes;
 
 use super::api::*;
+use super::super::store::extractors::Store;
 use crate::extractors::cookies::FromCookies;
 use crate::extractors::json::Json;
 use crate::platform::business::api::BusinessSession;
@@ -102,6 +103,28 @@ impl OrderRoutes {
         state
             .order_service
             .get_analytics(business, query.date_from, query.date_to)
+            .await
+            .map(Json)
+    }
+}
+
+pub struct PubOrderRoutes;
+
+#[routes(prefix = "/api/v1/orders", state = AppState)]
+impl PubOrderRoutes {
+    #[route(method=post, path="/create")]
+    async fn create_order(
+        State(state): State<AppState>,
+        Store(store_key): Store,
+        #[json] create_req: PubOrderCreate,
+    ) -> ApiResult<Json<()>> {
+        state
+            .order_service
+            .pub_create_order(&state.product_service,
+                store_key.business_id,
+                store_key.store_id,
+                create_req
+            )
             .await
             .map(Json)
     }

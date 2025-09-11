@@ -2,6 +2,7 @@ use axum::extract::{Path, Query, State};
 use macros::routes;
 
 use super::api::*;
+use super::super::store::extractors::Store;
 use crate::extractors::cookies::FromCookies;
 use crate::extractors::json::Json;
 use crate::platform::business::api::BusinessSession;
@@ -80,6 +81,38 @@ impl ProductRoutes {
             .map(|_| MessageResponse {
                 message: "Product deleted successfully".to_string(),
             })
+            .map(Json)
+    }
+}
+
+
+pub struct PubProductRoutes;
+
+#[routes(prefix = "/api/v1/products", state = AppState)]
+impl PubProductRoutes {
+    #[route(method=get, path="/{product_id}", res=ProductDto)]
+    async fn get_product(
+        State(state): State<AppState>,
+        Store(store_key): Store,
+        #[path] product_id: Id,
+    ) -> ApiResult<Json<ProductDto>> {
+        state
+            .product_service
+            .pub_get_product(store_key.business_id, product_id)
+            .await
+            .map(Json)
+    }
+
+    #[route(method=get, path="/list", res=ProductListResponse)]
+    async fn list_products(
+        State(state): State<AppState>,
+        Store(store_key): Store,
+        #[query] query: ProductListQuery,
+    ) -> ApiResult<Json<ProductListResponse>> {
+        state
+            .product_service
+            .pub_list_products(store_key.business_id, query)
+            .await
             .map(Json)
     }
 }

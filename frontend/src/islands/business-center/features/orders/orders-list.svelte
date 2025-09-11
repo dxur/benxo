@@ -42,7 +42,7 @@
   import type { OrderDto } from "@bindings/OrderDto";
   import type { OrderListQuery } from "@bindings/OrderListQuery";
   import type { OrderStatusDto } from "@bindings/OrderStatusDto";
-  import { debounce } from "../../lib/utils/event";
+  import { debounce, single } from "../../../../lib/event";
 
   let activeTab = $state<OrderStatusDto | "">("");
   let searchInput = $state("");
@@ -128,7 +128,7 @@
       </ActionButton>
       <ActionButton
         variant="outline"
-        onclick={exportOrders}
+        onclick={single(exportOrders)}
         disabled={selectedOrders.length === 0}
       >
         <DownloadIcon />
@@ -197,7 +197,7 @@
     />
 
     <!-- {#if searchQuery || customerEmailFilter || dateFromFilter || dateToFilter || activeTab}
-      <Button variant="outline" size="sm" onclick={clearFilters}>
+      <Button variant="outline" size="sm" onclick={single(clearFilters)}>
         Clear Filters
       </Button>
     {/if} -->
@@ -243,7 +243,7 @@
     <Table.Row>
       <Table.Cell colspan={9} class="h-56 text-center">
         <LoadingError message={query.error.message}>
-          <Button onclick={() => query.refetch()}>Retry</Button>
+          <Button onclick={single(() => query.refetch())}>Retry</Button>
         </LoadingError>
       </Table.Cell>
     </Table.Row>

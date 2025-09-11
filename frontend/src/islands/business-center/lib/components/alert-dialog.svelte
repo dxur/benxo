@@ -1,5 +1,6 @@
 <script module>
     import { writable } from "svelte/store";
+    import { single } from "@/lib/event";
 
     type DialogAction = {
         label: string;
@@ -86,7 +87,7 @@
                         class={buttonVariants({
                             variant: action.variant ?? "default",
                         })}
-                        onclick={() => handleAction(action.value)}
+                        onclick={single(() => handleAction(action.value))}
                     >
                         {action.label}
                     </button>

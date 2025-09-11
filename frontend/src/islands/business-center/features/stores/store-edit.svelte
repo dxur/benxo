@@ -40,6 +40,7 @@
   import LoadingSpinner from "../../lib/components/loading-spinner.svelte";
   import LoadingError from "../../lib/components/loading-error.svelte";
   import { Button } from "@/lib/components/ui/button";
+  import { single } from "@/lib/event";
 
   const { replace } = useNavigate();
 
@@ -181,7 +182,7 @@
     </div>
   {:else if query.isError}
     <LoadingError message={query.error.message}>
-      <Button onclick={() => query.refetch()}>Retry</Button>
+      <Button onclick={single(() => query.refetch())}>Retry</Button>
     </LoadingError>
   {:else if query.isSuccess}
     {@render body()}
@@ -204,13 +205,16 @@
         {#if form.status.initialValue === "archived"}
           <ActionButton
             variant="default"
-            onclick={() => handleAction("restore")}
+            onclick={single(() => handleAction("restore"))}
           >
             <RefreshCwIcon />
             Restore Store
           </ActionButton>
         {:else}
-          <ActionButton variant="default" onclick={() => handleAction("save")}>
+          <ActionButton
+            variant="default"
+            onclick={single(() => handleAction("save"))}
+          >
             <SaveIcon />
             Save Changes
           </ActionButton>
@@ -219,7 +223,7 @@
         {#if form.status.initialValue === "inactive"}
           <ActionButton
             variant="secondary"
-            onclick={() => handleAction("publish")}
+            onclick={single(() => handleAction("publish"))}
           >
             <SendIcon />
             Publish Store
@@ -227,7 +231,7 @@
         {:else if form.status.initialValue === "active"}
           <ActionButton
             variant="destructive"
-            onclick={() => handleAction("unpublish")}
+            onclick={single(() => handleAction("unpublish"))}
           >
             <PauseIcon />
             Unpublish Store
@@ -236,7 +240,7 @@
           <ActionButton
             variant="destructive"
             disabled={!canBeDeleted(data)}
-            onclick={() => handleAction("delete")}
+            onclick={single(() => handleAction("delete"))}
           >
             <TrashIcon />
             Delete Store
@@ -246,7 +250,7 @@
         {#if form.status.initialValue === "inactive"}
           <ActionButton
             variant="destructive"
-            onclick={() => handleAction("archive")}
+            onclick={single(() => handleAction("archive"))}
           >
             <ArchiveIcon />
             Archive Store

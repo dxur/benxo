@@ -41,7 +41,7 @@
     import { toast } from "svelte-sonner";
     import { snakeToTitleCase } from "../../lib/utils/fmt";
     import type { OrderCreate } from "@bindings/OrderCreate";
-    import { single } from "../../lib/utils/event";
+    import { single } from "../../../../lib/event";
 
     const { replace } = useNavigate();
 
@@ -128,7 +128,7 @@
 <Column class="[&>*]:w-full items-center">
     <Group>
         <div class="flex items-center gap-4">
-            <!-- <Button variant="ghost" size="icon" onclick={goBack}>
+            <!-- <Button variant="ghost" size="icon" onclick={single(goBack)}>
                 <ArrowLeftIcon />
             </Button> -->
             <SectionHeader
@@ -139,7 +139,7 @@
         </div>
         <Group class="md:flex-row-reverse flex-wrap justify-start">
             <ActionButton
-                onclick={handleCreate}
+                onclick={single(handleCreate)}
                 disabled={creationMutation.isPending}
             >
                 <SendIcon />

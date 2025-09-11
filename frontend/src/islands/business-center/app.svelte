@@ -18,7 +18,13 @@
         },
     };
 
-    const client = new QueryClient();
+    const client = new QueryClient({
+        defaultOptions: {
+            queries: {
+                refetchOnWindowFocus: false,
+            },
+        },
+    });
 </script>
 
 <QueryClientProvider {client}>

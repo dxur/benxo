@@ -106,7 +106,7 @@ export const StoreSchema = yup.object({
         .defined()
         .transform(nullStr),
 
-    favicon_url: yup
+    favicon: yup
         .string()
         .test("is-valid-url", "Favicon URL must be a valid URL.", isValidHref)
         .nullable()

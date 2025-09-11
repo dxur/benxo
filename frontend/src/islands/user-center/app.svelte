@@ -42,6 +42,7 @@
   import type { BusinessMemberDto } from "@bindings/BusinessMemberDto";
   import type { PendingInvitationsResponse } from "@bindings/PendingInvitationsResponse";
   import { navigate } from "astro:transitions/client";
+  import { single } from "@/lib/event";
   // import { ModeWatcher } from "mode-watcher";
 
   // State
@@ -242,7 +243,7 @@
           </p>
         </div>
         <div>
-          <Button variant="destructive" onclick={handleLogout}
+          <Button variant="destructive" onclick={single(handleLogout)}
             ><LogOutIcon /></Button
           >
         </div>
@@ -260,7 +261,7 @@
             <Tabs.Content value="businesses" class="space-y-4">
               <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold">Your Businesses</h2>
-                <Button onclick={() => (createBusinessOpen = true)}>
+                <Button onclick={single(() => (createBusinessOpen = true))}>
                   <PlusIcon class="w-4 h-4" />
                   Create Business
                 </Button>
@@ -289,7 +290,7 @@
                         <Button
                           variant="outline"
                           size="sm"
-                          onclick={() => (settingsOpen = true)}
+                          onclick={single(() => (settingsOpen = true))}
                         >
                           <SettingsIcon class="w-4 h-4 mr-1" />
                           Settings
@@ -297,7 +298,7 @@
                         <Button
                           variant="outline"
                           size="sm"
-                          onclick={() => navigate("/business-center/")}
+                          onclick={single(() => navigate("/business-center/"))}
                         >
                           <ExternalLinkIcon class="w-4 h-4 mr-1" />
                           Open
@@ -343,7 +344,7 @@
                           size="sm"
                           class="w-full"
                           disabled={loading}
-                          onclick={() => switchBusiness(business.id)}
+                          onclick={single(() => switchBusiness(business.id))}
                         >
                           Switch to Business
                         </Button>
@@ -366,7 +367,7 @@
                       Create your first business to get started with managing
                       your operations.
                     </p>
-                    <Button onclick={() => (createBusinessOpen = true)}>
+                    <Button onclick={single(() => (createBusinessOpen = true))}>
                       <PlusIcon class="w-4 h-4 mr-2" />
                       Create Your First Business
                     </Button>
@@ -380,7 +381,7 @@
               <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold">Pending Invitations</h2>
                 {#if currentBusiness}
-                  <Button onclick={() => (inviteUserOpen = true)}>
+                  <Button onclick={single(() => (inviteUserOpen = true))}>
                     <MailIcon class="w-4 h-4 mr-2" />
                     Send Invitation
                   </Button>
@@ -414,7 +415,9 @@
                         <div class="flex gap-2">
                           <Button
                             size="sm"
-                            onclick={() => acceptInvite(invitation.token)}
+                            onclick={single(() =>
+                              acceptInvite(invitation.token),
+                            )}
                             disabled={loading}
                           >
                             <CheckIcon class="w-4 h-4 mr-1" />
@@ -524,7 +527,7 @@
         <Button
           type="button"
           variant="outline"
-          onclick={() => (createBusinessOpen = false)}
+          onclick={single(() => (createBusinessOpen = false))}
         >
           Cancel
         </Button>
@@ -574,7 +577,7 @@
         <Button
           type="button"
           variant="outline"
-          onclick={() => (inviteUserOpen = false)}
+          onclick={single(() => (inviteUserOpen = false))}
         >
           Cancel
         </Button>
@@ -622,7 +625,7 @@
         <Button
           type="button"
           variant="outline"
-          onclick={() => (settingsOpen = false)}
+          onclick={single(() => (settingsOpen = false))}
         >
           Cancel
         </Button>

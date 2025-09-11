@@ -11,6 +11,7 @@
     import { onMount, untrack } from "svelte";
     import { cloneDeep, kebabCase, snakeCase } from "lodash";
     import type { Form } from "../../lib/utils/form";
+    import { single } from "@/lib/event";
 
     interface ProductOption {
         name: string;
@@ -225,7 +226,7 @@
             generated from these options.
         </Card.Description>
         <Card.Action>
-            <Button variant="outline" size="sm" onclick={addOption}>
+            <Button variant="outline" size="sm" onclick={single(addOption)}>
                 <PlusIcon class="w-4 h-4" />
                 Add Option
             </Button>
@@ -251,7 +252,7 @@
                     <Button
                         variant="ghost"
                         size="sm"
-                        onclick={() => removeOption(optionIndex)}
+                        onclick={single(() => removeOption(optionIndex))}
                     >
                         <TrashIcon class="w-4 h-4" />
                     </Button>
@@ -268,7 +269,7 @@
                         <Button
                             variant="ghost"
                             size="sm"
-                            onclick={() => addOptionValue(optionIndex)}
+                            onclick={single(() => addOptionValue(optionIndex))}
                         >
                             <PlusIcon />
                         </Button>
@@ -396,7 +397,9 @@
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    onclick={() => openImageSelector(index)}
+                                    onclick={single(() =>
+                                        openImageSelector(index),
+                                    )}
                                 >
                                     <ImageIcon class="w-4 h-4 mr-2" />
                                     Manage Images
@@ -498,7 +501,7 @@
                         }}
                     />
                     <Button
-                        onclick={addImageFromUrl}
+                        onclick={single(addImageFromUrl)}
                         disabled={!newImageUrl.trim()}
                     >
                         <PlusIcon class="w-4 h-4" />
@@ -526,7 +529,9 @@
                                     ].images.includes(image)
                                         ? 'border-primary bg-primary/10'
                                         : 'border-border hover:border-primary/50'}"
-                                    onclick={() => addImageFromProduct(image)}
+                                    onclick={single(() =>
+                                        addImageFromProduct(image),
+                                    )}
                                 >
                                     <img
                                         src={image}
@@ -596,7 +601,7 @@
         </div>
 
         <Dialog.Footer>
-            <Button variant="outline" onclick={closeImageSelector}>
+            <Button variant="outline" onclick={single(closeImageSelector)}>
                 Close
             </Button>
         </Dialog.Footer>

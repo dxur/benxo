@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 use super::domain::*;
+use crate::types::phone::PhoneNumber;
 use crate::{types::id::Id, utils::serde_helpers::JsonOption};
 
 #[derive(Debug, Clone, Deserialize, Serialize, o2o, TS)]
@@ -205,4 +206,17 @@ pub struct AnalyticsQuery {
 pub struct PaginationQuery {
     pub page: Option<u32>,
     pub limit: Option<u32>,
+}
+
+// ------ Public Api models ------
+#[derive(Debug, Deserialize, TS)]
+#[ts(export, bound = "")]
+pub struct PubOrderCreate {
+    pub customer_email: Option<String>,
+    pub customer_name: String,
+    pub customer_phone: PhoneNumber,
+    pub items: Vec<OrderItemCreate>,
+    pub shipping_address: ShippingAddress,
+    pub billing_address: Option<ShippingAddress>,
+    pub notes: Option<String>,
 }

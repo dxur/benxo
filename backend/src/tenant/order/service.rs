@@ -288,4 +288,84 @@ impl<R: OrderRepo> OrderService<R> {
             limit,
         })
     }
+
+    pub async fn pub_create_order<P: ProductRepo>(
+        &self,
+        product_service: &ProductService<P>,
+        business_id: Id,
+        store_id: Id,
+        create_req: PubOrderCreate,
+    ) -> ApiResult<()> {
+        let mut order_items = Vec::new();
+        let mut subtotal = BigDecimal::from(0);
+
+        // TODO: wrap inside a transaction
+        for item_req in create_req.items {
+            let product = product_service
+                .pub_get_product(business_id, item_req.product_id)
+                .await?;
+
+            let variant: &ProductVariant = product
+                .variants
+                .iter()
+                .find(|v| v.sku == item_req.variant_sku)
+                .ok_or_else(|| {
+                    ApiError::forbidden(
+                        "order",
+                        format!("Variant with SKU '{}' not found", item_req.variant_sku),
+                    )
+                })?;
+
+            if variant.stocks < item_req.quantity as usize {
+                return Err(ApiError::forbidden(
+                    "order",
+                    format!(
+                        "Insufficient stock for variant '{}'. Available: {}, Requested: {}",
+                        item_req.variant_sku, variant.stocks, item_req.quantity
+                    ),
+                ));
+            }
+
+            let unit_price = variant.price.clone();
+            let total_price = &unit_price * BigDecimal::from(item_req.quantity);
+            subtotal += &total_price;
+
+            order_items.push(OrderItem {
+                variant_sku: item_req.variant_sku,
+                product_title: product.title.to_string(),
+                quantity: item_req.quantity,
+                unit_price,
+                total_price,
+            });
+        }
+
+        // Create order record
+        let mut order = OrderRecord {
+            customer_email: create_req.customer_email,
+            customer_name: create_req.customer_name,
+            customer_phone: create_req.customer_phone.to_local(),
+            items: order_items,
+            shipping_address: create_req.shipping_address,
+            billing_address: create_req.billing_address,
+            subtotal,
+            shipping_cost: BigDecimal::from(0),
+            tax_amount: BigDecimal::from(0),
+            currency: "".to_string(),
+            notes: create_req.notes,
+            ..Default::default()
+        };
+
+        order.add_history_entry(
+            OrderStatus::Pending,
+            None,
+            Some(Source::Store(store_id.into())),
+        );
+
+        order.calculate_totals();
+
+        self.repo
+            .create(business_id.into(), order)
+            .await
+            .map(|_| ())
+    }
 }

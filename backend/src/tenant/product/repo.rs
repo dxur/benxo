@@ -18,6 +18,11 @@ pub trait ProductRepo: Send + Sync {
         business_id: ObjectId,
         id: ObjectId,
     ) -> ApiResult<Option<ProductRecord>>;
+    async fn find_active_by_id(
+        &self,
+        business_id: ObjectId,
+        id: ObjectId,
+    ) -> ApiResult<Option<ProductRecord>>;
     async fn find_by_slug(
         &self,
         business_id: ObjectId,
@@ -127,6 +132,22 @@ impl ProductRepo for MongoProductRepo {
 
         let product = collection
             .find_one(doc! { "_id": id })
+            .await
+            .map_err(|e| ApiError::internal(format!("Database query failed: {}", e)))?;
+
+        Ok(product)
+    }
+
+
+    async fn find_active_by_id(
+        &self,
+        business_id: ObjectId,
+        id: ObjectId,
+    ) -> ApiResult<Option<ProductRecord>> {
+        let collection = self.get_collection(business_id);
+
+        let product = collection
+            .find_one(doc! { "_id": id, "status": "active" })
             .await
             .map_err(|e| ApiError::internal(format!("Database query failed: {}", e)))?;
 

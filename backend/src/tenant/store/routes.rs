@@ -299,7 +299,7 @@ impl PubStoreRoutes {
 
         let product = match state
             .product_service
-            .pub_get_product(store_key.business_id, &slug)
+            .pub_get_product_by_slug(store_key.business_id, &slug)
             .await
         {
             Err(ApiError::NotFound { .. }) => {

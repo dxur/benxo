@@ -53,6 +53,7 @@
   import type { OrderStatusDto } from "@bindings/OrderStatusDto";
   import type { OrderDto } from "@bindings/OrderDto";
   import { Label } from "@/lib/components/ui/label";
+  import { single } from "../../../../lib/event";
 
   const { replace } = useNavigate();
   const { location } = useRoute();
@@ -153,7 +154,7 @@
         <p class="text-destructive mb-2">
           Error: {query.error.message}
         </p>
-        <Button onclick={() => query.refetch()}>Retry</Button>
+        <Button onclick={single(() => query.refetch())}>Retry</Button>
       </div>
     </div>
   {:else if query.isSuccess}
@@ -186,16 +187,19 @@
       </div>
 
       <Group class="md:flex-row-reverse flex-wrap justify-start">
-        <ActionButton variant="outline" onclick={printOrder}>
+        <ActionButton variant="outline" onclick={single(printOrder)}>
           <PrinterIcon />
           Print
         </ActionButton>
-        <ActionButton variant="outline" onclick={downloadInvoice}>
+        <ActionButton variant="outline" onclick={single(downloadInvoice)}>
           <DownloadIcon />
           Invoice
         </ActionButton>
         {#if canCancelOrder(order)}
-          <ActionButton variant="destructive" onclick={handleCancelOrder}>
+          <ActionButton
+            variant="destructive"
+            onclick={single(handleCancelOrder)}
+          >
             <XCircleIcon />
             Cancel Order
           </ActionButton>
@@ -352,7 +356,7 @@
       <div class="flex flex-col gap-2">
         {#if order.status === "pending"}
           <Button
-            onclick={() => handleStatusUpdate("confirmed")}
+            onclick={single(() => handleStatusUpdate("confirmed"))}
             disabled={statusUpdateMutation.isPending}
           >
             <CheckCircleIcon class="w-4 h-4 mr-2" />
@@ -360,7 +364,7 @@
           </Button>
         {:else if order.status === "confirmed"}
           <Button
-            onclick={() => handleStatusUpdate("processing")}
+            onclick={single(() => handleStatusUpdate("processing"))}
             disabled={statusUpdateMutation.isPending}
           >
             <RefreshCwIcon class="w-4 h-4 mr-2" />
@@ -368,7 +372,7 @@
           </Button>
         {:else if order.status === "processing"}
           <Button
-            onclick={() => handleStatusUpdate("shipped")}
+            onclick={single(() => handleStatusUpdate("shipped"))}
             disabled={statusUpdateMutation.isPending}
           >
             <TruckIcon class="w-4 h-4 mr-2" />
@@ -376,7 +380,7 @@
           </Button>
         {:else if order.status === "shipped"}
           <Button
-            onclick={() => handleStatusUpdate("delivered")}
+            onclick={single(() => handleStatusUpdate("delivered"))}
             disabled={statusUpdateMutation.isPending}
           >
             <CheckCircleIcon class="w-4 h-4 mr-2" />
@@ -387,7 +391,7 @@
         {#if canArchiveOrder(order)}
           <Button
             variant="outline"
-            onclick={() => handleStatusUpdate("archived")}
+            onclick={single(() => handleStatusUpdate("archived"))}
             disabled={statusUpdateMutation.isPending}
           >
             Archive Order

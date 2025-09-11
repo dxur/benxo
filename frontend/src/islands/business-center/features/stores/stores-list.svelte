@@ -26,7 +26,7 @@
     import { createQuery } from "@tanstack/svelte-query";
     import { formatDateTime, snakeToTitleCase } from "../../lib/utils/fmt";
     import type { StoreDto } from "@bindings/StoreDto";
-    import { debounce } from "../../lib/utils/event";
+    import { debounce, single } from "@/lib/event";
 
     let activeTab = $state<StoreDto["status"] | "">("");
     let searchInput = $state("");
@@ -115,7 +115,9 @@
         <Table.Row>
             <Table.Cell colspan={8} class="h-56 text-center">
                 <LoadingError message={query.error.message}>
-                    <Button onclick={() => query.refetch()}>Retry</Button>
+                    <Button onclick={single(() => query.refetch())}
+                        >Retry</Button
+                    >
                 </LoadingError>
             </Table.Cell>
         </Table.Row>
