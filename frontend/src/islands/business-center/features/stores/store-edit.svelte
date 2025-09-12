@@ -108,7 +108,7 @@
         });
         if (!confirmed) return;
 
-        deleteMutation.mutate();
+        await deleteMutation.mutateAsync();
         return;
       }
 
@@ -159,7 +159,7 @@
       console.info("Updating store with values:", updateReq);
 
       if (Object.keys(updateReq).length > 0) {
-        updateMutation.mutate(updateReq as StoreUpdate);
+        await updateMutation.mutateAsync(updateReq as StoreUpdate);
       } else {
         toast.warning("No changes have made");
       }

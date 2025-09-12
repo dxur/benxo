@@ -89,7 +89,7 @@
                 return;
             }
             const values = getFormValues(form);
-            regMutation.mutate(values);
+            await regMutation.mutateAsync(values);
         } catch (e) {
             console.error("Validation Error", e);
             const errors = e as [string, string[]][];

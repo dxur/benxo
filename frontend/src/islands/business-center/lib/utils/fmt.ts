@@ -1,9 +1,13 @@
 export function formatCurrency(amount: number, currency: string): string {
-    const formatter = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency,
-    });
-    return formatter.format(amount);
+    try {
+        const formatter = new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency,
+        });
+        return formatter.format(amount);
+    } catch {
+        return amount.toFixed(2);
+    }
 }
 
 export function formatDateTime(dateStr: string): string {

@@ -90,7 +90,7 @@
 
     if (!confirmed) return;
 
-    statusUpdateMutation.mutate({
+    await statusUpdateMutation.mutateAsync({
       status: newStatus,
       note: statusUpdateNote || null,
     });
@@ -111,7 +111,7 @@
 
     if (!confirmed) return;
 
-    statusUpdateMutation.mutate({
+    await statusUpdateMutation.mutateAsync({
       status: "cancelled",
       note: "Order cancelled by admin",
     });

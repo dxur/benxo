@@ -63,11 +63,11 @@
         },
     );
 
-    function handleCreate(status: typeof form.status.value) {
+    async function handleCreate(status: typeof form.status.value) {
         form.status.value = status;
         try {
             const values = getFormValues<typeof ProductSchema>(form);
-            creationMutation.mutate(values);
+            await creationMutation.mutateAsync(values);
         } catch (e) {
             console.error("Validation Error", e);
             const errors = e as [string, string[]][];

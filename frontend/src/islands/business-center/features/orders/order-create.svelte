@@ -82,7 +82,7 @@
         },
     );
 
-    function handleCreate() {
+    async function handleCreate() {
         try {
             const values = getFormValues<typeof OrderCreateSchema>(form);
 
@@ -90,7 +90,7 @@
                 values.billing_address = null;
             }
 
-            creationMutation.mutate(values);
+            await creationMutation.mutateAsync(values);
         } catch (e) {
             console.error("Validation Error", e);
             const errors = e as [string, string[]][];

@@ -108,7 +108,7 @@
         });
         if (!confirmed) return;
 
-        deleteMutation.mutate();
+        await deleteMutation.mutateAsync();
         return;
       }
 
@@ -183,7 +183,7 @@
       console.info("Updating product with values:", updateReq);
 
       if (Object.keys(updateReq).length > 0) {
-        updateMutation.mutate(updateReq as ProductUpdate);
+        await updateMutation.mutateAsync(updateReq as ProductUpdate);
       } else {
         toast.warning("No changes have been made");
       }

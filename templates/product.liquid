@@ -1,398 +1,539 @@
 <!DOCTYPE html>
+
 <html lang="ar" dir="rtl">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ product.title }} - {{ store.name }}</title>
-    <meta name="description" content="{{ product.description | truncate: 160 }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ product.title }} - {{ store.name }}</title>
+  <meta name="description" content="{{ product.description | truncate: 160 }}">
 
-    {% include "style.liquid" %}
+  {% include "style.liquid" %}
 
-    <style>
-      /* Product Page Styles */
-      .product-detail {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 2rem;
-        margin: 2rem 0;
+  <style>
+    /* Product Page Styles */
+    .product-detail {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin: 2rem 0;
+    }
+
+    /* Gallery container */
+    .product-gallery {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    /* Hide radios */
+    .product-gallery input[type="radio"] {
+      display: none;
+    }
+
+    /* Main image */
+    .product-gallery-main {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      position: relative;
+    }
+
+    /* All images stacked */
+    .product-gallery-main img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 0.3s ease
+      , transform 0.3s ease;
+    }
+
+    /* Optional hover effect */
+    .product-gallery-main img:hover {
+      transform: scale(1.05);
+    }
+
+    /* Show image when corresponding radio is checked */
+    {% for img in product.images %}
+      {% assign id = 'img-' | append: forloop.index %}
+      #{{ id }}:checked ~ .product-gallery-main .{{ id }} {
+        opacity: 1;
+        z-index: 1;
       }
+    {% endfor %}
 
-      /* Gallery container */
-      .product-gallery {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-      }
+    /* Thumbnails row */
+    .product-gallery-thumbs {
+      display: flex;
+      gap: 0.5rem;
+    }
 
-      /* Hide radios */
-      .product-gallery input[type="radio"] {
-        display: none;
-      }
+    /* Thumbnails as labels for radios */
+    .product-gallery-thumb {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.2s
+      , transform 0.2s;
+    }
 
-      /* Main image */
-      .product-gallery-main {
-        width: 100%;
-        aspect-ratio: 1 / 1;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-        position: relative;
-      }
-
-      /* All images stacked */
-      .product-gallery-main img {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        opacity: 0;
-        transition: opacity 0.3s ease
-        , transform 0.3s ease;
-      }
-
-      /* Optional hover effect */
-      .product-gallery-main img:hover {
-        transform: scale(1.05);
-      }
-
-      /* Show image when corresponding radio is checked */
-      {% for img in product.images %}
-        {% assign id = 'img-' | append: forloop.index %}
-        #{{ id }}:checked ~ .product-gallery-main .{{ id }} {
-          opacity: 1;
-          z-index: 1;
-        }
-      {% endfor %}
-
-      /* Thumbnails row */
-      .product-gallery-thumbs {
-        display: flex;
-        gap: 0.5rem;
-      }
-
-      /* Thumbnails as labels for radios */
-      .product-gallery-thumb {
-        width: 60px;
-        height: 60px;
-        border-radius: 8px;
-        overflow: hidden;
-        cursor: pointer;
-        border: 2px solid transparent;
-        transition: border-color 0.2s
-        , transform 0.2s;
-      }
-
-      /* Highlight selected thumbnail */
-      {% for img in product.images %}
-        {% assign id = 'img-' | append: forloop.index %}
-        #{{ id }}:checked ~ .product-gallery-thumbs label[for="{{ id }}"] {
-          border-color: #ffd23d;
-          transform: translateY(-2px);
-        }
-      {% endfor %}
-
-      .product-gallery-thumb img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-
-      .product-details {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-      }
-
-      .product-details h1 {
-        font-size: 2rem;
-        font-weight: 700;
-      }
-
-      .product-details .product-category {
-        color: #666;
-        text-transform: uppercase;
-        font-size: 0.85rem;
-      }
-
-      .price {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        font-size: 1.5rem;
-        font-weight: 700;
-      }
-
-      .price-compare {
-        text-decoration: line-through;
-        font-weight: 400;
-        color: #999;
-        font-size: 1.2rem;
-      }
-
-      .variant-selector {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-      }
-
-      .variant-option {
-        padding: 0.5rem 1rem;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-      }
-
-      .variant-option.selected {
+    /* Highlight selected thumbnail */
+    {% for img in product.images %}
+      {% assign id = 'img-' | append: forloop.index %}
+      #{{ id }}:checked ~ .product-gallery-thumbs label[for="{{ id }}"] {
         border-color: #ffd23d;
-        background-color: #ffd23d;
-        color: #333;
+        transform: translateY(-2px);
       }
+    {% endfor %}
 
-      .stock-status {
-        font-weight: 600;
-        margin-top: 0.5rem;
-      }
+    .product-gallery-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
 
-      .out-of-stock {
-        color: #ff3b30;
-      }
+    .product-details {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
 
-      .in-stock {
-        color: #28a745;
-      }
+    .product-details h1 {
+      font-size: 2rem;
+      font-weight: 700;
+    }
 
-      /* Checkout Form */
-      .checkout-form {
-        padding: 1.5rem;
-        border: 1px solid #ddd;
-        border-radius: 12px;
-        background: #f9f9f9;
+    .product-details .product-category {
+      color: #666;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+    }
+
+    .price {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .price-compare {
+      text-decoration: line-through;
+      font-weight: 400;
+      color: #999;
+      font-size: 1.2rem;
+    }
+
+    .variant-selector {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .variant-option {
+      padding: 0.5rem 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .variant-option.selected {
+      border-color: #ffd23d;
+      background-color: #ffd23d;
+      color: #333;
+    }
+
+    .stock-status {
+      font-weight: 600;
+      margin-top: 0.5rem;
+    }
+
+    .out-of-stock {
+      color: #ff3b30;
+    }
+
+    .in-stock {
+      color: #28a745;
+    }
+
+    /* Checkout Form */
+    .checkout-form {
+      padding: 1.5rem;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      background: #f9f9f9;
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+
+    .checkout-form h3 {
+      font-size: 1.2rem;
+      margin-bottom: 0.8rem;
+      color: #333;
+    }
+    
+    .checkout-form label {
+      margin-bottom: 0.4rem;
+    }
+
+    .checkout-form label span {
+      font-size: 0.9rem;
+      margin-bottom: 0.3rem;
+      display: block;
+    }
+
+    .checkout-form fieldset {
+      border: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      gap: 1rem;
+    }
+
+    .checkout-form fieldset label {
+        flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 0.1rem;
       }
+    
+    .checkout-form input,
+    .checkout-form select,
+    .checkout-form textarea {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
 
-      .checkout-form h3 {
-        font-size: 1.2rem;
-        margin-bottom: 0.8rem;
-        color: #333;
-      }
-      
-      .checkout-form label {
-        margin-bottom: 0.4rem;
-      }
+    .order-summary {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 0.8rem;
+    }
 
-      .checkout-form label span {
-        font-size: 0.9rem;
-        margin-bottom: 0.3rem;
-        display: block;
-      }
+    .order-summary p {
+      margin: 0.3rem 0;
+    }
 
-      .checkout-form fieldset {
-        border: none;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        gap: 1rem;
+    /* Mobile fix: form fields in column */
+    @media (max-width: 768px) {
+      .product-detail {
+        grid-template-columns: 1fr;
       }
+    }
 
-      .checkout-form fieldset label {
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-        }
-      
-      .checkout-form input,
-      .checkout-form textarea {
-        width: 100%;
-        padding: 0.6rem;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-      }
+    .quantity-label input {
+      width: 80px;
+      height: 44px;
+      font-size: 18px;
+      text-align: center;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 0 6px;
+      -moz-appearance: textfield;
+    }
+  </style>
+</head>
 
-      .order-summary {
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 1rem;
-      }
+<body>
+  {% include "header.liquid" %}
 
-      .order-summary p {
-        margin: 0.3rem 0;
-      }
+  <main class="container">
+    <div class="product-detail">
+      <!-- Gallery -->
+      <div class="product-gallery">
+        {% for img in product.images %}
+          <input
+            type="radio"
+            name="gallery"
+            id="img-{{ forloop.index }}"
+            {% if forloop.first %}checked{% endif %}>
+        {% endfor %}
 
-      /* Mobile fix: form fields in column */
-      @media (max-width: 768px) {
-        .product-detail {
-          grid-template-columns: 1fr;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    {% include "header.liquid" %}
-
-      <main class="container">
-      <div class="product-detail">
-        <!-- Gallery -->
-        <div class="product-gallery">
+        <div class="product-gallery-main">
           {% for img in product.images %}
-            <!-- Hidden radio input -->
-            <input
-              type="radio"
-              name="gallery"
-              id="img-{{ forloop.index }}"
-              {% if forloop.first %}
-              checked{% endif %}>
+            <img src="{{ img }}" alt="Product image" class="img-{{ forloop.index }}">
           {% endfor %}
-
-          <!-- Main image container -->
-          <div class="product-gallery-main">
-            {% for img in product.images %}
-              <img
-                src="{{ img }}"
-                alt="Product image"
-                class="img-{{ forloop.index }}">
-            {% endfor %}
-          </div>
-
-          <!-- Thumbnails -->
-            <div class="product-gallery-thumbs">
-              {% for img in product.images %}
-                <label for="img-{{ forloop.index }}" class="product-gallery-thumb">
-                  <img src="{{ img }}" alt="Thumbnail">
-                </label>
-              {% endfor %}
-            </div>
         </div>
 
-        <!-- Details -->
-        <div class="product-details">
-          <h1>{{ product.title }}</h1>
-          {% if product.category %}
-            <div class="product-category">{{ product.category }}</div>
-          {% endif %}
-
-          <div class="price">
-            ${{ product.variants[0].price }}
-            {% if product.variants[0].compare_at and product.variants[0].compare_at > product.variants[0].price %}
-              <span class="price-compare">${{ product.variants[0].compare_at }}</span>
-            {% endif %}
-          </div>
-
-          {% if product.description != "" %}
-            <div class="description">{{ product.description }}</div>
-          {% endif %}
-
-          <!-- Variant Selector -->
-          {% if product.variants.size > 1 %}
-            <div class="variant-selector">
-              {% assign first_variant = product.variants[0] %}
-              {% for option_name in first_variant.options %}
-                <div class="variant-group">
-                  <span class="option-label">{{ option_name[0] }}:</span>
-                  {% assign seen_values = '' | split: ',' %}
-                  {% for variant in product.variants %}
-                    {% assign value = variant.options[option_name[0]] %}
-                    {% unless seen_values contains value %}
-                      <label class="variant-option">
-                        <input
-                          type="radio"
-                          name="{{ option_name[0] }}"
-                          value="{{ value }}"
-                          {% if forloop.first %}
-                          checked{% endif %}
-                          onchange="selectVariantByOptions()">
-                        {{ value }}
-                      </label>
-                      {% assign seen_values = seen_values | append: value | append: ',' %}
-                    {% endunless %}
-                  {% endfor %}
-                </div>
-              {% endfor %}
-            </div>
-          {% endif %}
-
-
-          <!-- Stock Status -->
-          <div class="stock-status" id="stock-status">
-            {% if product.variants[0].stocks > 0 %}
-              <span class="in-stock">متوفر في المخزون</span>
-            {% else %}
-              <span class="out-of-stock">غير متوفر</span>
-            {% endif %}
-          </div>
-
-          <!-- Add to Cart -->
-          <button
-            class="btn"
-            id="add-to-cart"
-            {% if product.variants[0].stocks == 0 %}
-            disabled{% endif %}>
-            أضف إلى السلة
-          </button>
-
-          <!-- Checkout Form -->
-          <form class="checkout-form">
-  <h3>معلومات العميل</h3>
-
-  <!-- Full Name -->
-  <label for="name">
-    <span>الاسم الكامل:</span>
-    <input type="text" id="name" name="name" required>
-  </label>
-
-  <!-- Phone -->
-  <label for="phone">
-    <span>رقم الهاتف:</span>
-    <input type="tel" id="phone" name="phone" required>
-  </label>
-
-  <!-- City and Address side by side -->
-  <fieldset>
-    <label for="city">
-      <span>المدينة:</span>
-      <input type="text" id="city" name="city" required>
-    </label>
-
-    <label for="address">
-      <span>العنوان:</span>
-      <input type="text" id="address" name="address" required>
-    </label>
-  </fieldset>
-
-  <h3>ملخص الطلب</h3>
-  <div class="order-summary">
-    <p>المنتج: {{ product.title }}</p>
-    <p>السعر: ${{ product.variants[0].price }}</p>
-  </div>
-
-  <button
-    type="submit"
-    class="btn btn-primary"
-    {% if product.variants[0].stocks == 0 %}disabled{% endif %}>
-    تأكيد الطلب
-  </button>
-</form>
-
+        <div class="product-gallery-thumbs">
+          {% for img in product.images %}
+            <label for="img-{{ forloop.index }}" class="product-gallery-thumb">
+              <img src="{{ img }}" alt="Thumbnail">
+            </label>
+          {% endfor %}
         </div>
       </div>
 
-      <!-- Related Products -->
-      {% if related_products.size > 0 %}
-        <h3 class="page-title">منتجات ذات صلة</h3>
-        <div class="products-grid">
-          {% for p in related_products %}
-            {% render "product-card.liquid"
-              , product: p %}
-          {% endfor %}
+      <!-- Details -->
+      <div class="product-details">
+        <h1>{{ product.title }}</h1>
+        {% if product.category %}
+          <div class="product-category">{{ product.category }}</div>
+        {% endif %}
+
+        <div class="price">
+          DZD {{ product.variants[0].price }}
+          {% if product.variants[0].compare_at and product.variants[0].compare_at > product.variants[0].price %}
+            <span class="price-compare">DZD {{ product.variants[0].compare_at }}</span>
+          {% endif %}
         </div>
-      {% endif %}
-    </main>
 
-    {% include "footer.liquid" %}
+        {% if product.description != "" %}
+          <div class="description">{{ product.description }}</div>
+        {% endif %}
 
-  </body>
+        <!-- Variant Selector -->
+        {% if product.variants.size > 1 %}
+          <div class="variant-selector">
+            {% assign first_variant = product.variants[0] %}
+            {% for option_name in first_variant.options %}
+              <div class="variant-group">
+                <span class="option-label">{{ option_name[0] }}:</span>
+                {% assign seen_values = '' | split: ',' %}
+                {% for variant in product.variants %}
+                  {% assign value = variant.options[option_name[0]] %}
+                  {% unless seen_values contains value %}
+                    <label class="variant-option">
+                      <input
+                        type="radio"
+                        name="{{ option_name[0] }}"
+                        value="{{ value }}"
+                        {% if forloop.first %}checked{% endif %}
+                        onchange="selectVariantByOptions()">
+                      {{ value }}
+                    </label>
+                    {% assign seen_values = seen_values | append: value | append: ',' %}
+                  {% endunless %}
+                {% endfor %}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <label for="quantity" class="quantity-label">
+          <span>الكمية:</span>
+          <input type="number" id="quantity" name="quantity" min="1" value="1" required>
+        </label>
+
+        <!-- Stock Status -->
+        <div class="stock-status" id="stock-status">
+          {% if product.variants[0].stocks > 0 %}
+            <span class="in-stock">متوفر في المخزون</span>
+          {% else %}
+            <span class="out-of-stock">غير متوفر</span>
+          {% endif %}
+        </div>
+
+        <!-- Add to Cart -->
+        <button class="btn" id="add-to-cart" onclick="window.addToCart('{{ product.id }}')"
+          {% if product.variants[0].stocks == 0 %}disabled{% endif %}>
+          أضف إلى السلة
+        </button>
+
+        <!-- Checkout Form -->
+        <form class="checkout-form" onsubmit="handleCheckoutFormSubmit(event)">
+          <h3>معلومات العميل</h3>
+
+          <label for="name">
+            <span>الاسم الكامل:</span>
+            <input type="text" id="name" name="name" required>
+          </label>
+
+          <label for="phone">
+            <span>رقم الهاتف:</span>
+            <input type="tel" id="phone" name="phone" required>
+          </label>
+
+          <h3>معلومات الشحن</h3>
+          <fieldset>
+            <label>
+              <span>الولاية:</span>
+              <select name="state" id="state" required>
+                <option value="" selected disabled>اختر الولاية</option>
+              </select>
+            </label>
+            <label>
+              <span>المقاطعة:</span>
+              <select name="province" id="province" required>
+                <option value="" selected disabled>اختر المقاطعة</option>
+              </select>
+            </label>
+          </fieldset>
+
+          <label for="address">
+            <span>العنوان:</span>
+            <input type="text" id="address" name="address" required>
+          </label>
+
+          <label>
+            <span>طريقة الشحن:</span>
+            <select name="shippingMethod" id="shippingMethod" required>
+              <option value="" selected disabled>اختر الطريقة</option>
+            </select>
+          </label>
+
+          <h3>ملخص الطلب</h3>
+          <div class="order-summary" id="order-summary">
+            <p>المنتج: {{ product.title }}</p>
+            <p>السعر: DZD {{ product.variants[0].price }}</p>
+            <p>الشحن: DZD 0</p>
+            <p><strong>المجموع: DZD {{ product.variants[0].price }}</strong></p>
+          </div>
+
+          <button type="submit" class="btn btn-primary"
+            {% if product.variants[0].stocks == 0 %}disabled{% endif %}>
+            تأكيد الطلب
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Related Products -->
+    {% if related_products.size > 0 %}
+      <h3 class="page-title">منتجات ذات صلة</h3>
+      <div class="products-grid">
+        {% for p in related_products %}
+          {% render "product-card.liquid", product: p %}
+        {% endfor %}
+      </div>
+    {% endif %}
+  </main>
+
+  {% include "footer.liquid" %}
+
+  <script>
+    const shippingData = {
+      "State A": {
+        "Province 1": { desk: 5, home: 10 },
+        "Province 2": { desk: 7, home: 12 }
+      },
+      "State B": {
+        "Province 3": { desk: 8, home: 15 }
+      }
+    };
+
+    function setupOrderForm(basePrice) {
+      const stateSelect = document.getElementById("state");
+      const provinceSelect = document.getElementById("province");
+      const methodSelect = document.getElementById("shippingMethod");
+      const summary = document.getElementById("order-summary");
+
+      // Fill states
+      Object.keys(shippingData).forEach(s => {
+        stateSelect.innerHTML += `<option value="${s}">${s}</option>`;
+      });
+
+      stateSelect.addEventListener("change", () => {
+        provinceSelect.innerHTML = `<option value="" selected disabled>اختر المقاطعة</option>`;
+        methodSelect.innerHTML = `<option value="" selected disabled>اختر الطريقة</option>`;
+        if (!stateSelect.value) return;
+        Object.keys(shippingData[stateSelect.value]).forEach(p => {
+          provinceSelect.innerHTML += `<option value="${p}">${p}</option>`;
+        });
+        updateSummary();
+      });
+
+      provinceSelect.addEventListener("change", () => {
+        methodSelect.innerHTML = `<option value="" selected disabled>اختر الطريقة</option>`;
+        if (!provinceSelect.value) return;
+        const methods = shippingData[stateSelect.value][provinceSelect.value];
+        Object.keys(methods).forEach(m => {
+          methodSelect.innerHTML += `<option value="${m}">${m} (DZD ${methods[m]})</option>`;
+        });
+        updateSummary();
+      });
+
+      methodSelect.addEventListener("change", updateSummary);
+
+      function updateSummary() {
+        let shippingCost = 0;
+        if (stateSelect.value && provinceSelect.value && methodSelect.value) {
+          shippingCost =
+            shippingData[stateSelect.value][provinceSelect.value][methodSelect.value] || 0;
+        }
+        const total = basePrice + shippingCost;
+        summary.innerHTML = `
+          <p>المنتج: {{ product.title }}</p>
+          <p>السعر: DZD ${basePrice}</p>
+          <p>الشحن: DZD ${shippingCost}</p>
+          <p><strong>المجموع: DZD ${total}</strong></p>
+        `;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      setupOrderForm({{ product.variants[0].price }});
+    });
+
+    function handleCheckoutFormSubmit(e) {
+      e.preventDefault();
+
+      const name = document.getElementById("name").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const state = document.getElementById("state").value;
+      const province = document.getElementById("province").value;
+      const address = document.getElementById("address").value.trim();
+      const shippingMethod = document.getElementById("shippingMethod").value;
+      const quantity = parseInt(document.getElementById("quantity").value, 10);
+
+      const order = {
+        customer_email: null,
+        customer_name: name,
+        customer_phone: phone,
+        items: [
+          {
+            product_id: "{{ product.id }}",
+            variant_sku: "{{ product.variants[0].sku }}",
+            quantity: quantity
+          }
+        ],
+        shipping_address: {
+          full_name: name,
+          address_line_1: address,
+          address_line_2: null,
+          city: province,
+          state: state,
+          postal_code: "",
+          country: "DZ",
+          phone: phone
+        },
+        billing_address: null,
+        notes: shippingMethod
+      };
+
+      fetch("/api/v1/orders/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(order)
+      })
+        .then(res => {
+          if (!res.ok) throw new Error("Failed to create order");
+          return res.json();
+        })
+        .then(data => {
+          console.log("Order created:", data);
+          alert("✅ تم إرسال طلبك بنجاح!");
+        })
+        .catch(err => {
+          console.error(err);
+          alert("❌ حدث خطأ أثناء إرسال الطلب");
+        });
+    }
+  </script>
+
+</body>
 </html>

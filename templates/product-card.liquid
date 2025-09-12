@@ -47,9 +47,9 @@
     {% endif %}
 
     <div class="product-price">
-      <span class="current-price">${{ product.variants[0].price }}</span>
+      <span class="current-price">DZD {{ product.variants[0].price }}</span>
       {% if product.variants[0].compare_at and product.variants[0].compare_at > product.variants[0].price %}
-        <span class="compare-price">${{ product.variants[0].compare_at }}</span>
+        <span class="compare-price">DZD {{ product.variants[0].compare_at }}</span>
         {% assign discount = product.variants[0].compare_at | minus: product.variants[0].price | times: 100 | divided_by: product.variants[0].compare_at %}
         <span class="discount-percent">-{{ discount }}%</span>
       {% endif %}
