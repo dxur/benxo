@@ -28,7 +28,7 @@ mail.{$DOMAIN} {
 *.{$STORE_SUFFIX} {
 	tls internal
 	handle /api* {
-		reverse_proxy http://backend:3000
+		reverse_proxy http://backend:5080
 	}
 
 	handle {
@@ -48,7 +48,7 @@ https:// {
 	}
 
 	handle /api* {
-		reverse_proxy http://backend:3000
+		reverse_proxy http://backend:5080
 	}
 
 	handle {
